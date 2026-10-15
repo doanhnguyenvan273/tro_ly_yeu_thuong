@@ -1,10 +1,134 @@
 import sqlite3
+import requests
 from datetime import datetime, date, timedelta
 from typing import List, Dict, Any, Optional
-from config import DB_PATH
+from config import DB_PATH, TURSO_DATABASE_URL, TURSO_AUTH_TOKEN
+
+class TursoCursor:
+    def __init__(self, conn):
+        self.conn = conn
+        self._rows = []
+        self._lastrowid = None
+        self._rowcount = 0
+        self._index = 0
+
+    def execute(self, sql: str, params=()):
+        result = self.conn._execute_stmt(sql, params)
+        cols = [c["name"] for c in result.get("cols", [])]
+        rows = result.get("rows", [])
+        self._lastrowid = int(result["last_insert_rowid"]) if result.get("last_insert_rowid") is not None else None
+        self._rowcount = result.get("affected_row_count", 0)
+        
+        parsed_rows = []
+        for r in rows:
+            row_dict = {}
+            for col_name, val_obj in zip(cols, r):
+                t = val_obj.get("type")
+                v = val_obj.get("value")
+                if t == "null" or v is None:
+                    row_dict[col_name] = None
+                elif t == "integer":
+                    row_dict[col_name] = int(v)
+                elif t == "float":
+                    row_dict[col_name] = float(v)
+                else:
+                    row_dict[col_name] = str(v)
+            parsed_rows.append(row_dict)
+        self._rows = parsed_rows
+        self._index = 0
+        return self
+
+    def fetchone(self):
+        if self._index < len(self._rows):
+            row = self._rows[self._index]
+            self._index += 1
+            return row
+        return None
+
+    def fetchall(self):
+        res = self._rows[self._index:]
+        self._index = len(self._rows)
+        return res
+
+    @property
+    def lastrowid(self):
+        return self._lastrowid
+
+    @property
+    def rowcount(self):
+        return self._rowcount
+
+class TursoConnection:
+    def __init__(self, url: str, token: str):
+        if url.startswith("libsql://"):
+            url = url.replace("libsql://", "https://")
+        if not url.endswith("/v2/pipeline"):
+            url = url.rstrip("/") + "/v2/pipeline"
+        self.pipeline_url = url
+        self.token = token
+        self.headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+    def _format_args(self, params):
+        formatted = []
+        for p in params:
+            if p is None:
+                formatted.append({"type": "null"})
+            elif isinstance(p, bool):
+                formatted.append({"type": "integer", "value": "1" if p else "0"})
+            elif isinstance(p, int):
+                formatted.append({"type": "integer", "value": str(p)})
+            elif isinstance(p, float):
+                formatted.append({"type": "float", "value": p})
+            else:
+                formatted.append({"type": "text", "value": str(p)})
+        return formatted
+
+    def _execute_stmt(self, sql: str, params=()):
+        args = self._format_args(params) if params else []
+        payload = {
+            "requests": [
+                {
+                    "type": "execute",
+                    "stmt": {
+                        "sql": sql,
+                        "args": args
+                    }
+                },
+                {"type": "close"}
+            ]
+        }
+        resp = requests.post(self.pipeline_url, headers=self.headers, json=payload, timeout=15)
+        if resp.status_code != 200:
+            raise Exception(f"Turso Error {resp.status_code}: {resp.text}")
+        data = resp.json()
+        first_result = data.get("results", [{}])[0]
+        if first_result.get("type") == "error":
+            raise Exception(f"Turso Query Error: {first_result.get('error', {}).get('message')}")
+        return first_result.get("response", {}).get("result", {})
+
+    def cursor(self):
+        return TursoCursor(self)
+
+    def commit(self):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
 def get_connection():
-    """Tạo kết nối tới SQLite CSDL."""
+    """Tạo kết nối tới Turso Cloud DB (nếu có cấu hình) hoặc fallback về SQLite local."""
+    if TURSO_DATABASE_URL and TURSO_AUTH_TOKEN:
+        try:
+            return TursoConnection(TURSO_DATABASE_URL, TURSO_AUTH_TOKEN)
+        except Exception as e:
+            print(f"[Database] Lỗi kết nối Turso ({e}), chuyển sang SQLite local.")
+    
     conn = sqlite3.connect(str(DB_PATH), check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn

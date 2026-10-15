@@ -75,6 +75,12 @@ ALLOWED_CHAT_IDS = [str(cid).strip() for cid in [HER_CHAT_ID, YOUR_CHAT_ID] if s
 # Mật khẩu bảo vệ giao diện Web (Streamlit trên Render hoặc mạng LAN)
 WEB_PASSWORD = os.getenv("WEB_PASSWORD", "Love2010")
 
+# TURSO CLOUD DATABASE
+TURSO_DATABASE_URL = os.getenv("TURSO_DATABASE_URL", "").strip()
+if TURSO_DATABASE_URL.startswith("libsql://"):
+    TURSO_DATABASE_URL = TURSO_DATABASE_URL.replace("libsql://", "https://")
+TURSO_AUTH_TOKEN = os.getenv("TURSO_AUTH_TOKEN", "").strip()
+
 # Biến tương thích ngược
 settings = _settings
 TELEGRAM_HER_CHAT_ID = HER_CHAT_ID
