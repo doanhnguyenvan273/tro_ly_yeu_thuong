@@ -1,0 +1,11 @@
+python-telegram-bot
+requests
+schedule
+scikit-learn
+pandas
+joblib
+easyocr
+python-dotenv
+streamlit
+pillow
+numpy
