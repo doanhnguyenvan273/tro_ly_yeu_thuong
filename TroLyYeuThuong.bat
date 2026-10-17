@@ -63,6 +63,11 @@ if %errorlevel% neq 0 (
     %PY_CMD% -m pip install -r requirements.txt
 )
 
+REM Tu dong tao Shortcut trai tim ra Desktop neu chua co
+if not exist "%USERPROFILE%\Desktop\Tro Ly Yeu Thuong.lnk" (
+    %PY_CMD% create_desktop_shortcut.py >nul 2>nul
+)
+
 echo [2/2] Dang mo giao dien Tro Ly Yeu Thuong...
 echo.
 %PY_CMD% run_app.py
