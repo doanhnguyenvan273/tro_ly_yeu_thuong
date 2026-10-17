@@ -58,6 +58,44 @@ class TursoCursor:
     def rowcount(self):
         return self._rowcount
 
+_turso_session = None
+
+def get_turso_session() -> requests.Session:
+    global _turso_session
+    if _turso_session is None:
+        _turso_session = _create_turso_session()
+    return _turso_session
+
+def _create_turso_session() -> requests.Session:
+    """Tạo một requests.Session mới với retry policy."""
+    from urllib3.util.retry import Retry
+    session = requests.Session()
+    retry = Retry(
+        total=3,
+        backoff_factor=0.5,
+        status_forcelist=[500, 502, 503, 504],
+        allowed_methods=["POST"],
+        raise_on_status=False,
+    )
+    adapter = requests.adapters.HTTPAdapter(
+        pool_connections=5,
+        pool_maxsize=10,
+        max_retries=retry,
+    )
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    return session
+
+def reset_turso_session():
+    """Xóa session cũ đã bị đứt kết nối để lần sau tạo mới."""
+    global _turso_session
+    if _turso_session is not None:
+        try:
+            _turso_session.close()
+        except Exception:
+            pass
+    _turso_session = None
+
 class TursoConnection:
     def __init__(self, url: str, token: str):
         if url.startswith("libsql://"):
@@ -100,7 +138,24 @@ class TursoConnection:
                 {"type": "close"}
             ]
         }
-        resp = requests.post(self.pipeline_url, headers=self.headers, json=payload, timeout=15)
+        # Thử lần 1 với session hiện tại, nếu bị đứt kết nối thì reset để retry
+        for attempt in range(2):
+            try:
+                session = get_turso_session()
+                resp = session.post(
+                    self.pipeline_url,
+                    headers=self.headers,
+                    json=payload,
+                    timeout=15,
+                )
+                break  # thành công, thoát vòng
+            except requests.exceptions.ConnectionError as e:
+                if attempt == 0:
+                    # Session bị chết → reset và thử lại với session mới
+                    print(f"[Turso] Connection dropped, resetting session and retrying... ({e})")
+                    reset_turso_session()
+                else:
+                    raise  # Lần 2 vẫn lỗi → cho nổ lần này
         if resp.status_code != 200:
             raise Exception(f"Turso Error {resp.status_code}: {resp.text}")
         data = resp.json()
@@ -151,9 +206,16 @@ def init_db():
             category TEXT NOT NULL,        -- Môn lý thuyết, Môn đồ án/bài tập lớn, Môn ngoại ngữ
             notes TEXT DEFAULT '',
             total_sessions INTEGER DEFAULT 15,
+            max_absences INTEGER DEFAULT 3, -- Số buổi được phép vắng (nhập thủ công)
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
+        # Migration: Thêm cột max_absences nếu DB cũ chưa có
+        try:
+            cursor.execute("ALTER TABLE class_schedules ADD COLUMN max_absences INTEGER DEFAULT 3")
+            conn.commit()
+        except Exception:
+            pass  # Cột đã tồn tại, bỏ qua
 
         # Bảng Điểm danh học tập
         cursor.execute('''
@@ -241,28 +303,40 @@ def init_db():
 
 # ======================= CRUD: LỊCH HỌC & ĐIỂM DANH =======================
 
-def add_schedule(subject_name: str, day_of_week: int, day_name: str, 
-                 start_time: str, end_time: str, room: str, 
-                 category: str, notes: str = "", total_sessions: int = 15) -> int:
+def add_schedule(subject_name: str, day_of_week: int, day_name: str,
+                 start_time: str, end_time: str, room: str,
+                 category: str, notes: str = "", total_sessions: int = 15,
+                 max_absences: int = 3) -> int:
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''
-        INSERT INTO class_schedules (subject_name, day_of_week, day_name, start_time, end_time, room, category, notes, total_sessions)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (subject_name, day_of_week, day_name, start_time, end_time, room, category, notes, total_sessions))
+        INSERT INTO class_schedules (subject_name, day_of_week, day_name, start_time, end_time, room, category, notes, total_sessions, max_absences)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (subject_name, day_of_week, day_name, start_time, end_time, room, category, notes, total_sessions, max_absences))
         conn.commit()
         return cursor.lastrowid
 
 def update_schedule(schedule_id: int, subject_name: str, day_of_week: int, day_name: str,
                     start_time: str, end_time: str, room: str,
-                    category: str, notes: str, total_sessions: int):
+                    category: str, notes: str, total_sessions: int, max_absences: int = 3):
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''
-        UPDATE class_schedules 
-        SET subject_name = ?, day_of_week = ?, day_name = ?, start_time = ?, end_time = ?, room = ?, category = ?, notes = ?, total_sessions = ?
+        UPDATE class_schedules
+        SET subject_name = ?, day_of_week = ?, day_name = ?, start_time = ?, end_time = ?, room = ?, category = ?, notes = ?, total_sessions = ?, max_absences = ?
         WHERE id = ?
-        ''', (subject_name, day_of_week, day_name, start_time, end_time, room, category, notes, total_sessions, schedule_id))
+        ''', (subject_name, day_of_week, day_name, start_time, end_time, room, category, notes, total_sessions, max_absences, schedule_id))
+        conn.commit()
+
+def update_schedule_limits(schedule_id: int, total_sessions: int, max_absences: int):
+    """Cập nhật nhanh tổng số buổi và giới hạn số buổi được phép nghỉ."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+        UPDATE class_schedules
+        SET total_sessions = ?, max_absences = ?
+        WHERE id = ?
+        ''', (total_sessions, max_absences, schedule_id))
         conn.commit()
 
 def delete_schedule(schedule_id: int):
@@ -297,40 +371,92 @@ def log_attendance(schedule_id: int, log_date: str, status: str, notes: str = ""
 def get_attendance_stats(schedule_id: int) -> Dict[str, Any]:
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT total_sessions, subject_name FROM class_schedules WHERE id = ?", (schedule_id,))
+        cursor.execute("SELECT total_sessions, max_absences, subject_name FROM class_schedules WHERE id = ?", (schedule_id,))
         sched = cursor.fetchone()
         if not sched:
-            return {"total": 0, "attended": 0, "absent": 0, "online": 0, "absent_rate": 0.0, "is_warning": False}
-        
+            return {"total": 0, "max_absences": 3, "attended": 0, "absent": 0, "online": 0, "absent_rate": 0.0, "remaining_absences": 3, "is_warning": False}
+
         total = sched["total_sessions"] or 15
+        # Ưu tiên max_absences do người dùng nhập; fallback về 20% tổng buổi
+        max_abs = sched["max_absences"]
+        if max_abs is None:
+            max_abs = max(1, int(total * 0.2))
         subject_name = sched["subject_name"]
-        
+
         cursor.execute("SELECT status, COUNT(*) as count FROM attendance_logs WHERE schedule_id = ? GROUP BY status", (schedule_id,))
         rows = cursor.fetchall()
         counts = {r["status"]: r["count"] for r in rows}
-        
+
         attended = counts.get("Đã đi học", 0)
         absent = counts.get("Vắng mặt", 0)
         online = counts.get("Học Online", 0)
-        
+
         absent_rate = (absent / total) * 100.0 if total > 0 else 0.0
-        # Cảnh báo nếu vắng mặt quá 20% số buổi quy định
-        is_warning = absent_rate >= 20.0 or absent >= (total * 0.2)
-        
+        remaining = max_abs - absent
+        # Cảnh báo khi số buổi vắng vượt quá giới hạn cho phép
+        is_warning = absent >= max_abs
+
         return {
             "schedule_id": schedule_id,
             "subject_name": subject_name,
             "total": total,
+            "max_absences": max_abs,
             "attended": attended,
             "absent": absent,
             "online": online,
             "absent_rate": round(absent_rate, 1),
+            "remaining_absences": remaining,
             "is_warning": is_warning
         }
 
 def get_all_attendance_stats() -> List[Dict[str, Any]]:
+    """Lấy thống kê điểm danh cho tất cả các môn trong duy nhất 1-2 truy vấn (tối ưu tốc độ)."""
     schedules = get_all_schedules()
-    return [get_attendance_stats(s["id"]) for s in schedules]
+    if not schedules:
+        return []
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT schedule_id, status, COUNT(*) as count FROM attendance_logs GROUP BY schedule_id, status")
+        rows = cursor.fetchall()
+
+    counts_map = {}
+    for r in rows:
+        sid = r["schedule_id"]
+        if sid not in counts_map:
+            counts_map[sid] = {}
+        counts_map[sid][r["status"]] = r["count"]
+
+    res = []
+    for s in schedules:
+        sid = s["id"]
+        total = s.get("total_sessions") or 10
+        max_abs = s.get("max_absences")
+        if max_abs is None:
+            max_abs = max(1, int(total * 0.2))
+
+        c = counts_map.get(sid, {})
+        attended = c.get("Đã đi học", 0)
+        absent = c.get("Vắng mặt", 0)
+        online = c.get("Học Online", 0)
+
+        absent_rate = (absent / total) * 100.0 if total > 0 else 0.0
+        remaining = max_abs - absent
+        is_warning = absent >= max_abs
+
+        res.append({
+            "schedule_id": sid,
+            "subject_name": s["subject_name"],
+            "total": total,
+            "max_absences": max_abs,
+            "attended": attended,
+            "absent": absent,
+            "online": online,
+            "absent_rate": round(absent_rate, 1),
+            "remaining_absences": remaining,
+            "is_warning": is_warning
+        })
+    return res
 
 def get_attendance_history(schedule_id: Optional[int] = None) -> List[Dict[str, Any]]:
     with get_connection() as conn:

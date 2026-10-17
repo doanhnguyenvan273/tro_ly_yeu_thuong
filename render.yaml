@@ -1,7 +1,20 @@
 services:
   - type: web
-    name: tro-ly-yeu-thuong-backend
+    name: tro-ly-yeu-thuong
     env: python
+    region: singapore
+    plan: free
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python server.py"
     autoDeploy: true
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: HER_CHAT_ID
+        sync: false
+      - key: YOUR_CHAT_ID
+        sync: false
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
