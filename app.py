@@ -22,9 +22,14 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Khởi động scheduler & telegram listener (chỉ 1 lần)
-scheduler.start_scheduler()
-telegram_listener.start_telegram_listener()
+# Khởi động scheduler & telegram listener (chỉ 1 lần duy nhất cho toàn bộ app)
+@st.cache_resource
+def init_background_services():
+    scheduler.start_scheduler()
+    telegram_listener.start_telegram_listener()
+    return True
+
+init_background_services()
 
 # ──────────────────────────────────────────────────────────────────────────────
 # GLOBAL CSS — Modern Soft Dashboard
@@ -368,18 +373,64 @@ div.stButton > button:hover { transform: scale(1.025) translateY(-1px) !importan
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
-# HELPER FUNCTIONS
+# HIGH-PERFORMANCE DATA LAYER (Tăng tốc độ phản hồi, loại bỏ lag khi thao tác)
 # ──────────────────────────────────────────────────────────────────────────────
-settings = config.load_settings()
-her_name = settings.get("her_name", "Em Yêu 🌸")
+@st.cache_data(ttl=60, show_spinner=False)
+def get_cached_settings():
+    return config.load_settings()
 
+@st.cache_data(ttl=45, show_spinner=False)
+def get_cached_schedules():
+    return database.get_all_schedules()
 
-def render_cat(filename: str, caption: str, width: int = 150):
-    """Hiển thị sticker mèo an toàn với kiểm tra os.path.exists()."""
+@st.cache_data(ttl=45, show_spinner=False)
+def get_cached_tasks():
+    return database.get_all_tasks()
+
+@st.cache_data(ttl=45, show_spinner=False)
+def get_cached_medicines():
+    return database.get_all_medicines()
+
+@st.cache_data(ttl=45, show_spinner=False)
+def get_cached_today_meds(today_str: str):
+    return database.get_today_medicine_status(today_str)
+
+@st.cache_data(ttl=45, show_spinner=False)
+def get_cached_attendance_stats():
+    return database.get_all_attendance_stats()
+
+@st.cache_data(ttl=45, show_spinner=False)
+def get_cached_single_attendance_stats(schedule_id: int):
+    return database.get_attendance_stats(schedule_id)
+
+@st.cache_data(ttl=45, show_spinner=False)
+def get_cached_menstrual_records():
+    return database.get_all_menstrual_records()
+
+@st.cache_data(ttl=45, show_spinner=False)
+def get_cached_cycle_prediction():
+    return menstrual_ml.predict_next_cycle()
+
+def invalidate_cache():
+    """Xóa bộ nhớ đệm ngay lập tức khi thêm/sửa/xóa để giao diện cập nhật tức thì."""
+    st.cache_data.clear()
+
+@st.cache_data(show_spinner=False)
+def get_cat_image_bytes(filename: str):
     path = os.path.join("catmeme", filename)
     if os.path.exists(path):
-        st.image(path, caption=caption, width=width)
+        with open(path, "rb") as f:
+            return f.read()
+    return None
 
+def render_cat(filename: str, caption: str, width: int = 150):
+    """Hiển thị sticker mèo mượt mà trực tiếp từ RAM cache."""
+    data = get_cat_image_bytes(filename)
+    if data:
+        st.image(data, caption=caption, width=width)
+
+settings = get_cached_settings()
+her_name = settings.get("her_name", "Em Yêu 🌸")
 
 def check_schedule_conflicts(schedules):
     """Kiểm tra trùng lịch."""
@@ -463,16 +514,16 @@ if selected_nav == "🏠 Trang Chủ":
     day_names = ["Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật"]
     today_day_name = day_names[day_idx]
 
-    all_scheds_home = database.get_all_schedules()
+    all_scheds_home = get_cached_schedules()
     today_scheds = [s for s in all_scheds_home if s.get("day_of_week") == day_idx]
 
-    all_tasks_home = database.get_all_tasks()
+    all_tasks_home = get_cached_tasks()
     pending_tasks = [t for t in all_tasks_home if t.get("status") != "Đã hoàn thành"]
 
-    pred_home = menstrual_ml.predict_next_cycle()
+    pred_home = get_cached_cycle_prediction()
 
     today_str_home = today_date.strftime("%Y-%m-%d")
-    today_meds_home = database.get_today_medicine_status(today_str_home)
+    today_meds_home = get_cached_today_meds(today_str_home)
     total_meds_home = len(today_meds_home)
     taken_meds_home = sum(1 for m in today_meds_home if m["taken"]) if today_meds_home else 0
 
@@ -561,8 +612,8 @@ if selected_nav == "🏠 Trang Chủ":
         </div>""", unsafe_allow_html=True)
 
 elif selected_nav == "🎒 Lịch Học":
-    all_scheds_check = database.get_all_schedules()
-    has_conflict, c_s1, c_s2 = check_schedule_conflicts(all_scheds_check)
+    all_scheds = get_cached_schedules()
+    has_conflict, c_s1, c_s2 = check_schedule_conflicts(all_scheds)
 
     # ── Header row ──
     col_lh_main, col_lh_cat = st.columns([2.5, 1])
@@ -662,6 +713,7 @@ elif selected_nav == "🎒 Lịch Học":
                     database.add_schedule(subj_name.strip(), day_idx, day_select, start_str, end_str,
                                           room.strip(), category, notes.strip() if notes else "",
                                           int(total_sess), int(max_abs))
+                    invalidate_cache()
                     st.success(f"✅ Đã lưu môn '{subj_name}'! (Tổng: {int(total_sess)} buổi | Được nghỉ: {int(max_abs)} buổi)")
                     st.balloons()
                     st.rerun()
@@ -684,7 +736,6 @@ elif selected_nav == "🎒 Lịch Học":
 
     # ────────────────────── ĐIỂM DANH ──────────────────────
     with sub_att:
-        all_scheds = database.get_all_schedules()
         if not all_scheds:
             st.info("📭 Chưa có môn học nào. Hãy thêm môn ở tab **➕ Thêm Môn Học** trước nhé!")
         else:
@@ -704,7 +755,7 @@ elif selected_nav == "🎒 Lịch Học":
             with att_c4:
                 att_note = st.text_input("Lý do / ghi chú:", placeholder="VD: Bệnh...")
 
-            stats       = database.get_attendance_stats(sel_id)
+            stats       = get_cached_single_attendance_stats(sel_id)
             max_abs_val = stats.get("max_absences", 3)
             remaining   = stats.get("remaining_absences", max_abs_val - stats["absent"])
 
@@ -724,16 +775,16 @@ elif selected_nav == "🎒 Lịch Học":
 
             if st.button("📝 Ghi Nhận Điểm Danh Buổi Này", use_container_width=True, type="primary"):
                 database.log_attendance(sel_id, att_date.strftime("%Y-%m-%d"), att_status, att_note)
+                invalidate_cache()
                 st.success(f"✅ Đã ghi nhận: **{att_status}** ngày {att_date.strftime('%d/%m/%Y')}!")
                 st.rerun()
 
     # ────────────────────── TOÀN BỘ LỊCH HỌC ──────────────────────
     with sub_view:
-        all_scheds = database.get_all_schedules()
         if not all_scheds:
             st.info("Chưa có môn học nào.")
         else:
-            all_stats    = database.get_all_attendance_stats()
+            all_stats    = get_cached_attendance_stats()
             stats_by_id  = {stt["schedule_id"]: stt for stt in all_stats}
             rows = []
             for s in all_scheds:
@@ -771,6 +822,7 @@ elif selected_nav == "🎒 Lịch Học":
                         st.error("Số buổi nghỉ phải nhỏ hơn tổng!")
                     else:
                         database.update_schedule_limits(edit_sched["id"], int(new_total), int(new_max))
+                        invalidate_cache()
                         st.success(f"✅ Đã cập nhật '{edit_sched['subject_name']}': {int(new_total)} buổi, nghỉ {int(new_max)}!")
                         st.rerun()
 
@@ -780,6 +832,7 @@ elif selected_nav == "🎒 Lịch Học":
                 del_id = int(del_label.split(":")[0].replace("ID","").strip())
                 if st.button("Xác nhận xóa", type="primary"):
                     database.delete_schedule(del_id)
+                    invalidate_cache()
                     st.success("Đã xóa!")
                     st.rerun()
 
@@ -793,18 +846,22 @@ elif selected_nav == "📝 Deadline":
         st.subheader("⏰ Quản Lý Deadline & AI Dự Đoán Rủi Ro")
         st.markdown('<p class="hint-text">Thêm bài tập, AI tự tính xác suất trễ hạn và Bot nhắc nhở đúng các mốc thời gian.</p>', unsafe_allow_html=True)
 
+    tasks = get_cached_tasks()
+    all_scheds = get_cached_schedules()
+    now_dt = datetime.now()
+    today_wd = now_dt.weekday()
+    classes_today = len([s for s in all_scheds if s.get("day_of_week") == today_wd])
+
     with col_dl_cat:
         # Kiểm tra có bài tập nào đang trễ không để hiển thị meme phù hợp
-        _tasks_preview = database.get_all_tasks()
-        _now_p = datetime.now()
         _has_overdue_p = any(
-            t["status"] != "Đã hoàn thành" and datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M") < _now_p
-            for t in _tasks_preview
-        ) if _tasks_preview else False
-        _has_pending_p = any(t["status"] != "Đã hoàn thành" for t in _tasks_preview) if _tasks_preview else False
+            t["status"] != "Đã hoàn thành" and datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M") < now_dt
+            for t in tasks
+        ) if tasks else False
+        _has_pending_p = any(t["status"] != "Đã hoàn thành" for t in tasks) if tasks else False
 
         st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        if not _tasks_preview or not _has_pending_p:
+        if not tasks or not _has_pending_p:
             render_cat("smile-cat.png", "Không có deadline! Tận hưởng thôi 😸✨", width=150)
         elif _has_overdue_p:
             render_cat("cry-cat.jpg", "Huhu, deadline trễ rồi cứu tuiii 😿", width=150)
@@ -819,7 +876,6 @@ elif selected_nav == "📝 Deadline":
         form_dl, tip_dl = st.columns([2.2, 1])
         with form_dl:
             st.markdown('<div class="card">', unsafe_allow_html=True)
-            all_scheds = database.get_all_schedules()
             subj_list  = list(set([s["subject_name"] for s in all_scheds])) if all_scheds else []
 
             st.markdown('<span class="step-label">1</span> <b>Thông tin bài tập</b>', unsafe_allow_html=True)
@@ -853,8 +909,6 @@ elif selected_nav == "📝 Deadline":
                 deadline_str = f"{due_date.strftime('%Y-%m-%d')} {due_hour}"
                 deadline_dt  = datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
                 diff_h       = (deadline_dt - datetime.now()).total_seconds() / 3600.0
-                today_wd     = datetime.now().weekday()
-                classes_today = len(database.get_schedules_by_day(today_wd))
                 if diff_h > 0:
                     quick_ai   = deadline_ml.predict_deadline_risk(task_name, classes_today, diff_h, est_hours)
                     risk_color = "#d81159" if quick_ai["risk_percentage"] >= 70 else ("#d97706" if quick_ai["risk_percentage"] >= 40 else "#0d8a52")
@@ -876,6 +930,7 @@ elif selected_nav == "📝 Deadline":
                 else:
                     deadline_str = f"{due_date.strftime('%Y-%m-%d')} {due_hour}"
                     database.add_task(task_name.strip(), str(subj_task), deadline_str, float(est_hours), "Chưa làm")
+                    invalidate_cache()
                     st.success(f"✅ Đã lưu task '{task_name}'! Bot Telegram sẽ nhắc đúng các mốc thời gian.")
                     st.rerun()
 
@@ -895,8 +950,6 @@ elif selected_nav == "📝 Deadline":
 
     # ── Danh sách task ──
     with sub_list_t:
-        tasks = database.get_all_tasks()
-
         if not tasks:
             col_notask, col_cat_dl = st.columns([2.2, 1])
             with col_notask:
@@ -909,11 +962,8 @@ elif selected_nav == "📝 Deadline":
                 render_cat("smile-cat.png", "Sạch deadline! Tận hưởng thôi! 😸✨", width=160)
                 st.markdown('</div>', unsafe_allow_html=True)
         else:
-            now         = datetime.now()
-            today_wd    = now.weekday()
-            classes_today = len(database.get_schedules_by_day(today_wd))
             has_overdue = any(
-                t["status"] != "Đã hoàn thành" and datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M") < now
+                t["status"] != "Đã hoàn thành" and datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M") < now_dt
                 for t in tasks
             )
             has_pending = any(t["status"] != "Đã hoàn thành" for t in tasks)
@@ -936,7 +986,7 @@ elif selected_nav == "📝 Deadline":
                     if filter_status and filter_status != "Tất cả" and t["status"] != filter_status:
                         continue
                     d_dt   = datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M")
-                    diff_h = (d_dt - now).total_seconds() / 3600.0
+                    diff_h = (d_dt - now_dt).total_seconds() / 3600.0
                     pred   = deadline_ml.predict_deadline_risk(t["task_name"], classes_today, max(0.1,diff_h), t["estimated_hours"])
                     badge_cls = "badge-safe" if t["status"]=="Đã hoàn thành" else ("badge-warn" if t["status"]=="Đang làm" else "badge-danger")
                     risk_icon = "🔴" if pred["risk_percentage"]>=70 else ("🟡" if pred["risk_percentage"]>=40 else "🟢")
@@ -950,10 +1000,22 @@ elif selected_nav == "📝 Deadline":
                             {risk_icon} <b>AI Rủi ro:</b> {pred['risk_percentage']}% — {pred['warning_message']}
                         </div>""", unsafe_allow_html=True)
                         b1,b2,b3,b4 = st.columns(4)
-                        if b1.button("⏳ Chưa làm", key=f"td_{t['id']}"): database.update_task_status(t["id"],"Chưa làm"); st.rerun()
-                        if b2.button("🔨 Đang làm",  key=f"tp_{t['id']}"): database.update_task_status(t["id"],"Đang làm"); st.rerun()
-                        if b3.button("🎉 Đã xong",   key=f"td2_{t['id']}"): database.update_task_status(t["id"],"Đã hoàn thành"); st.rerun()
-                        if b4.button("🗑️ Xóa",        key=f"del_{t['id']}", type="secondary"): database.delete_task(t["id"]); st.rerun()
+                        if b1.button("⏳ Chưa làm", key=f"td_{t['id']}"):
+                            database.update_task_status(t["id"],"Chưa làm")
+                            invalidate_cache()
+                            st.rerun()
+                        if b2.button("🔨 Đang làm",  key=f"tp_{t['id']}"):
+                            database.update_task_status(t["id"],"Đang làm")
+                            invalidate_cache()
+                            st.rerun()
+                        if b3.button("🎉 Đã xong",   key=f"td2_{t['id']}"):
+                            database.update_task_status(t["id"],"Đã hoàn thành")
+                            invalidate_cache()
+                            st.rerun()
+                        if b4.button("🗑️ Xóa",        key=f"del_{t['id']}", type="secondary"):
+                            database.delete_task(t["id"])
+                            invalidate_cache()
+                            st.rerun()
 
     # ── AI nhanh ──
     with sub_ai_t:
@@ -978,7 +1040,7 @@ elif selected_nav == "📝 Deadline":
 # TAB 3 — CHU KỲ SINH LÝ
 # ══════════════════════════════════════════════════════════════════════════════
 elif selected_nav == "🌸 Chu Kỳ":
-    pred = menstrual_ml.predict_next_cycle()
+    pred = get_cached_cycle_prediction()
 
     # ── Header row ──
     col_ck_main, col_ck_cat = st.columns([2.5, 1])
@@ -1022,6 +1084,7 @@ elif selected_nav == "🌸 Chu Kỳ":
         if st.button("💖 HÔM NAY BẮT ĐẦU KỲ MỚI", use_container_width=True, type="primary"):
             database.add_menstrual_record(date.today().strftime("%Y-%m-%d"))
             menstrual_ml.retrain_model()
+            invalidate_cache()
             st.balloons()
             st.success("Đã ghi nhận! AI đã cập nhật cơ địa của em.")
             st.rerun()
@@ -1033,6 +1096,7 @@ elif selected_nav == "🌸 Chu Kỳ":
             if st.button("Lưu ngày này", use_container_width=True):
                 database.add_menstrual_record(cus_d.strftime("%Y-%m-%d"), cycle_length=int(cus_len))
                 menstrual_ml.retrain_model()
+                invalidate_cache()
                 st.success("Đã lưu và cập nhật AI!")
                 st.rerun()
 
@@ -1076,12 +1140,13 @@ elif selected_nav == "🌸 Chu Kỳ":
 
         if st.button("🔄 Huấn Luyện Lại AI (Retrain)", use_container_width=True):
             menstrual_ml.retrain_model()
+            invalidate_cache()
             st.success("AI đã được cập nhật theo thuật toán 3 lớp!")
 
     # ── Lịch sử ──
     st.divider()
     st.markdown("#### 📜 Lịch Sử Chu Kỳ Đã Ghi Nhận")
-    records = database.get_all_menstrual_records()
+    records = get_cached_menstrual_records()
     if records:
         df_m = pd.DataFrame(records)[["id","start_date","cycle_length","period_length","notes"]]
         df_m.columns = ["ID","Ngày Bắt Đầu","Độ Dài CK (ngày)","Số Ngày Đèn Đỏ","Ghi Chú"]
@@ -1093,6 +1158,7 @@ elif selected_nav == "🌸 Chu Kỳ":
             if st.button("Xóa bản ghi này", type="primary"):
                 database.delete_menstrual_record(del_m_id)
                 menstrual_ml.retrain_model()
+                invalidate_cache()
                 st.success("Đã xóa!")
                 st.rerun()
     else:
@@ -1103,9 +1169,9 @@ elif selected_nav == "🌸 Chu Kỳ":
 # ══════════════════════════════════════════════════════════════════════════════
 elif selected_nav == "💊 Đơn Thuốc":
     today_str_m  = date.today().strftime("%Y-%m-%d")
-    today_meds_h = database.get_today_medicine_status(today_str_m)
-    total_h      = len(today_meds_h)
-    taken_h      = sum(1 for m in today_meds_h if m["taken"]) if today_meds_h else 0
+    today_meds   = get_cached_today_meds(today_str_m)
+    total_h      = len(today_meds)
+    taken_h      = sum(1 for m in today_meds if m["taken"]) if today_meds else 0
 
     col_med_main, col_med_cat = st.columns([2.5, 1])
     with col_med_main:
@@ -1113,7 +1179,7 @@ elif selected_nav == "💊 Đơn Thuốc":
         st.markdown('<p class="hint-text">Theo dõi lịch uống thuốc, quét đơn bằng AI và nhận nhắc nhở đúng giờ qua Telegram.</p>', unsafe_allow_html=True)
     with col_med_cat:
         st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        if today_meds_h and taken_h == total_h:
+        if today_meds and taken_h == total_h:
             render_cat("smile-cat.png", "Uống đủ thuốc rồi! Bé ngoan! 😸💊", width=160)
         else:
             render_cat("doctor-cat.png", "Bác sĩ Meow nhắc nhớ uống thuốc! 🩺💊", width=160)
@@ -1123,9 +1189,6 @@ elif selected_nav == "💊 Đơn Thuốc":
 
     # ── Lịch hôm nay ──
     with med_t1:
-        today_str  = date.today().strftime("%Y-%m-%d")
-        today_meds = database.get_today_medicine_status(today_str)
-
         if not today_meds:
             c_info, c_dc = st.columns([2.2, 1])
             with c_info:
@@ -1177,7 +1240,8 @@ elif selected_nav == "💊 Đơn Thuốc":
                             if st.button(f"✅ Đánh dấu Đã uống lúc {item['time_slot']}",
                                          key=f"take_{item['medicine_id']}_{item['time_slot']}",
                                          use_container_width=True):
-                                database.log_medicine_taken(item["medicine_id"], today_str, item["time_slot"])
+                                database.log_medicine_taken(item["medicine_id"], today_str_m, item["time_slot"])
+                                invalidate_cache()
                                 st.success("Bé giỏi quá! 🌸")
                                 st.rerun()
                         with c_test:
@@ -1220,7 +1284,7 @@ elif selected_nav == "💊 Đơn Thuốc":
                             st.success("Đã nhận diện! Kiểm tra lại thông tin bên dưới.")
                             if ocr_data.get("raw_text"):
                                 with st.expander("Xem văn bản thô"):
-                                    st.text(ocr_data["raw_text"])
+                                     st.text(ocr_data["raw_text"])
 
             st.markdown('<span class="step-label">1</span> <b>Thông tin thuốc</b>', unsafe_allow_html=True)
             m1, m2 = st.columns(2)
@@ -1263,6 +1327,7 @@ elif selected_nav == "💊 Đơn Thuốc":
                 else:
                     database.add_medicine(med_name.strip(), med_dosage.strip(), med_times.strip(),
                                           int(med_days), med_start.strftime("%Y-%m-%d"), saved_img_path)
+                    invalidate_cache()
                     st.success(f"✅ Đã lưu lịch uống '{med_name}'! Bot sẽ nhắc đúng giờ.")
                     st.rerun()
 
@@ -1284,7 +1349,7 @@ elif selected_nav == "💊 Đơn Thuốc":
 
     # ── Danh sách thuốc ──
     with med_t3:
-        all_meds = database.get_all_medicines()
+        all_meds = get_cached_medicines()
         if not all_meds:
             st.info("Chưa có thuốc nào được thêm.")
         else:
@@ -1304,6 +1369,7 @@ elif selected_nav == "💊 Đơn Thuốc":
                 </div>""", unsafe_allow_html=True)
                 if st.button(f"🗑️ Xóa '{m['name']}'", key=f"del_med_{m['id']}"):
                     database.delete_medicine(m["id"])
+                    invalidate_cache()
                     st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1319,7 +1385,7 @@ elif selected_nav == "⚙️ Cài Đặt":
         render_cat("chating_cat.jpg", "Bot luôn sẵn sàng trò chuyện! 🐱💬", width=160)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    cur = config.load_settings()
+    cur = get_cached_settings()
 
     st.markdown("""<div class="card">
         <div class="section-title">📋 Hướng dẫn nhanh lấy Bot Token & Chat ID (chỉ 3 phút)</div>
@@ -1363,6 +1429,7 @@ elif selected_nav == "⚙️ Cài Đặt":
                 "secret_mode_enabled":   secret_on,
             })
             if config.save_settings(cur):
+                invalidate_cache()
                 st.success("✅ Đã lưu cấu hình!")
                 st.rerun()
 
@@ -1379,9 +1446,10 @@ elif selected_nav == "⚙️ Cài Đặt":
             st.success("✅ Secret Mode OK!") if res2 else st.error("❌ Thất bại. Kiểm tra Chat ID của Bạn!")
     with tt3:
         if st.button("🎉 Kích Hoạt Lời Chúc Mừng", use_container_width=True):
-            cur2 = config.load_settings()
+            cur2 = get_cached_settings()
             cur2["startup_greeting_sent"] = False
             config.save_settings(cur2)
+            invalidate_cache()
             scheduler.check_and_send_startup_greeting()
             st.success("Đã bắn lời chúc ngọt ngào tới Cô Ấy!")
 

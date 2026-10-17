@@ -615,11 +615,21 @@ def is_medicine_taken_today(medicine_id: int, log_date: str, time_slot: str) -> 
         return cursor.fetchone() is not None
 
 def get_today_medicine_status(today_str: str) -> List[Dict[str, Any]]:
-    """Lấy danh sách tất cả các liều thuốc cần uống hôm nay cùng trạng thái đã uống hay chưa."""
+    """Lấy danh sách tất cả các liều thuốc cần uống hôm nay trong DUY NHẤT 1 truy vấn (tối ưu tốc độ cao)."""
     medicines = get_all_medicines(only_active=True)
+    if not medicines:
+        return []
+
     results = []
     today_d = datetime.strptime(today_str, "%Y-%m-%d").date()
-    
+
+    # Gom tất cả các liều đã uống trong ngày hôm nay vào 1 truy vấn duy nhất thay vì N truy vấn lặp
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT medicine_id, time_slot FROM medicine_logs WHERE date = ? AND status = 'Đã uống'", (today_str,))
+        taken_rows = cursor.fetchall()
+        taken_set = {(r["medicine_id"], str(r["time_slot"]).strip()) for r in taken_rows}
+
     for med in medicines:
         med_start = datetime.strptime(med["start_date"], "%Y-%m-%d").date()
         days_passed = (today_d - med_start).days
@@ -627,7 +637,7 @@ def get_today_medicine_status(today_str: str) -> List[Dict[str, Any]]:
         if 0 <= days_passed < med["days_count"]:
             times_list = [t.strip() for t in med["times"].split(",") if t.strip()]
             for slot in times_list:
-                taken = is_medicine_taken_today(med["id"], today_str, slot)
+                taken = (med["id"], slot) in taken_set
                 results.append({
                     "medicine_id": med["id"],
                     "medicine_name": med["name"],
