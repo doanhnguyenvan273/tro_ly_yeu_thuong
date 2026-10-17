@@ -82,7 +82,7 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
     -webkit-backdrop-filter: blur(16px) !important;
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08) !important;
     border-bottom: 1.5px solid rgba(255, 182, 193, 0.5) !important;
-    padding: 8px 32px !important;
+    padding: 8px 24px !important;
     box-sizing: border-box !important;
     border-radius: 0 !important;
     margin: 0 !important;
@@ -112,6 +112,108 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
     font-weight: 600;
     color: #0d8a52;
     white-space: nowrap;
+}
+
+/* ── RESPONSIVE BREAKPOINT CHO NAVBAR: DESKTOP (> 768px) vs MOBILE (<= 768px) ── */
+@media (min-width: 769px) {
+    .st-key-desktop_nav_wrap {
+        display: block !important;
+    }
+    .st-key-mobile_nav_wrap {
+        display: none !important;
+    }
+    .block-container {
+        padding-top: 75px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .st-key-desktop_nav_wrap {
+        display: none !important;
+    }
+    .st-key-mobile_nav_wrap {
+        display: block !important;
+    }
+    .st-key-sticky_nav_container {
+        padding: 6px 12px !important;
+    }
+    .block-container {
+        padding-top: 68px !important;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
+    }
+    .navbar-logo-mobile {
+        font-size: 1.05rem !important;
+        font-weight: 700 !important;
+        color: #d81159 !important;
+        white-space: nowrap !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .hero-section {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        padding: 18px 16px !important;
+        gap: 12px !important;
+    }
+    .hero-status-box {
+        width: 100% !important;
+        margin-top: 6px !important;
+    }
+    .hero-title {
+        font-size: 1.45rem !important;
+    }
+}
+
+/* Style nút Hamburger Popover trên Mobile */
+.st-key-mobile_nav_wrap button[data-testid="stBaseButton-popover"] {
+    background: linear-gradient(135deg, #fff0f3, #ffe6eb) !important;
+    color: #d81159 !important;
+    border: 1.5px solid #ffb6c1 !important;
+    border-radius: 20px !important;
+    font-weight: 700 !important;
+    font-size: 0.88rem !important;
+    padding: 4px 12px !important;
+    box-shadow: 0 2px 6px rgba(216, 17, 89, 0.12) !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+}
+.st-key-mobile_nav_wrap button[data-testid="stBaseButton-popover"]:hover {
+    background: linear-gradient(135deg, #ffe6eb, #ffd9e2) !important;
+    transform: translateY(-1px) !important;
+    border-color: #d81159 !important;
+}
+
+/* Chấm tròn xanh 🟢 nhấp nháy cho Mobile Badge Popover */
+.st-key-mobile_cloud_badge button[data-testid="stBaseButton-popover"] {
+    background: #e8f8f0 !important;
+    color: #0d8a52 !important;
+    border: 1.5px solid #a8e6cf !important;
+    border-radius: 50% !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    max-width: 36px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.05rem !important;
+    box-shadow: 0 0 8px rgba(0, 184, 148, 0.35) !important;
+    animation: pulse-cloud-badge 2s infinite !important;
+    margin: 0 auto !important;
+}
+
+@keyframes pulse-cloud-badge {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.6);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(0, 184, 148, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 184, 148, 0);
+    }
 }
 
 /* ── STICKY NAVBAR RADIO BUTTONS (Horizontal Pill Navigation) ── */
@@ -447,7 +549,7 @@ def check_schedule_conflicts(schedules):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# STICKY NAVBAR (Widget Điều Hướng Thực Tế Bấm Là Chuyển Trang)
+# STICKY NAVBAR (Widget Điều Hướng Tự Động Thích Ứng Desktop & Mobile)
 # ──────────────────────────────────────────────────────────────────────────────
 NAV_OPTIONS = [
     "🏠 Trang Chủ",
@@ -461,23 +563,71 @@ NAV_OPTIONS = [
 if "active_nav" not in st.session_state:
     st.session_state["active_nav"] = NAV_OPTIONS[0]
 
+def sync_nav_from_desktop():
+    if "nav_desktop" in st.session_state:
+        val = st.session_state["nav_desktop"]
+        st.session_state["active_nav"] = val
+        st.session_state["nav_mobile"] = val
+
+def sync_nav_from_mobile():
+    if "nav_mobile" in st.session_state:
+        val = st.session_state["nav_mobile"]
+        st.session_state["active_nav"] = val
+        st.session_state["nav_desktop"] = val
+
+cur_idx = NAV_OPTIONS.index(st.session_state["active_nav"]) if st.session_state["active_nav"] in NAV_OPTIONS else 0
+
 with st.container(key="sticky_nav_container"):
-    c_logo, c_menu, c_status = st.columns([1.3, 4.7, 1.4], vertical_alignment="center")
-    with c_logo:
-        st.markdown('<div class="navbar-logo">💖 Trợ Lý Yêu Thương</div>', unsafe_allow_html=True)
-    with c_menu:
-        cur_idx = NAV_OPTIONS.index(st.session_state["active_nav"]) if st.session_state["active_nav"] in NAV_OPTIONS else 0
-        selected_nav = st.radio(
-            "",
-            options=NAV_OPTIONS,
-            index=cur_idx,
-            horizontal=True,
-            label_visibility="collapsed",
-            key="sticky_nav_radio",
-        )
-        st.session_state["active_nav"] = selected_nav
-    with c_status:
-        st.markdown('<div class="nav-status-wrap"><span class="navbar-status">🟢 Cloud 24/7 &amp; Turso DB</span></div>', unsafe_allow_html=True)
+    # ── 1. GIAO DIỆN DESKTOP (width > 768px): Thanh ngang đầy đủ ──
+    with st.container(key="desktop_nav_wrap"):
+        c_logo, c_menu, c_status = st.columns([1.4, 4.6, 1.4], vertical_alignment="center")
+        with c_logo:
+            st.markdown('<div class="navbar-logo">💖 Trợ Lý Yêu Thương</div>', unsafe_allow_html=True)
+        with c_menu:
+            st.radio(
+                "",
+                options=NAV_OPTIONS,
+                index=cur_idx,
+                horizontal=True,
+                label_visibility="collapsed",
+                key="nav_desktop",
+                on_change=sync_nav_from_desktop,
+            )
+        with c_status:
+            st.markdown('<div class="nav-status-wrap"><span class="navbar-status">🟢 Cloud 24/7 &amp; Turso DB</span></div>', unsafe_allow_html=True)
+
+    # ── 2. GIAO DIỆN MOBILE / TABLET (width <= 768px): Hamburger ☰ Popover & Chấm Xanh 🟢 ──
+    with st.container(key="mobile_nav_wrap"):
+        m_logo, m_menu, m_badge = st.columns([1.6, 3.4, 0.8], vertical_alignment="center")
+        with m_logo:
+            st.markdown('<div class="navbar-logo-mobile">💖 Trợ Lý</div>', unsafe_allow_html=True)
+        with m_menu:
+            with st.popover(f"☰ {st.session_state['active_nav']}", use_container_width=True):
+                st.markdown("<div style='font-weight:700;color:#d81159;font-size:0.95rem;margin-bottom:8px;'>🌸 Chọn chuyên mục:</div>", unsafe_allow_html=True)
+                st.radio(
+                    "Mobile Nav",
+                    options=NAV_OPTIONS,
+                    index=cur_idx,
+                    key="nav_mobile",
+                    label_visibility="collapsed",
+                    on_change=sync_nav_from_mobile,
+                )
+        with m_badge:
+            with st.container(key="mobile_cloud_badge"):
+                with st.popover("🟢", use_container_width=True):
+                    st.markdown("""
+                    <div style="font-size:0.86rem;line-height:1.65;min-width:210px;padding:4px 2px;">
+                        <div style="font-weight:700;color:#0d8a52;font-size:0.95rem;margin-bottom:6px;border-bottom:1px solid #e0f2e9;padding-bottom:4px;">
+                            🟢 Cloud 24/7 &amp; Turso DB
+                        </div>
+                        ☁️ <b>Server:</b> Online (Render Singapore)<br>
+                        🗄️ <b>Database:</b> Turso Cloud (Tokyo)<br>
+                        🤖 <b>Bot Telegram:</b> Polling 24/7 Active<br>
+                        🔄 <b>Đồng bộ:</b> Thời gian thực 0đ
+                    </div>
+                    """, unsafe_allow_html=True)
+
+selected_nav = st.session_state["active_nav"]
 
 # ──────────────────────────────────────────────────────────────────────────────
 # HERO SECTION
