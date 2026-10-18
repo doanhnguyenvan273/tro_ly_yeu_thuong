@@ -60,10 +60,10 @@ MOOD_KEYBOARD = {
 }
 
 AI_RESPONSES = {
-    "Happy": "Tuyệt vời quá! Chúc em yêu luôn giữ nụ cười tươi tắn này nhé! 🥰",
+    "Happy": "Tuyệt vời quá! Chúc em bé luôn giữ nụ cười tươi tắn này nhé! 🥰",
     "Sad": "Thương em lắm! Đừng buồn nhé, có anh và Bác sĩ Mèo luôn ở bên em này! Nghỉ ngơi một chút và uống nước ấm nha em! 💖",
     "Stressed": "Thương em lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha em! 💖",
-    "Angry": "Thương em lắm! Hít thở thật sâu một chút nhé em yêu, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
+    "Angry": "Thương em lắm! Hít thở thật sâu một chút nhé em bé, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
     "Tired": "Thương em nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé em! 🍵💤💖",
 }
 
@@ -285,7 +285,7 @@ def handle_complete_deadline_command(text: str, user_display: str) -> str:
         for new_idx, r in enumerate(remaining_tasks, 1):
             rem_bullets.append(f"• <b>[{new_idx}] {r['task_name']}</b> (Hạn: {r['deadline']})")
         rem_str = "\n".join(rem_bullets)
-        rem_info = f"\n\n📝 <b>Hiện em còn {len(remaining_tasks)} bài tập nữa nè:</b>\n{rem_str}\n\nCố lên nhé em yêu! Anh luôn cổ vũ em! 💪🌸"
+        rem_info = f"\n\n📝 <b>Hiện em còn {len(remaining_tasks)} bài tập nữa nè:</b>\n{rem_str}\n\nCố lên nhé em bé! Anh luôn cổ vũ em! 💪🌸"
     else:
         rem_info = f"\n\n🎊 <b>WOAHH! Em đã dọn sạch TẤT CẢ deadline rồi!</b> Thật tự hào về em! Nghỉ ngơi cho khỏe nhé cô bé siêu giỏi giang! 🍵🧸💖"
 
@@ -505,7 +505,7 @@ def handle_incoming_message(msg: Dict[str, Any]):
     text_lower = text.lower()
 
     if sender_id_str == her_id:
-        user_display = settings.get("her_name", "Em yêu 🌸")
+        user_display = settings.get("her_name", "Em bé 🌸")
     elif sender_id_str == my_id:
         user_display = settings.get("my_name", "Anh 💖")
     else:

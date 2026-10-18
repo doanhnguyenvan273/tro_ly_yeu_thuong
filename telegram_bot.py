@@ -59,10 +59,10 @@ MOOD_MAP = {
 }
 
 AI_RESPONSES = {
-    "Happy": "Tuyệt vời quá! Chúc em yêu luôn giữ nụ cười tươi tắn này nhé! 🥰",
+    "Happy": "Tuyệt vời quá! Chúc em bé luôn giữ nụ cười tươi tắn này nhé! 🥰",
     "Sad": "Thương em lắm! Đừng buồn nhé, có anh và Bác sĩ Mèo luôn ở bên em này! Nghỉ ngơi một chút và uống nước ấm nha em! 💖",
     "Stressed": "Thương em lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha em! 💖",
-    "Angry": "Thương em lắm! Hít thở thật sâu một chút nhé em yêu, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
+    "Angry": "Thương em lắm! Hít thở thật sâu một chút nhé em bé, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
     "Tired": "Thương em nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé em! 🍵💤💖",
 }
 

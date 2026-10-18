@@ -52,7 +52,7 @@ DEFAULT_SETTINGS = {
     "telegram_bot_token": "",
     "telegram_her_chat_id": "",
     "telegram_my_chat_id": "",
-    "her_name": "Em yêu 🌸",
+    "her_name": "Em bé 🌸",
     "my_name": "Anh 💖",
     "startup_greeting_sent": False,
     "secret_mode_enabled": True

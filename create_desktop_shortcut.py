@@ -22,7 +22,7 @@ def create_shortcut():
         $scDesktop.TargetPath = "{bat_file}";
         $scDesktop.WorkingDirectory = "{base_dir}";
         $scDesktop.IconLocation = "{icon_file}";
-        $scDesktop.Description = "Tro Ly Yeu Thuong - Danh tang Em Yeu";
+        $scDesktop.Description = "Tro Ly Yeu Thuong - Danh tang Em Be";
         $scDesktop.Save();
         Write-Output "Da tao Shortcut tren Desktop!";
     }}

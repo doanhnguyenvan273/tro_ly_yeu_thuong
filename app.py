@@ -560,7 +560,7 @@ def render_cat(filename: str, caption: str, width: int = 150):
         st.image(data, caption=caption, width=width)
 
 settings = get_cached_settings()
-her_name = settings.get("her_name", "Em Yêu 🌸")
+her_name = settings.get("her_name", "Em Bé 🌸")
 
 def check_schedule_conflicts(schedules):
     """Kiểm tra trùng lịch."""
@@ -1679,7 +1679,7 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
     AI_RESP_MAP = {
         "Happy":    "Tuyệt vời quá! Chúc em luôn giữ nụ cười tươi tắn này nhé! Mèo yêu em nhiều 🥰🌸",
         "Normal":   "Một ngày bình yên trôi qua cũng là điều tuyệt vời! Cứ từ từ tận hưởng nhé em 🌸",
-        "Stressed": "Đừng quá sức nhé em yêu! Nghỉ ngơi một chút, uống nước ấm và để Bác sĩ Mèo ôm cái nào 💖",
+        "Stressed": "Đừng quá sức nhé em bé! Nghỉ ngơi một chút, uống nước ấm và để Bác sĩ Mèo ôm cái nào 💖",
         "Sad":      "Thương em lắm! Có anh và Bác sĩ Mèo luôn ở bên cạnh em, mọi chuyện rồi sẽ ổn thôi 💫🧸",
         "Angry":    "Hít thở sâu một cái nào cô bé! Đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe và nụ cười xinh nhé 🍵💖",
         "Tired":    "Hôm nay em vất vả nhiều rồi! Mau đi ngủ sớm sạc lại năng lượng nhé, ngoan nào 😴🛌🌙",
@@ -2196,7 +2196,7 @@ elif selected_nav == "⚙️ Cài Đặt":
             her_chat   = st.text_input("Chat ID của Cô Ấy (*)",
                 value=cur.get("telegram_her_chat_id",""), placeholder="VD: 987654321")
             her_name_v = st.text_input("Tên hiển thị của Cô Ấy",
-                value=cur.get("her_name","Em yêu 🌸"))
+                value=cur.get("her_name","Em bé 🌸"))
         with sc2:
             my_chat   = st.text_input("Chat ID của Bạn (Secret Mode)",
                 value=cur.get("telegram_my_chat_id",""), placeholder="VD: 123456789")
@@ -2226,7 +2226,7 @@ elif selected_nav == "⚙️ Cài Đặt":
     tt1, tt2, tt3 = st.columns(3)
     with tt1:
         if st.button("📤 Gửi Test → Cô Ấy", use_container_width=True):
-            res = notifier.notify_her("💖 Xin chào Em Yêu! Trợ Lý Yêu Thương đang hoạt động và luôn ở bên em! 🌸")
+            res = notifier.notify_her("💖 Xin chào Em Bé! Trợ Lý Yêu Thương đang hoạt động và luôn ở bên em! 🌸")
             st.success("✅ Gửi thành công!") if res else st.error("❌ Gửi thất bại. Kiểm tra Bot Token & Chat ID, nhớ bấm /start!")
     with tt2:
         if st.button("🍓 Gửi Test Secret Mode", use_container_width=True):

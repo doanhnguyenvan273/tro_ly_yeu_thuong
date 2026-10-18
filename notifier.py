@@ -84,7 +84,7 @@ def send_telegram_photo(chat_id: Union[str, int], photo_path: Union[str, Path], 
     return send_telegram_message(chat_id, caption, parse_mode=parse_mode)
 
 def notify_her(message: str, photo_path: Optional[str] = None) -> bool:
-    """Gửi thông báo tới Em Yêu."""
+    """Gửi thông báo tới Em Bé."""
     her_chat_id = (HER_CHAT_ID or load_settings().get("telegram_her_chat_id", "")).strip()
     if not her_chat_id:
         return False

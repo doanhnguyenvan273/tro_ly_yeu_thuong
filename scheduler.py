@@ -23,7 +23,7 @@ def check_and_send_startup_greeting():
     """Gửi tin nhắn chào mừng khi ứng dụng khởi chạy lần đầu."""
     settings = load_settings()
     if not settings.get("startup_greeting_sent", False):
-        her_name = settings.get("her_name", "Em yêu 🌸")
+        her_name = settings.get("her_name", "Em bé 🌸")
         msg = (
             f"🎉 <b>CHÀO MỪNG {her_name.upper()} ĐẾN VỚI TRỢ LÝ YÊU THƯƠNG 💖</b>\n\n"
             f"Hôm nay là một ngày thật đặc biệt! Ứng dụng trợ lý nhỏ bé này được tạo ra dành riêng cho em, "
@@ -42,7 +42,7 @@ def build_good_morning_message(now=None) -> str:
         now = get_now()
 
     settings = load_settings()
-    her_name = settings.get("her_name", "Em yêu")
+    her_name = settings.get("her_name", "Em bé")
     today_dow = now.weekday()
     day_names = {0: "Thứ Hai", 1: "Thứ Ba", 2: "Thứ Tư", 3: "Thứ Năm",
                  4: "Thứ Sáu", 5: "Thứ Bảy", 6: "Chủ Nhật"}
@@ -116,7 +116,7 @@ def build_good_night_message(now=None) -> str:
         now = get_now()
 
     settings = load_settings()
-    her_name = settings.get("her_name", "Em yêu")
+    her_name = settings.get("her_name", "Em bé")
     today_str = now.strftime("%Y-%m-%d")
 
     # Lấy cảm xúc của cô ấy trong ngày hôm nay
@@ -146,7 +146,7 @@ def build_good_night_message(now=None) -> str:
             mood_tag = "🌸 <b>Tâm trạng hôm nay: Bình yên</b>"
             mood_wish = (
                 "Một ngày êm ả, dịu dàng khép lại. Những ngày bình dị thế này luôn mang lại sự nhẹ nhõm cho tâm hồn. "
-                "Hãy thả lỏng toàn bộ cơ thể và ngủ một giấc thật sâu, thật ngon nhé em yêu! 🍃💤"
+                "Hãy thả lỏng toàn bộ cơ thể và ngủ một giấc thật sâu, thật ngon nhé em bé! 🍃💤"
             )
         elif mtype == "Stressed":
             mood_tag = "💆‍♀️ <b>Tâm trạng hôm nay: Căng thẳng & Áp lực</b>"
@@ -176,7 +176,7 @@ def build_good_night_message(now=None) -> str:
             )
         else:
             mood_tag = "✨ <b>Tâm trạng hôm nay: Đã ghi nhận</b>"
-            mood_wish = "Ngày dài khép lại rồi, hãy ngủ một giấc thật ngon và ngọt ngào nhé em yêu! 💖"
+            mood_wish = "Ngày dài khép lại rồi, hãy ngủ một giấc thật ngon và ngọt ngào nhé em bé! 💖"
 
         msg += f"{mood_tag}\n<i>{mood_wish}</i>\n"
         if note:
@@ -264,7 +264,7 @@ def check_weekly_summary():
         return
 
     settings = load_settings()
-    her_name = settings.get("her_name", "Em yêu")
+    her_name = settings.get("her_name", "Em bé")
 
     # Deadline sắp đến trong 7 ngày
     all_tasks = database.get_all_tasks(filter_status=None)
@@ -452,7 +452,7 @@ def check_menstrual_cycle():
             pms_msg = (
                 f"🌸 <b>TRỢ LÝ YÊU THƯƠNG NHẮC NHỞ EM</b> 🌸\n\n"
                 f"Dự kiến khoảng 3 ngày nữa là đến chu kỳ mới của em rồi đó (ngày {pred_next_str}).\n"
-                f"Mấy ngày này em nhớ giữ ấm bụng, uống nước ấm, hạn chế ăn đồ lạnh và ngủ sớm nha em yêu! 🍵💖"
+                f"Mấy ngày này em nhớ giữ ấm bụng, uống nước ấm, hạn chế ăn đồ lạnh và ngủ sớm nha em bé! 🍵💖"
             )
             if notifier.notify_her(pms_msg):
                 database.log_notification_sent("pms_her", target_key, "her", pms_msg)
