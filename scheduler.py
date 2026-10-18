@@ -9,7 +9,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 import database
 import notifier
-from config import load_settings, save_settings
+from config import load_settings, save_settings, get_now
 import deadline_ml
 import menstrual_ml
 
@@ -38,7 +38,7 @@ def check_and_send_startup_greeting():
 
 def check_good_morning():
     """Gửi tin nhắn chào buổi sáng lúc 7:00 mỗi ngày kèm tóm tắt lịch ngày hôm đó."""
-    now = datetime.now()
+    now = get_now()
     if now.hour != 7 or now.minute > 5:
         return
 
@@ -104,7 +104,7 @@ def check_good_morning():
 
 def check_good_night():
     """Gửi tin nhắn chúc ngủ ngon lúc 22:30 mỗi ngày."""
-    now = datetime.now()
+    now = get_now()
     if now.hour != 22 or now.minute < 30 or now.minute > 35:
         return
 
@@ -153,7 +153,7 @@ def check_good_night():
 
 def check_drink_water_reminder():
     """Nhắc uống nước mỗi 2 giờ trong khoảng 8:00 – 20:00."""
-    now = datetime.now()
+    now = get_now()
     hour = now.hour
     # Chỉ nhắc trong khung giờ sinh hoạt (8, 10, 12, 14, 16, 18, 20)
     remind_hours = [8, 10, 12, 14, 16, 18, 20]
@@ -179,7 +179,7 @@ def check_drink_water_reminder():
 
 def check_weekly_summary():
     """Gửi tóm tắt tuần vào Chủ Nhật lúc 20:00."""
-    now = datetime.now()
+    now = get_now()
     if now.weekday() != 6 or now.hour != 20 or now.minute > 5:
         return
 
@@ -234,7 +234,7 @@ def _get_hours_left(deadline_str: str) -> float:
         return -1
     try:
         deadline_dt = datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
-        return (deadline_dt - datetime.now()).total_seconds() / 3600.0
+        return (deadline_dt - get_now()).total_seconds() / 3600.0
     except Exception:
         return -1
 
@@ -242,7 +242,7 @@ def _get_hours_left(deadline_str: str) -> float:
 
 def check_class_schedules():
     """Kiểm tra lịch học và gửi thông báo nhắc nhở trước 30 phút."""
-    now = datetime.now()
+    now = get_now()
     current_weekday = now.weekday()
     today_str = now.strftime("%Y-%m-%d")
 
@@ -287,7 +287,7 @@ def check_class_schedules():
 
 def check_task_deadlines():
     """Kiểm tra và gửi nhắc nhở deadline trước 48h, 24h, 12h và 3h kèm AI đánh giá rủi ro."""
-    now = datetime.now()
+    now = get_now()
     tasks = database.get_all_tasks(filter_status=None)
 
     today_weekday = now.weekday()
@@ -399,7 +399,7 @@ def check_menstrual_cycle():
 
 def check_medicine_schedules():
     """Kiểm tra lịch uống thuốc đúng khung giờ và gửi Telegram kèm ảnh."""
-    now = datetime.now()
+    now = get_now()
     today_str = now.strftime("%Y-%m-%d")
 
     today_medicines = database.get_today_medicine_status(today_str)

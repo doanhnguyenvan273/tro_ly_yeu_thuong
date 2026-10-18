@@ -648,7 +648,7 @@ st.markdown(f"""
         <div class="hero-status-row">Turso DB: Đã kết nối</div>
         <div class="hero-status-row">🤖 Telegram: Đang bật</div>
         <div class="hero-status-row" style="margin-top:6px;opacity:.8;">
-            🕐 {datetime.now().strftime('%H:%M, %d/%m/%Y')}
+            🕐 {config.get_now().strftime('%H:%M, %d/%m/%Y')}
         </div>
     </div>
 </div>
@@ -998,7 +998,7 @@ elif selected_nav == "📝 Deadline":
 
     tasks = get_cached_tasks()
     all_scheds = get_cached_schedules()
-    now_dt = datetime.now()
+    now_dt = config.get_now()
     today_wd = now_dt.weekday()
     classes_today = len([s for s in all_scheds if s.get("day_of_week") == today_wd])
 
@@ -1058,7 +1058,7 @@ elif selected_nav == "📝 Deadline":
             if task_name.strip():
                 deadline_str = f"{due_date.strftime('%Y-%m-%d')} {due_hour}"
                 deadline_dt  = datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
-                diff_h       = (deadline_dt - datetime.now()).total_seconds() / 3600.0
+                diff_h       = (deadline_dt - config.get_now()).total_seconds() / 3600.0
                 if diff_h > 0:
                     quick_ai   = deadline_ml.predict_deadline_risk(task_name, classes_today, diff_h, est_hours)
                     risk_color = "#d81159" if quick_ai["risk_percentage"] >= 70 else ("#d97706" if quick_ai["risk_percentage"] >= 40 else "#0d8a52")
@@ -1423,7 +1423,7 @@ elif selected_nav == "💊 Đơn Thuốc":
                     ci, cr = st.columns(2)
                     with ci:
                         st.image(uploaded, caption="Ảnh đã tải lên", use_container_width=True)
-                    fname  = f"med_{int(datetime.now().timestamp())}_{uploaded.name}"
+                    fname  = f"med_{int(config.get_now().timestamp())}_{uploaded.name}"
                     fpath  = config.UPLOADS_DIR / fname
                     with open(fpath,"wb") as f: f.write(uploaded.getbuffer())
                     saved_img_path = str(fpath)

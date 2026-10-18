@@ -66,7 +66,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             "db_status": db_status,
             "uptime": f"{uptime_h}h {uptime_m}m",
             "uptime_seconds": uptime_seconds,
-            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "timestamp": config.get_now().strftime("%Y-%m-%d %H:%M:%S"),
             "stats": {
                 "subjects": len(all_schedules),
                 "active_deadlines": len(active_tasks),
@@ -118,9 +118,8 @@ def main():
     # 3. Chạy 2 tiến trình ngầm Scheduler và Telegram Bot
     print("[3/4] Kích hoạt Daemon Threads...")
     t1 = threading.Thread(target=scheduler.start_scheduler_loop, daemon=True, name="SchedulerLoop")
-    t2 = threading.Thread(target=bot_interactive.lang_nghe_tin_nhan, daemon=True, name="TelegramPolling")
     t1.start()
-    t2.start()
+    bot_interactive.start_telegram_listener()
     print("      ✅ SchedulerLoop & TelegramPolling đã khởi động.")
 
     # 4. Chạy HTTP Server trên port được Render cấp (PORT)

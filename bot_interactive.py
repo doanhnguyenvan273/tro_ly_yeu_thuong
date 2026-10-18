@@ -35,7 +35,7 @@ DAY_NAMES = {
 
 def build_schedule_response(for_tomorrow: bool = False) -> str:
     """Tạo nội dung tin nhắn lịch học hôm nay hoặc ngày mai + cả tuần."""
-    now = datetime.now()
+    now = config.get_now()
     target_date = now + timedelta(days=1) if for_tomorrow else now
     target_dow = target_date.weekday()
     target_date_str = target_date.strftime("%d/%m/%Y")
@@ -118,7 +118,7 @@ def handle_take_medicine_command(user_display: str) -> str:
     if not untaken:
         return f"🌸 Bé giỏi lắm! Hôm nay {user_display} đã uống đủ tất cả các liều thuốc rồi nhé! 🍵💖"
 
-    now_str = datetime.now().strftime("%H:%M")
+    now_str = config.get_now().strftime("%H:%M")
     marked_names = []
     for m in untaken:
         database.log_medicine_taken(m["medicine_id"], today_str, m["time_slot"])
@@ -141,7 +141,7 @@ def build_deadline_response() -> str:
     if not active_tasks:
         lines.append("<i>🎉 Tuyệt vời! Hiện tại không có deadline nào đang chờ. Em thật giỏi! 💖</i>")
     else:
-        now = datetime.now()
+        now = config.get_now()
         for t in active_tasks:
             stt = "⏳ Đang làm" if t.get("status") == "Đang làm" else "📝 Chưa làm"
             # Tính giờ còn lại
@@ -226,7 +226,7 @@ def handle_log_period_start(user_display: str) -> str:
 
 def build_status_response() -> str:
     """Trả về trạng thái tổng quan hệ thống: số môn, deadline, thuốc, chu kỳ."""
-    now = datetime.now()
+    now = config.get_now()
     today_str = now.strftime("%Y-%m-%d")
 
     # Lịch học
@@ -502,15 +502,18 @@ def lang_nghe_tin_nhan():
         pass
 
 
-def start_telegram_listener():
-    """Khởi động luồng lắng nghe tin nhắn Telegram nếu chưa chạy."""
-    global _LISTENER_RUNNING, _LISTENER_THREAD
-    if _LISTENER_RUNNING and _LISTENER_THREAD and _LISTENER_THREAD.is_alive():
-        return
+_LISTENER_LOCK = threading.Lock()
 
-    _LISTENER_RUNNING = True
-    _LISTENER_THREAD = threading.Thread(target=lang_nghe_tin_nhan, daemon=True, name="BotInteractiveListener")
-    _LISTENER_THREAD.start()
+def start_telegram_listener():
+    """Khởi động luồng lắng nghe tin nhắn Telegram nếu chưa chạy (Singleton Thread-Safe)."""
+    global _LISTENER_RUNNING, _LISTENER_THREAD
+    with _LISTENER_LOCK:
+        if _LISTENER_RUNNING and _LISTENER_THREAD and _LISTENER_THREAD.is_alive():
+            return
+
+        _LISTENER_RUNNING = True
+        _LISTENER_THREAD = threading.Thread(target=lang_nghe_tin_nhan, daemon=True, name="BotInteractiveListener")
+        _LISTENER_THREAD.start()
 
 
 def stop_telegram_listener():

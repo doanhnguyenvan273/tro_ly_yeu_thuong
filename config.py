@@ -1,6 +1,27 @@
 import os
 from pathlib import Path
 import json
+from datetime import datetime, timezone, timedelta
+import time
+
+# Thiết lập múi giờ Việt Nam (UTC+7) cho toàn bộ hệ thống
+VN_TZ = timezone(timedelta(hours=7))
+
+# Thiết lập timezone cho hệ điều hành Linux (Render) nếu hỗ trợ
+if hasattr(time, "tzset"):
+    os.environ["TZ"] = "Asia/Ho_Chi_Minh"
+    try:
+        time.tzset()
+    except Exception:
+        pass
+
+def get_now() -> datetime:
+    """
+    Trả về thời gian hiện tại chuẩn múi giờ Việt Nam (GMT+7).
+    Trả về naive datetime để tương thích 100% với strptime, sqlite và phép trừ ngày giờ.
+    """
+    return datetime.now(VN_TZ).replace(tzinfo=None)
+
 # Nạp biến môi trường từ file .env nếu có
 try:
     from dotenv import load_dotenv
