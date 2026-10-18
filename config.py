@@ -53,7 +53,7 @@ DEFAULT_SETTINGS = {
     "telegram_her_chat_id": "",
     "telegram_my_chat_id": "",
     "her_name": "Em bé 🌸",
-    "my_name": "Anh 💖",
+    "my_name": "Dawn 💫",
     "startup_greeting_sent": False,
     "secret_mode_enabled": True
 }
@@ -89,6 +89,10 @@ _settings = load_settings()
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN") or _settings.get("telegram_bot_token", "")
 HER_CHAT_ID = os.getenv("HER_CHAT_ID") or _settings.get("telegram_her_chat_id", "")
 YOUR_CHAT_ID = os.getenv("YOUR_CHAT_ID") or _settings.get("telegram_my_chat_id", "")
+
+# Tên hiển thị: ưu tiên biến môi trường, sau đó settings.json, cuối cùng là default
+HER_NAME = os.getenv("HER_NAME") or _settings.get("her_name", "Em bé 🌸")
+MY_NAME = os.getenv("MY_NAME") or _settings.get("my_name", "Dawn 💫")
 
 # Danh sách Chat ID được phép tương tác với Bot (Bảo mật, chống spam)
 ALLOWED_CHAT_IDS = [str(cid).strip() for cid in [HER_CHAT_ID, YOUR_CHAT_ID] if str(cid).strip()]

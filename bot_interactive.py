@@ -505,9 +505,9 @@ def handle_incoming_message(msg: Dict[str, Any]):
     text_lower = text.lower()
 
     if sender_id_str == her_id:
-        user_display = settings.get("her_name", "Em bé 🌸")
+        user_display = config.HER_NAME or settings.get("her_name", "Em bé 🌸")
     elif sender_id_str == my_id:
-        user_display = settings.get("my_name", "Anh 💖")
+        user_display = config.MY_NAME or settings.get("my_name", "Dawn 💫")
     else:
         user_display = msg.get("from", {}).get("first_name", "Bạn")
 
