@@ -2222,7 +2222,7 @@ elif selected_nav == "⚙️ Cài Đặt":
                 st.rerun()
 
     st.divider()
-    st.markdown("#### 🧪 Kiểm Tra Kết Nối Telegram")
+    st.markdown("#### 🧪 Kiểm Tra Thông Báo Yêu Thương (Telegram)")
     tt1, tt2, tt3 = st.columns(3)
     with tt1:
         if st.button("📤 Gửi Test → Cô Ấy", use_container_width=True):
@@ -2240,6 +2240,24 @@ elif selected_nav == "⚙️ Cài Đặt":
             invalidate_cache()
             scheduler.check_and_send_startup_greeting()
             st.success("Đã bắn lời chúc ngọt ngào tới Cô Ấy!")
+
+    tb1, tb2 = st.columns(2)
+    with tb1:
+        if st.button("☀️ Test Gửi Chào Buổi Sáng (7:00 AM)", use_container_width=True):
+            morning_msg = scheduler.build_good_morning_message()
+            res_m = notifier.notify_her(morning_msg)
+            if res_m:
+                st.success("✅ Đã gửi tin nhắn Chào Buổi Sáng tới Telegram của cô ấy!")
+            else:
+                st.error("❌ Gửi thất bại. Hãy kiểm tra cấu hình Bot Token & Chat ID!")
+    with tb2:
+        if st.button("🌙 Test Gửi Chúc Ngủ Ngon (22:30 PM - Theo Mood)", use_container_width=True):
+            night_msg = scheduler.build_good_night_message()
+            res_n = notifier.notify_her(night_msg)
+            if res_n:
+                st.success("✅ Đã gửi tin nhắn Chúc Ngủ Ngon (cá nhân hóa theo cảm xúc) tới Telegram của cô ấy!")
+            else:
+                st.error("❌ Gửi thất bại. Hãy kiểm tra cấu hình Bot Token & Chat ID!")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # FOOTER

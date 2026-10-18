@@ -36,16 +36,10 @@ def check_and_send_startup_greeting():
             save_settings(settings)
             print("[Scheduler] Đã gửi tin nhắn chào mừng thành công!")
 
-def check_good_morning():
-    """Gửi tin nhắn chào buổi sáng lúc 7:00 mỗi ngày kèm tóm tắt lịch ngày hôm đó."""
-    now = get_now()
-    if now.hour != 7 or now.minute > 5:
-        return
-
-    today_str = now.strftime("%Y-%m-%d")
-    target_key = f"good_morning_{today_str}"
-    if database.has_notification_been_sent("good_morning", target_key, "her"):
-        return
+def build_good_morning_message(now=None) -> str:
+    """Tạo tin nhắn chào buổi sáng kèm tóm tắt lịch học và deadline cần chú ý."""
+    if now is None:
+        now = get_now()
 
     settings = load_settings()
     her_name = settings.get("her_name", "Em yêu")
@@ -83,7 +77,7 @@ def check_good_morning():
         msg += f"🎒 <b>Lịch học hôm nay ({len(today_classes)} môn):</b>\n"
         for c in today_classes:
             room_str = f" | 📍{c['room']}" if c.get('room') else ""
-            msg += f"  • <b>{c['subject_name']}</b> {c['start_time']}–{c['end_time']}{room_str}\n"
+            msg += f"  • <b>{c['subject_name']}</b> ({c['start_time']}–{c['end_time']}{room_str})\n"
         msg += "\n"
     else:
         msg += "🎉 <b>Hôm nay em không có lịch học</b> – Nghỉ ngơi thật vui vẻ nhé!\n\n"
@@ -97,13 +91,126 @@ def check_good_morning():
         msg += "\n"
 
     msg += "💌 <i>Anh luôn yêu em và ở đây cổ vũ em mỗi ngày! 💖</i>"
+    return msg
+
+def check_good_morning():
+    """Gửi tin nhắn chào buổi sáng lúc 7:00 mỗi ngày kèm tóm tắt lịch ngày hôm đó."""
+    now = get_now()
+    if now.hour != 7 or now.minute > 5:
+        return
+
+    today_str = now.strftime("%Y-%m-%d")
+    target_key = f"good_morning_{today_str}"
+    if database.has_notification_been_sent("good_morning", target_key, "her"):
+        return
+
+    msg = build_good_morning_message(now)
 
     if notifier.notify_her(msg):
         database.log_notification_sent("good_morning", target_key, "her", msg)
         print(f"[Scheduler] Đã gửi tin nhắn chào buổi sáng: {today_str}")
 
+def build_good_night_message(now=None) -> str:
+    """Tạo tin nhắn chúc ngủ ngon cá nhân hóa sâu sắc dựa trên cảm xúc của cô ấy hôm nay."""
+    if now is None:
+        now = get_now()
+
+    settings = load_settings()
+    her_name = settings.get("her_name", "Em yêu")
+    today_str = now.strftime("%Y-%m-%d")
+
+    # Lấy cảm xúc của cô ấy trong ngày hôm nay
+    today_mood = database.get_mood_log_by_date(today_str)
+
+    # Lấy lịch học ngày mai
+    tomorrow_dow = (now.weekday() + 1) % 7
+    tomorrow_classes = database.get_schedules_by_day(tomorrow_dow)
+    day_names = {0: "Thứ Hai", 1: "Thứ Ba", 2: "Thứ Tư", 3: "Thứ Năm",
+                 4: "Thứ Sáu", 5: "Thứ Bảy", 6: "Chủ Nhật"}
+    tmr_name = day_names.get(tomorrow_dow, "")
+
+    msg = f"🌙 <b>CHÚC NGỦ NGON, {her_name.upper()}!</b> 🌸\n\n"
+
+    # Xử lý theo cảm xúc ngày hôm nay
+    if today_mood and today_mood.get("mood_type"):
+        mtype = today_mood.get("mood_type")
+        note = today_mood.get("note") or ""
+
+        if mtype == "Happy":
+            mood_tag = "🥰 <b>Tâm trạng hôm nay: Vui vẻ & Rạng rỡ</b>"
+            mood_wish = (
+                "Hôm nay thấy em có một ngày thật nhiều niềm vui, lòng anh cũng vui lây và ấm áp lạ thường! "
+                "Mang theo nụ cười thật xinh đẹp này vào giấc mơ em nhé. Chúc công chúa của anh ngủ thật ngon! 💖✨"
+            )
+        elif mtype == "Normal":
+            mood_tag = "🌸 <b>Tâm trạng hôm nay: Bình yên</b>"
+            mood_wish = (
+                "Một ngày êm ả, dịu dàng khép lại. Những ngày bình dị thế này luôn mang lại sự nhẹ nhõm cho tâm hồn. "
+                "Hãy thả lỏng toàn bộ cơ thể và ngủ một giấc thật sâu, thật ngon nhé em yêu! 🍃💤"
+            )
+        elif mtype == "Stressed":
+            mood_tag = "💆‍♀️ <b>Tâm trạng hôm nay: Căng thẳng & Áp lực</b>"
+            mood_wish = (
+                "Anh biết hôm nay bài vở hoặc công việc đã khiến em phải lo nghĩ và căng thẳng nhiều... "
+                "Nhưng giờ là lúc buông bỏ tất cả mọi gánh nặng xuống rồi em nhé. Em đã làm rất tốt hôm nay rồi! "
+                "Hít một hơi thật sâu, thở ra nhẹ nhàng và ngủ ngoan nhé. Có anh và Bác sĩ Mèo luôn che chở cho em! 🍵🧸💖"
+            )
+        elif mtype == "Sad":
+            mood_tag = "🥺 <b>Tâm trạng hôm nay: Có chút buồn bã</b>"
+            mood_wish = (
+                "Thương em nhiều lắm! Nếu hôm nay có chuyện gì làm em buồn hay tủi thân, hãy gửi lại tất cả cho bóng đêm nhé. "
+                "Đêm nay anh ôm chặt em vào lòng trong suy nghĩ nè. Nhắm mắt lại và ngủ thật an lành em nhé, "
+                "sáng mai thức dậy trời sẽ lại sáng rực rỡ và anh luôn ở đây bên cạnh em! 💫🧸💕"
+            )
+        elif mtype == "Angry":
+            mood_tag = "🍵 <b>Tâm trạng hôm nay: Bực mình & Khó chịu</b>"
+            mood_wish = (
+                "Hôm nay có điều gì làm cô bé của anh không vui đúng không? Đừng để những bực bội ấy làm mất giấc ngủ quý giá nhé em. "
+                "Thở một hơi dài, buông xả hết muộn phiền ngoài cửa phòng nha. Nụ cười xinh của em là điều quý giá nhất. Ngủ thật ngoan nhé bé iu! 🌙✨"
+            )
+        elif mtype == "Tired":
+            mood_tag = "😴 <b>Tâm trạng hôm nay: Mệt mỏi & Cần nghỉ ngơi</b>"
+            mood_wish = (
+                "Cả ngày hôm nay em đã vất vả, bận rộn nhiều rồi. Cơ thể và đôi mắt em xứng đáng được nghỉ ngơi trọn vẹn nhất. "
+                "Đặt điện thoại xuống, kéo chăn ấm lên và chìm vào giấc ngủ thật êm ái nhé cô bé chăm chỉ của anh! 🛌💤🌙"
+            )
+        else:
+            mood_tag = "✨ <b>Tâm trạng hôm nay: Đã ghi nhận</b>"
+            mood_wish = "Ngày dài khép lại rồi, hãy ngủ một giấc thật ngon và ngọt ngào nhé em yêu! 💖"
+
+        msg += f"{mood_tag}\n<i>{mood_wish}</i>\n"
+        if note:
+            msg += f"\n📝 <i>Em nhắn nhủ: \"{note}\" — Anh luôn ghi nhớ và thương em nhiều lắm! 💕</i>\n"
+        msg += "\n"
+    else:
+        # Nếu chưa ghi cảm xúc trong ngày
+        default_wishes = [
+            "Hôm nay của em thế nào? Dù có bận rộn hay mệt mỏi ra sao, thì ngày dài cũng khép lại rồi. Hãy ngủ một giấc thật ngon và ấm áp nhé cô bé của anh! 🧸💖",
+            "Hãy để tâm trí em được nghỉ ngơi sau một ngày dài. Em đã làm hết sức mình rồi, anh thương em nhiều lắm! 💕",
+            "Giấc ngủ ngon sẽ giúp em tái tạo năng lượng cho ngày mai tươi sáng. Ngủ ngoan nhé cô bé xinh đẹp! ⭐🌙",
+            "Đừng lo lắng gì cho ngày mai nữa nhé, cứ ngủ một giấc thật sâu, mọi chuyện tốt đẹp đang chờ em phía trước! 🌙✨",
+        ]
+        wish = default_wishes[now.day % len(default_wishes)]
+        msg += f"<i>{wish}</i>\n\n"
+
+    # Lịch học ngày mai
+    if tomorrow_classes:
+        tomorrow_str = (now.date() + timedelta(days=1)).strftime("%d/%m")
+        msg += f"📅 <b>Lịch học {tmr_name} ({tomorrow_str}):</b>\n"
+        for c in tomorrow_classes[:3]:
+            room_str = f" | 📍{c['room']}" if c.get('room') else ""
+            msg += f"  • <b>{c['subject_name']}</b> ({c['start_time']} – {c['end_time']}{room_str})\n"
+        if len(tomorrow_classes) > 3:
+            msg += f"  • ... và {len(tomorrow_classes) - 3} môn khác\n"
+        msg += "\n<i>Nhớ chuẩn bị tài liệu, sạc pin điện thoại tối nay cho tiện nhé! 🎒</i>\n\n"
+    else:
+        msg += f"🎉 <b>Ngày mai ({tmr_name}) em không có ca học nào</b> — Tha hồ ngủ nướng thêm một chút nhé! 🛌✨\n\n"
+
+    msg += "💖 <i>Anh yêu em nhiều lắm, ngủ thật ngon và mơ về anh nha!</i> 🌙✨"
+    return msg
+
 def check_good_night():
-    """Gửi tin nhắn chúc ngủ ngon lúc 22:30 mỗi ngày."""
+    """Gửi tin nhắn chúc ngủ ngon lúc 22:30 mỗi ngày (dựa trên cảm xúc trong ngày)."""
     now = get_now()
     if now.hour != 22 or now.minute < 30 or now.minute > 35:
         return
@@ -113,43 +220,11 @@ def check_good_night():
     if database.has_notification_been_sent("good_night", target_key, "her"):
         return
 
-    settings = load_settings()
-    her_name = settings.get("her_name", "Em yêu")
-
-    # Lấy lịch học ngày mai
-    tomorrow_dow = (now.weekday() + 1) % 7
-    tomorrow_classes = database.get_schedules_by_day(tomorrow_dow)
-    day_names = {0: "Thứ Hai", 1: "Thứ Ba", 2: "Thứ Tư", 3: "Thứ Năm",
-                 4: "Thứ Sáu", 5: "Thứ Bảy", 6: "Chủ Nhật"}
-    tmr_name = day_names.get(tomorrow_dow, "")
-
-    night_wishes = [
-        "Ngủ ngon nha cô bé! Cả ngày hôm nay em đã rất cố gắng rồi! 🧸",
-        "Hãy để tâm trí em được nghỉ ngơi sau một ngày dài. Anh thương em nhiều! 💕",
-        "Giấc ngủ ngon giúp em năng lượng hơn ngày mai. Ngủ ngoan nhé! ⭐",
-        "Đừng lo lắng gì nữa nhé, cứ ngủ ngon và ngày mai lại bắt đầu mới! 🌙",
-    ]
-    wish = night_wishes[now.day % len(night_wishes)]
-
-    msg = (
-        f"🌙 <b>CHÚC NGỦ NGON, {her_name.upper()}!</b> 🌸\n\n"
-        f"<i>{wish}</i>\n\n"
-    )
-
-    if tomorrow_classes:
-        tomorrow_str = (date.today() + timedelta(days=1)).strftime("%d/%m")
-        msg += f"📅 <b>Lịch học {tmr_name} ({tomorrow_str}):</b>\n"
-        for c in tomorrow_classes[:3]:
-            msg += f"  • {c['start_time']} – <b>{c['subject_name']}</b>\n"
-        if len(tomorrow_classes) > 3:
-            msg += f"  • ... và {len(tomorrow_classes) - 3} môn khác\n"
-        msg += "\n<i>Nhớ chuẩn bị đồ đạc tối nay cho tiện nhé! 🎒</i>\n\n"
-
-    msg += "💖 <i>Anh yêu em nhiều lắm, cô bé xinh đẹp ơi!</i> 🌙✨"
+    msg = build_good_night_message(now)
 
     if notifier.notify_her(msg):
         database.log_notification_sent("good_night", target_key, "her", msg)
-        print(f"[Scheduler] Đã gửi tin nhắn chúc ngủ ngon: {today_str}")
+        print(f"[Scheduler] Đã gửi tin nhắn chúc ngủ ngon (kèm cảm xúc): {today_str}")
 
 def check_drink_water_reminder():
     """Nhắc uống nước mỗi 2 giờ trong khoảng 8:00 – 20:00."""

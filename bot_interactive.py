@@ -427,6 +427,8 @@ def build_help_response(name: str = "Bạn") -> str:
         f"🌸 <b>Chu kỳ sinh lý:</b> <code>chu kỳ</code> / <code>kỳ tới</code>\n"
         f"💖 <b>Báo đến kỳ:</b> <code>hôm nay đến kỳ</code>\n"
         f"🐱 <b>Cảm xúc hôm nay:</b> <code>cảm xúc</code> / <code>mood</code>\n"
+        f"☀️ <b>Chào buổi sáng:</b> <code>chào buổi sáng</code>\n"
+        f"🌙 <b>Chúc ngủ ngon:</b> <code>chúc ngủ ngon</code> (tâm sự theo cảm xúc hôm nay)\n"
         f"📋 <b>Điểm danh:</b> <code>điểm danh</code> / <code>vắng mặt</code>\n"
         f"📊 <b>Trạng thái:</b> <code>status</code> / <code>tình trạng</code>\n\n"
         f"<i>Chúc {name} một ngày luôn rạng ngời và ngập tràn hạnh phúc! ✨</i>"
@@ -561,6 +563,29 @@ def handle_incoming_message(msg: Dict[str, Any]):
             "<i>Bấm vào một nút bên dưới để chia sẻ với em nhé:</i>"
         )
         notifier.send_telegram_message(chat_id, prompt, reply_markup=MOOD_KEYBOARD)
+        return
+
+    # 0.6 Lời chúc ngủ ngon (Cá nhân hóa theo cảm xúc hôm nay)
+    night_keywords = [
+        "chúc ngủ ngon", "chuc ngu ngon", "ngủ ngon", "ngu ngon",
+        "ngủ thôi", "ngu thoi", "đi ngủ đây", "di ngu day", "đi ngủ", "di ngu",
+        "good night", "g9", "/chucngon", "ngủ đây", "ngu day"
+    ]
+    if any(k in text_lower for k in night_keywords):
+        import scheduler
+        reply = scheduler.build_good_night_message()
+        notifier.send_telegram_message(chat_id, reply)
+        return
+
+    # 0.7 Lời chào buổi sáng
+    morning_keywords = [
+        "chào buổi sáng", "chao buoi sang", "buổi sáng tốt lành",
+        "buoi sang tot lanh", "good morning", "/buoisang", "/morning"
+    ]
+    if any(k in text_lower for k in morning_keywords):
+        import scheduler
+        reply = scheduler.build_good_morning_message()
+        notifier.send_telegram_message(chat_id, reply)
         return
 
     # 1. Báo bắt đầu kỳ mới
