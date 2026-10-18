@@ -31,6 +31,42 @@ DAY_NAMES = {
     3: "Thứ Năm", 4: "Thứ Sáu", 5: "Thứ Bảy", 6: "Chủ Nhật"
 }
 
+# ======================= MOOD TRACKER DATA =======================
+
+_USER_MOOD_SESSIONS: Dict[str, Dict[str, Any]] = {}
+
+MOOD_MAP = {
+    "Happy": {"name": "Vui vẻ 😄", "icon": "😄"},
+    "Sad": {"name": "Buồn 😔", "icon": "😔"},
+    "Stressed": {"name": "Stress 😫", "icon": "😫"},
+    "Angry": {"name": "Bực bội 😡", "icon": "😡"},
+    "Tired": {"name": "Mệt mỏi 😴", "icon": "😴"},
+}
+
+MOOD_KEYBOARD = {
+    "inline_keyboard": [
+        [
+            {"text": "😄 Vui vẻ", "callback_data": "mood_Happy"},
+            {"text": "😔 Buồn", "callback_data": "mood_Sad"}
+        ],
+        [
+            {"text": "😫 Stress", "callback_data": "mood_Stressed"},
+            {"text": "😡 Bực bội", "callback_data": "mood_Angry"}
+        ],
+        [
+            {"text": "😴 Mệt mỏi", "callback_data": "mood_Tired"}
+        ]
+    ]
+}
+
+AI_RESPONSES = {
+    "Happy": "Tuyệt vời quá! Chúc em yêu luôn giữ nụ cười tươi tắn này nhé! 🥰",
+    "Sad": "Thương em lắm! Đừng buồn nhé, có anh và Bác sĩ Mèo luôn ở bên em này! Nghỉ ngơi một chút và uống nước ấm nha em! 💖",
+    "Stressed": "Thương em lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha em! 💖",
+    "Angry": "Thương em lắm! Hít thở thật sâu một chút nhé em yêu, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
+    "Tired": "Thương em nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé em! 🍵💤💖",
+}
+
 # ======================= BUILD RESPONSE FUNCTIONS =======================
 
 def build_schedule_response(for_tomorrow: bool = False) -> str:
@@ -390,12 +426,50 @@ def build_help_response(name: str = "Bạn") -> str:
         f"⏰ <b>Deadline:</b> <code>deadline</code> để xem | <code>xong task 1</code> hoặc <code>done task 1, 3</code> để hoàn thành\n"
         f"🌸 <b>Chu kỳ sinh lý:</b> <code>chu kỳ</code> / <code>kỳ tới</code>\n"
         f"💖 <b>Báo đến kỳ:</b> <code>hôm nay đến kỳ</code>\n"
+        f"🐱 <b>Cảm xúc hôm nay:</b> <code>cảm xúc</code> / <code>mood</code>\n"
         f"📋 <b>Điểm danh:</b> <code>điểm danh</code> / <code>vắng mặt</code>\n"
         f"📊 <b>Trạng thái:</b> <code>status</code> / <code>tình trạng</code>\n\n"
         f"<i>Chúc {name} một ngày luôn rạng ngời và ngập tràn hạnh phúc! ✨</i>"
     )
 
-# ======================= MESSAGE HANDLER =======================
+# ======================= CALLBACK QUERY & MESSAGE HANDLER =======================
+
+def handle_incoming_callback_query(cq: Dict[str, Any]):
+    """Xử lý sự kiện bấm nút Inline Keyboard từ Telegram."""
+    cq_id = cq.get("id")
+    from_user = cq.get("from", {})
+    user_id = str(from_user.get("id") or "").strip()
+    data = cq.get("data", "")
+    message = cq.get("message", {})
+    chat_id = message.get("chat", {}).get("id") or user_id
+
+    # Acknowledge callback query để tắt vòng quay trên Telegram client
+    token = (config.TELEGRAM_BOT_TOKEN or config.load_settings().get("telegram_bot_token", "")).strip()
+    if token and cq_id:
+        try:
+            requests.post(
+                f"https://api.telegram.org/bot{token}/answerCallbackQuery",
+                json={"callback_query_id": cq_id},
+                timeout=5
+            )
+        except Exception:
+            pass
+
+    if data.startswith("mood_"):
+        mood_type = data.replace("mood_", "")
+        _USER_MOOD_SESSIONS[user_id] = {
+            "mood": mood_type,
+            "chat_id": chat_id,
+            "time": time.time()
+        }
+        mood_info = MOOD_MAP.get(mood_type, {"name": mood_type, "icon": "🌸"})
+        prompt = (
+            f"Bác sĩ Mèo đã ghi nhận em đang <b>{mood_info['name']}</b>! 🌸\n\n"
+            f"Em có muốn nhắn thêm điều gì đã xảy ra hôm nay không?\n"
+            f"👉 <i>(Gõ nội dung ghi chú, hoặc gõ <code>Không</code> để bỏ qua nhé!)</i>"
+        )
+        notifier.send_telegram_message(chat_id, prompt)
+
 
 def handle_incoming_message(msg: Dict[str, Any]):
     """
@@ -434,6 +508,60 @@ def handle_incoming_message(msg: Dict[str, Any]):
         user_display = settings.get("my_name", "Anh 💖")
     else:
         user_display = msg.get("from", {}).get("first_name", "Bạn")
+
+    # 0. Kiểm tra phiên nhập ghi chú cảm xúc (Mood Tracker)
+    if sender_id_str in _USER_MOOD_SESSIONS:
+        session = _USER_MOOD_SESSIONS.pop(sender_id_str)
+        if time.time() - session.get("time", 0) <= 600:
+            mood_type = session.get("mood", "Happy")
+            mood_info = MOOD_MAP.get(mood_type, {"name": mood_type, "icon": "🌸"})
+            note_raw = text.strip()
+            if note_raw.lower() in ["không", "khong", "k", "ko", "no", "skip"]:
+                note = None
+            else:
+                note = note_raw
+
+            ai_response = AI_RESPONSES.get(mood_type, "Thương em nhiều! Luôn giữ gìn sức khỏe nhé! 💖")
+            today_str = config.get_now().strftime("%Y-%m-%d")
+
+            try:
+                database.add_mood_log(today_str, mood_type, note, ai_response)
+            except Exception as e:
+                print(f"[Mood Tracker] Lỗi lưu DB: {e}")
+
+            note_str = f"\n📝 <i>Ghi chú: \"{note}\"</i>" if note else ""
+            reply_msg = (
+                f"🐱 <b>BÁC SĨ MÈO ĐÃ LẮNG NGHE!</b> 🌸\n\n"
+                f"Tâm trạng hôm nay: <b>{mood_info['name']}</b>{note_str}\n\n"
+                f"{ai_response}"
+            )
+            notifier.send_telegram_message(chat_id, reply_msg)
+
+            # Cảnh báo bí mật cho bạn trai nếu tâm trạng tiêu cực
+            if mood_type in ["Sad", "Stressed", "Angry", "Tired"]:
+                try:
+                    note_content = note if note else "Không có ghi chú"
+                    secret_msg = (
+                        f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
+                        f"Bạn gái vừa cập nhật cảm xúc: <b>{mood_info['name']}</b> qua Telegram.\n"
+                        f"📝 <b>Ghi chú:</b> {note_content}\n\n"
+                        f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon hoặc đồ ngọt cho cô ấy nhé! 🍫🧸💖</i>"
+                    )
+                    notifier.notify_you_secret(secret_msg)
+                except Exception as notify_err:
+                    print(f"[Mood Tracker] Lỗi gửi cảnh báo bí mật: {notify_err}")
+            return
+
+    # 0.5 Bắt từ khóa cập nhật cảm xúc (Mood Tracker)
+    mood_keywords = ["cảm xúc", "cảm xúc hôm nay", "cập nhật cảm xúc", "mood", "tâm trạng", "tam trang"]
+    if any(k in text_lower for k in mood_keywords):
+        prompt = (
+            "🌸 <b>NHẬT KÝ CẢM XÚC HÔM NAY</b> 🐱\n\n"
+            "Bác sĩ Mèo đang lắng nghe em nè! Hôm nay tâm trạng của em thế nào?\n"
+            "<i>Bấm vào một nút bên dưới để chia sẻ với em nhé:</i>"
+        )
+        notifier.send_telegram_message(chat_id, prompt, reply_markup=MOOD_KEYBOARD)
+        return
 
     # 1. Báo bắt đầu kỳ mới
     period_keywords = ["đến kỳ", "den ky", "bắt đầu kỳ", "bat dau ky", "hôm nay bị", "hom nay bi", "có kinh", "co kinh"]
@@ -579,6 +707,14 @@ def lang_nghe_tin_nhan():
                             except Exception as handle_err:
                                 try:
                                     print(f"[Bot Interactive] Lỗi xử lý tin nhắn: {handle_err}")
+                                except Exception:
+                                    pass
+                        elif "callback_query" in update:
+                            try:
+                                handle_incoming_callback_query(update["callback_query"])
+                            except Exception as cb_err:
+                                try:
+                                    print(f"[Bot Interactive] Lỗi xử lý callback query: {cb_err}")
                                 except Exception:
                                     pass
             elif resp.status_code == 409:

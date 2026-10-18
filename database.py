@@ -298,6 +298,18 @@ def init_db():
             UNIQUE(notification_type, target_id, sent_to)
         )
         ''')
+
+        # Bảng Nhật ký Cảm xúc (Mood Tracker)
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS mood_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date TEXT NOT NULL,
+            mood_type TEXT NOT NULL,
+            note TEXT,
+            ai_response TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
         
         conn.commit()
 
@@ -670,6 +682,26 @@ def log_notification_sent(notification_type: str, target_id: str, sent_to: str, 
         ON CONFLICT(notification_type, target_id, sent_to) DO NOTHING
         ''', (notification_type, str(target_id), sent_to, message))
         conn.commit()
+
+# ======================= MOOD LOGS (NHẬT KÝ CẢM XÚC) =======================
+
+def add_mood_log(date_str: str, mood_type: str, note: Optional[str] = None, ai_response: str = "") -> int:
+    """Lưu nhật ký cảm xúc vào CSDL (Turso Cloud / SQLite Local)."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO mood_logs (date, mood_type, note, ai_response) VALUES (?, ?, ?, ?)",
+            (date_str, mood_type, note, ai_response)
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+def get_recent_mood_logs(limit: int = 10) -> List[Dict[str, Any]]:
+    """Lấy danh sách nhật ký cảm xúc gần nhất."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM mood_logs ORDER BY id DESC LIMIT ?", (limit,))
+        return [dict(row) for row in cursor.fetchall()]
 
 # Khởi tạo CSDL khi import
 init_db()

@@ -5,9 +5,10 @@ from typing import Optional, Union
 from pathlib import Path
 from config import load_settings, TELEGRAM_BOT_TOKEN, HER_CHAT_ID, YOUR_CHAT_ID
 
-def send_telegram_message(chat_id: Union[str, int], text: str, parse_mode: str = "HTML", max_retries: int = 3) -> bool:
+def send_telegram_message(chat_id: Union[str, int], text: str, parse_mode: str = "HTML", reply_markup: Optional[dict] = None, max_retries: int = 3) -> bool:
     """
     Gửi tin nhắn văn bản đến Telegram với khối try-except chống sập và cơ chế retry khi mất mạng.
+    Hỗ trợ reply_markup (InlineKeyboardMarkup).
     """
     bot_token = (TELEGRAM_BOT_TOKEN or load_settings().get("telegram_bot_token", "")).strip()
     
@@ -21,6 +22,8 @@ def send_telegram_message(chat_id: Union[str, int], text: str, parse_mode: str =
         "text": text,
         "parse_mode": parse_mode
     }
+    if reply_markup is not None:
+        payload["reply_markup"] = reply_markup
 
     for attempt in range(1, max_retries + 1):
         try:
