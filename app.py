@@ -343,22 +343,27 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
     margin: 0 0 16px 0;
     line-height: 1.55;
 }
-.hero-btn {
-    display: inline-block;
-    background: rgba(255,255,255,0.22);
-    border: 1.5px solid rgba(255,255,255,0.5);
-    border-radius: 24px;
-    padding: 8px 20px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: white;
-    cursor: pointer;
-    margin-right: 8px;
-    backdrop-filter: blur(4px);
-    transition: all 0.2s;
-    text-decoration: none;
+.hero-btn, a.hero-btn, a.hero-btn:visited, a.hero-btn:hover, a.hero-btn:active {
+    display: inline-block !important;
+    background: rgba(255,255,255,0.22) !important;
+    border: 1.5px solid rgba(255,255,255,0.5) !important;
+    border-radius: 24px !important;
+    padding: 8px 20px !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    margin-right: 8px !important;
+    backdrop-filter: blur(4px) !important;
+    transition: all 0.2s !important;
+    text-decoration: none !important;
 }
-.hero-btn:hover { background: rgba(255,255,255,0.38); transform: translateY(-1px); }
+.hero-btn:hover, a.hero-btn:hover {
+    background: rgba(255,255,255,0.38) !important;
+    transform: translateY(-1px) !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
 .hero-status-box {
     background: rgba(255,255,255,0.18);
     border: 1.5px solid rgba(255,255,255,0.35);
@@ -691,9 +696,9 @@ st.markdown(f"""
         <div class="hero-title">💖 Trợ Lý Yêu Thương 🌸</div>
         <div class="hero-subtitle">Dành riêng cho <b>{her_name}</b> — Đồng hành mỗi ngày<br>trong học tập và chăm sóc sức khỏe!</div>
         <div style="margin-top:14px;">
-            <a href="?nav=LichHoc" target="_self" class="hero-btn">📅 Xem Lịch Hôm Nay</a>
-            <a href="?nav=DonThuoc" target="_self" class="hero-btn">💊 Nhắc Uống Thuốc</a>
-            <a href="?nav=CamXuc" target="_self" class="hero-btn">📖 Ghi Cảm Xúc</a>
+            <a href="?nav=LichHoc" target="_self" class="hero-btn" style="color:#ffffff !important;text-decoration:none !important;">📅 Xem Lịch Hôm Nay</a>
+            <a href="?nav=DonThuoc" target="_self" class="hero-btn" style="color:#ffffff !important;text-decoration:none !important;">💊 Nhắc Uống Thuốc</a>
+            <a href="?nav=CamXuc" target="_self" class="hero-btn" style="color:#ffffff !important;text-decoration:none !important;">📖 Ghi Cảm Xúc</a>
         </div>
     </div>
     <div class="hero-status-box">
