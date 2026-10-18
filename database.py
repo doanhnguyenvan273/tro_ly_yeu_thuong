@@ -299,15 +299,14 @@ def init_db():
         )
         ''')
 
-        # Bảng Nhật ký Cảm xúc (Mood Tracker)
+        # Bảng Nhật ký Cảm xúc (Mood Tracker) - date là PRIMARY KEY để UPSERT native
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS mood_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
+            date TEXT PRIMARY KEY,
             mood_type TEXT NOT NULL,
             note TEXT,
             ai_response TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
         
@@ -685,23 +684,54 @@ def log_notification_sent(notification_type: str, target_id: str, sent_to: str, 
 
 # ======================= MOOD LOGS (NHẬT KÝ CẢM XÚC) =======================
 
-def add_mood_log(date_str: str, mood_type: str, note: Optional[str] = None, ai_response: str = "") -> int:
-    """Lưu nhật ký cảm xúc vào CSDL (Turso Cloud / SQLite Local)."""
+def upsert_mood_log(date_str: str, mood_type: str, note: Optional[str] = None, ai_response: str = ""):
+    """Ghi đè hoặc thêm mới nhật ký cảm xúc theo ngày (UPSERT native - mỗi ngày 1 bản ghi)."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO mood_logs (date, mood_type, note, ai_response) VALUES (?, ?, ?, ?)",
+            """
+            INSERT INTO mood_logs (date, mood_type, note, ai_response, updated_at)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(date) DO UPDATE SET
+                mood_type  = excluded.mood_type,
+                note       = excluded.note,
+                ai_response= excluded.ai_response,
+                updated_at = CURRENT_TIMESTAMP
+            """,
             (date_str, mood_type, note, ai_response)
         )
         conn.commit()
-        return cursor.lastrowid
+
+# Giữ alias cũ để không phá vỡ code bot_interactive.py / telegram_bot.py
+def add_mood_log(date_str: str, mood_type: str, note: Optional[str] = None, ai_response: str = ""):
+    """Alias tương thích ngược → gọi upsert_mood_log."""
+    upsert_mood_log(date_str, mood_type, note, ai_response)
+
+def get_mood_logs_range(start_date: str, end_date: str) -> List[Dict[str, Any]]:
+    """Lấy danh sách nhật ký cảm xúc trong khoảng ngày [start_date, end_date] (YYYY-MM-DD)."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT date, mood_type, note, ai_response, updated_at FROM mood_logs "
+            "WHERE date >= ? AND date <= ? ORDER BY date ASC",
+            (start_date, end_date)
+        )
+        return [dict(row) for row in cursor.fetchall()]
 
 def get_recent_mood_logs(limit: int = 10) -> List[Dict[str, Any]]:
     """Lấy danh sách nhật ký cảm xúc gần nhất."""
     with get_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM mood_logs ORDER BY id DESC LIMIT ?", (limit,))
+        cursor.execute("SELECT * FROM mood_logs ORDER BY date DESC LIMIT ?", (limit,))
         return [dict(row) for row in cursor.fetchall()]
+
+def get_mood_log_by_date(date_str: str) -> Optional[Dict[str, Any]]:
+    """Lấy nhật ký cảm xúc cho một ngày cụ thể."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM mood_logs WHERE date = ?", (date_str,))
+        row = cursor.fetchone()
+        return dict(row) if row else None
 
 # Khởi tạo CSDL khi import
 init_db()

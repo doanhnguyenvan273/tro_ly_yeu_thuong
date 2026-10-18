@@ -513,6 +513,11 @@ def get_cached_menstrual_records():
 def get_cached_cycle_prediction():
     return menstrual_ml.predict_next_cycle()
 
+@st.cache_data(ttl=60, show_spinner=False)
+def get_cached_mood_range(start_date: str, end_date: str):
+    """Cache mood logs theo khoảng ngày — TTL 60s để matrix luôn fresh."""
+    return database.get_mood_logs_range(start_date, end_date)
+
 def invalidate_cache():
     """Xóa bộ nhớ đệm ngay lập tức khi thêm/sửa/xóa để giao diện cập nhật tức thì."""
     st.cache_data.clear()
@@ -1523,8 +1528,385 @@ elif selected_nav == "💊 Đơn Thuốc":
                     st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
+# TAB NHẬT KÝ — CẢM XÚC & BẢN ĐỒ TÂM TRẠNG
+# ══════════════════════════════════════════════════════════════════════════════
+elif selected_nav == "📖 Nhật Ký":
+
+    # ─── Constants ───
+    MOOD_OPTIONS = [
+        ("Happy",    "😄 Vui vẻ",    "#D4EDDA", "smile-cat.png",   "😄"),
+        ("Normal",   "🙂 Bình thường","#FFF3CD", "smile-cat.png",   "🙂"),
+        ("Stressed", "😫 Stress",     "#FFE8D6", "burnOut_cat.jpg", "😫"),
+        ("Sad",      "😔 Buồn",       "#CCE5FF", "cry-cat.jpg",     "😔"),
+        ("Angry",    "😡 Bực bội",    "#F8D7DA", "worry_cat.jpg",   "😡"),
+    ]
+    MOOD_KEY_MAP = {k: (label, bg, cat, icon) for k, label, bg, cat, icon in MOOD_OPTIONS}
+    MOOD_LABELS  = [label for _, label, *_ in MOOD_OPTIONS]
+    MOOD_KEYS    = [k     for k, *_ in MOOD_OPTIONS]
+
+    AI_RESP_MAP = {
+        "Happy":   "Tuyệt vời quá! Chúc em luôn giữ nụ cười tươi tắn này nhé! 🥰",
+        "Normal":  "Một ngày bình yên cũng là điều tuyệt vời! Cứ từ từ tận hưởng nhé em 🌸",
+        "Stressed":"Đừng quá sức nhé em! Nghỉ ngơi một chút và uống nước ấm nhé em 💖",
+        "Sad":     "Thương em lắm! Có anh và Bác sĩ Mèo luôn ở bên em này! 💫",
+        "Angry":   "Hít thở sâu một cái nhé em — đừng để chuyện bực mình ảnh hưởng sức khỏe em! 💖",
+    }
+
+    MOOD_COLORS = {
+        "Happy":    ("#D4EDDA", "😄"),
+        "Normal":   ("#FFF3CD", "🙂"),
+        "Stressed": ("#FFE8D6", "😫"),
+        "Sad":      ("#CCE5FF", "😔"),
+        "Angry":    ("#F8D7DA", "😡"),
+    }
+    EMPTY_MOOD_COLOR = "#F0F0F0"
+
+    # ─── CSS riêng cho tab Nhật Ký ───
+    st.markdown("""
+    <style>
+    .mood-matrix-wrap { overflow-x:auto; padding-bottom:8px; }
+    .mood-grid {
+        display:grid;
+        gap:3px;
+    }
+    .mood-day {
+        border-radius:5px;
+        display:flex; align-items:center; justify-content:center;
+        font-size:0.72rem; font-weight:600;
+        cursor:pointer;
+        position:relative;
+        transition:transform .15s, box-shadow .15s;
+        min-width:28px; min-height:28px;
+        user-select:none;
+    }
+    .mood-day:hover { transform:scale(1.22); box-shadow:0 4px 14px rgba(0,0,0,.22); z-index:10; }
+    .mood-day .tt {
+        display:none; position:absolute; bottom:118%; left:50%; transform:translateX(-50%);
+        background:#1a1a2e; color:#fff; border-radius:8px; padding:6px 11px;
+        font-size:0.75rem; white-space:nowrap; z-index:9999; pointer-events:none;
+        box-shadow:0 4px 16px rgba(0,0,0,.3); min-width:140px; text-align:center;
+    }
+    .mood-day:hover .tt { display:block; }
+    .week-header-row {
+        display:grid; gap:3px;
+        margin-bottom:4px;
+    }
+    .week-label {
+        font-size:0.65rem; font-weight:700; color:#bbb;
+        text-align:center; letter-spacing:.05em;
+    }
+    .cat-speech-bubble {
+        background:#fff8fc;
+        border-radius:16px 16px 16px 4px;
+        padding:13px 16px;
+        margin-top:12px;
+        border:1.5px solid #ffd6e7;
+        font-size:0.84rem;
+        color:#c0397c;
+        line-height:1.7;
+        font-style:italic;
+        position:relative;
+    }
+    .cat-speech-bubble::before {
+        content:"";
+        position:absolute;
+        top:-10px; left:18px;
+        border:5px solid transparent;
+        border-bottom-color:#ffd6e7;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    today_diary   = date.today()
+    today_str_d   = today_diary.strftime("%Y-%m-%d")
+
+    # Session state defaults
+    if "diary_sel_mood"  not in st.session_state: st.session_state["diary_sel_mood"]  = "Happy"
+    if "diary_view_mode" not in st.session_state: st.session_state["diary_view_mode"] = "📅 Tuần này"
+
+    # ══════════════════════════════════════════════════════
+    # ZONE 1: FORM CẬP NHẬT CẢM XÚC SIÊU TỐC  [2.5 : 1]
+    # ══════════════════════════════════════════════════════
+    col_form, col_cat_display = st.columns([2.5, 1], gap="medium")
+
+    with col_form:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🌸 Cập Nhật Cảm Xúc Hôm Nay</div>', unsafe_allow_html=True)
+
+        # 1. Chọn ngày (mặc định hôm nay, cho phép chọn quá khứ)
+        chosen_date = st.date_input(
+            "📅 Ngày ghi nhận",
+            value=today_diary,
+            max_value=today_diary,
+            key="diary_date_pick",
+            help="Mặc định hôm nay; có thể chọn ngày quá khứ để điền bù",
+        )
+        chosen_date_str = chosen_date.strftime("%Y-%m-%d")
+
+        # 2. Chọn cảm xúc bằng st.radio nằm ngang
+        mood_radio_val = st.radio(
+            "🟡 Tâm trạng",
+            options=MOOD_LABELS,
+            index=MOOD_KEYS.index(st.session_state["diary_sel_mood"]),
+            horizontal=True,
+            key="diary_mood_radio",
+        )
+        sel_idx = MOOD_LABELS.index(mood_radio_val)
+        st.session_state["diary_sel_mood"] = MOOD_KEYS[sel_idx]
+        sel_mood_key = MOOD_KEYS[sel_idx]
+
+        # 3. Ghi chú ngắn
+        mood_note_val = st.text_input(
+            "📝 Ghi chú ngắn (không bắt buộc)",
+            placeholder="Hôm nay có chuyện gì kể Bác sĩ Mèo nghe không? (Không bắt buộc)...",
+            key="diary_note",
+        )
+
+        # 4. Nút lưu
+        save_btn_col, _ = st.columns([1.3, 2])
+        with save_btn_col:
+            save_clicked = st.button(
+                "💖 Lưu Cảm Xúc",
+                use_container_width=True,
+                type="primary",
+                key="diary_save_btn",
+            )
+
+        if save_clicked:
+            ai_resp_val  = AI_RESP_MAP.get(sel_mood_key, "Thương em nhiều! 💖")
+            note_clean   = mood_note_val.strip() if mood_note_val.strip() else None
+            try:
+                database.upsert_mood_log(
+                    date_str    = chosen_date_str,
+                    mood_type   = sel_mood_key,
+                    note        = note_clean,
+                    ai_response = ai_resp_val,
+                )
+                st.success(f"✅ Đã lưu cảm xúc **{mood_radio_val}** cho ngày {chosen_date_str}!")
+                invalidate_cache()
+
+                # 🤫 Secret Boy Mode
+                if sel_mood_key in ["Sad", "Stressed", "Angry"]:
+                    try:
+                        _lbl = MOOD_KEY_MAP[sel_mood_key][0]
+                        _note_txt = note_clean if note_clean else "Không có ghi chú"
+                        notifier.notify_you_secret(
+                            f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
+                            f"Bạn gái vừa cập nhật cảm xúc: <b>{_lbl}</b> trên App.\n"
+                            f"📝 <b>Ghi chú:</b> {_note_txt}\n\n"
+                            f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon cho cô ấy nhé! 🍫🧸💖</i>"
+                        )
+                    except Exception:
+                        pass
+                st.rerun()
+            except Exception as e_save:
+                st.error(f"❌ Lỗi khi lưu: {e_save}")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_cat_display:
+        _cur_mood_key  = st.session_state["diary_sel_mood"]
+        _mood_info     = MOOD_KEY_MAP.get(_cur_mood_key, MOOD_KEY_MAP["Happy"])
+        _cat_label, _bg_color, _cat_file, _cat_icon = _mood_info
+        _ai_msg        = AI_RESP_MAP.get(_cur_mood_key, "💖")
+
+        st.markdown('<div class="cat-card">', unsafe_allow_html=True)
+        render_cat(_cat_file, f"Bác sĩ Mèo đang lắng nghe {_cat_icon}", width=160)
+        st.markdown(f"""
+        <div class="cat-speech-bubble">
+            🐱 {_ai_msg}
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # ══════════════════════════════════════════════════════
+    # ZONE 2: BẢN ĐỒ CẢM XÚC MATRIX
+    # ══════════════════════════════════════════════════════
+    st.markdown('<div class="card" style="margin-top:18px;">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🗓️ Bản Đồ Cảm Xúc</div>', unsafe_allow_html=True)
+
+    view_col, _ = st.columns([2.2, 3])
+    with view_col:
+        vm_options = ["📅 Tuần này", "📆 Tháng này", "🗓️ Cả Năm (365 Ngày)"]
+        view_mode  = st.radio(
+            "Chế độ xem",
+            vm_options,
+            horizontal=True,
+            label_visibility="collapsed",
+            key="diary_view_radio",
+            index=vm_options.index(st.session_state.get("diary_view_mode", "📅 Tuần này")),
+        )
+    st.session_state["diary_view_mode"] = view_mode
+
+    # Tính toán khoảng ngày
+    if view_mode == "📅 Tuần này":
+        _dow   = today_diary.weekday()
+        start_d = today_diary - timedelta(days=_dow)
+        end_d   = start_d + timedelta(days=6)
+    elif view_mode == "📆 Tháng này":
+        import calendar as _cal
+        start_d = today_diary.replace(day=1)
+        end_d   = today_diary.replace(day=_cal.monthrange(today_diary.year, today_diary.month)[1])
+    else:
+        start_d = date(today_diary.year, 1, 1)
+        end_d   = date(today_diary.year, 12, 31)
+
+    start_str_m = start_d.strftime("%Y-%m-%d")
+    end_str_m   = end_d.strftime("%Y-%m-%d")
+
+    # Dữ liệu có cache 60s
+    mood_rows_m  = get_cached_mood_range(start_str_m, end_str_m)
+    mood_data_m  = {r["date"]: r for r in mood_rows_m}
+
+    # Build danh sách ngày
+    all_days_m = []
+    _cur = start_d
+    while _cur <= end_d:
+        all_days_m.append(_cur)
+        _cur += timedelta(days=1)
+
+    VN_DAY_SHORT   = ["T2","T3","T4","T5","T6","T7","CN"]
+    VN_MONTH_SHORT = ["","Th1","Th2","Th3","Th4","Th5","Th6","Th7","Th8","Th9","Th10","Th11","Th12"]
+
+    def _build_cell(d, cell_size="28px", font_size="0.72rem"):
+        ds  = d.strftime("%Y-%m-%d")
+        rec = mood_data_m.get(ds)
+        if rec:
+            mk  = rec.get("mood_type", "")
+            bg, icon = MOOD_COLORS.get(mk, (EMPTY_MOOD_COLOR, "⚪"))
+            _nt = rec.get("note") or ""
+            _lbl = MOOD_KEY_MAP.get(mk, ("⚪",))[0]
+            tt  = f"{ds} | {_lbl}" + (f" | {_nt[:30]}..." if len(_nt) > 30 else (f" | {_nt}" if _nt else ""))
+        else:
+            bg, icon = EMPTY_MOOD_COLOR, ""
+            tt = f"{ds} | Chưa ghi chép"
+        _border = "border:2px solid #e84393;" if d == today_diary else "border:1px solid rgba(0,0,0,.07);"
+        _num    = str(d.day) if not icon else icon
+        return (
+            f'<div class="mood-day" style="background:{bg};{_border}'
+            f'min-width:{cell_size};min-height:{cell_size};font-size:{font_size};" '
+            f'title="{tt}">{_num}'
+            f'<span class="tt">{tt}</span></div>'
+        )
+
+    if view_mode == "📅 Tuần này":
+        hdr = '<div class="week-header-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;">'
+        hdr += "".join(f'<div class="week-label">{VN_DAY_SHORT[i]}</div>' for i in range(7))
+        hdr += "</div>"
+        cells = "".join(_build_cell(d, "52px", "1.1rem") for d in all_days_m)
+        grid  = f'<div class="mood-grid" style="grid-template-columns:repeat(7,1fr);">{cells}</div>'
+        st.markdown('<div class="mood-matrix-wrap">' + hdr + grid + '</div>', unsafe_allow_html=True)
+
+    elif view_mode == "📆 Tháng này":
+        hdr = '<div class="week-header-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;">'
+        hdr += "".join(f'<div class="week-label">{VN_DAY_SHORT[i]}</div>' for i in range(7))
+        hdr += "</div>"
+        _first_dow = start_d.weekday()
+        _padded    = [None] * _first_dow + all_days_m
+        while len(_padded) % 7 != 0:
+            _padded.append(None)
+        cells = ""
+        for _d in _padded:
+            if _d is None:
+                cells += '<div class="mood-day" style="background:transparent;border:none;min-width:36px;min-height:36px;"></div>'
+            else:
+                cells += _build_cell(_d, "36px", "0.88rem")
+        grid = f'<div class="mood-grid" style="grid-template-columns:repeat(7,1fr);">{cells}</div>'
+        st.markdown('<div class="mood-matrix-wrap">' + hdr + grid + '</div>', unsafe_allow_html=True)
+
+    else:  # 🗓️ Cả Năm — GitHub contributions style
+        _jan1_dow   = date(today_diary.year, 1, 1).weekday()
+        _padded_yr  = [None] * _jan1_dow + all_days_m
+        while len(_padded_yr) % 7 != 0:
+            _padded_yr.append(None)
+        _total_wks = len(_padded_yr) // 7
+
+        # Month label row
+        _prev_m = None
+        _month_spans = ""
+        for _wi in range(_total_wks):
+            _d0 = _padded_yr[_wi * 7]
+            _m  = _d0.month if _d0 else None
+            if _m != _prev_m and _m is not None:
+                _month_spans += f'<span style="grid-column:{_wi+1};font-size:.58rem;color:#aaa;font-weight:700;">{VN_MONTH_SHORT[_m]}</span>'
+                _prev_m = _m
+        _month_row = (
+            f'<div style="display:grid;grid-template-columns:repeat({_total_wks},1fr);gap:3px;margin-bottom:2px;">'
+            + _month_spans + "</div>"
+        )
+
+        # Cells (column-first ordering via grid-auto-flow:column)
+        _cells_yr = ""
+        for _wi in range(_total_wks):
+            for _di in range(7):
+                _d = _padded_yr[_wi * 7 + _di]
+                if _d is None:
+                    _cells_yr += '<div class="mood-day" style="background:transparent;border:none;min-width:13px;min-height:13px;"></div>'
+                else:
+                    _cells_yr += _build_cell(_d, "13px", "0.55rem")
+
+        _grid_yr = (
+            f'<div class="mood-grid" style="'
+            f'grid-template-columns:repeat({_total_wks},1fr);'
+            f'grid-template-rows:repeat(7,13px);'
+            f'grid-auto-flow:column;">'
+            + _cells_yr + "</div>"
+        )
+        st.markdown('<div class="mood-matrix-wrap">' + _month_row + _grid_yr + '</div>', unsafe_allow_html=True)
+
+    # Legend
+    _legend = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center;">'
+    _legend += f'<div style="display:flex;align-items:center;gap:5px;"><div style="width:13px;height:13px;border-radius:3px;background:{EMPTY_MOOD_COLOR};border:1px solid #ddd;"></div><span style="font-size:.78rem;color:#999;">Chưa ghi</span></div>'
+    for _mk, _lbl, _bg, *_ in MOOD_OPTIONS:
+        _icon_l = MOOD_COLORS[_mk][1]
+        _legend += f'<div style="display:flex;align-items:center;gap:5px;"><div style="width:13px;height:13px;border-radius:3px;background:{_bg};border:1px solid #ddd;text-align:center;font-size:.65rem;line-height:13px;">{_icon_l}</div><span style="font-size:.78rem;color:#666;">{_lbl}</span></div>'
+    _legend += '</div>'
+    st.markdown(_legend, unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)  # .card kết thúc matrix
+
+    # ── Chi tiết nhật ký theo ngày cụ thể ──
+    st.markdown('<div class="card" style="margin-top:14px;">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">📌 Xem Chi Tiết Nhật Ký Ngày</div>', unsafe_allow_html=True)
+    _dc_col, _ = st.columns([1.4, 3])
+    with _dc_col:
+        _detail_date = st.date_input(
+            "Chọn ngày",
+            value=today_diary,
+            max_value=today_diary,
+            key="diary_detail_pick",
+            label_visibility="collapsed",
+        )
+    _ds = _detail_date.strftime("%Y-%m-%d")
+    _drec = mood_data_m.get(_ds) or database.get_mood_log_by_date(_ds)
+    if _drec:
+        _mk2  = _drec.get("mood_type", "")
+        _bg2, _icon2 = MOOD_COLORS.get(_mk2, (EMPTY_MOOD_COLOR, "⚪"))
+        _lbl2 = MOOD_KEY_MAP.get(_mk2, ("⚪","","",""))[0]
+        _note2 = _drec.get("note") or "—"
+        _upd2  = _drec.get("updated_at") or ""
+        _ai2   = _drec.get("ai_response") or ""
+        st.markdown(f"""
+        <div style="background:{_bg2};border-radius:14px;padding:18px 22px;
+                    display:flex;gap:20px;align-items:flex-start;">
+            <div style="font-size:2.5rem;margin-top:2px;">{_icon2}</div>
+            <div>
+                <div style="font-weight:700;font-size:1.05rem;color:#333;">{_ds}</div>
+                <div style="font-size:.9rem;color:#555;margin:4px 0;">Cảm xúc: <b>{_lbl2}</b></div>
+                <div style="font-size:.86rem;color:#777;">Ghi chú: <i>{_note2}</i></div>
+                {f'<div style="font-size:.84rem;color:#b05c8a;margin-top:6px;">🐱 {_ai2}</div>' if _ai2 else ""}
+                <div style="font-size:.72rem;color:#aaa;margin-top:6px;">Cập nhật: {_upd2}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.info(f"⚪ Chưa có ghi chép cảm xúc nào cho ngày **{_ds}**.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════════════════════
 # TAB 5 — CÀI ĐẶT & TELEGRAM BOT
 # ══════════════════════════════════════════════════════════════════════════════
+
 elif selected_nav == "⚙️ Cài Đặt":
     col_cfg_main, col_cfg_cat = st.columns([2.5, 1])
     with col_cfg_main:
