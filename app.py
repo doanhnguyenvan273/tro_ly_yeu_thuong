@@ -1709,41 +1709,46 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
     }
     .mood-cal-container {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-        gap: 16px;
-        margin-top: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+        margin-top: 10px;
+    }
+    .mood-cal-container.is-single-month {
+        max-width: 520px;
+        margin-left: auto;
+        margin-right: auto;
     }
     .mini-cal {
         background: #ffffff;
-        border-radius: 14px;
-        padding: 14px 16px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        border-radius: 12px;
+        padding: 10px 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         border: 1px solid #f0f0f5;
     }
     .mini-cal-title {
         font-weight: 700;
-        font-size: 0.95rem;
+        font-size: 0.88rem;
         color: #d81159;
         text-align: center;
-        margin-bottom: 10px;
+        margin-bottom: 6px;
     }
     .mini-cal-header {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         text-align: center;
-        font-size: 0.72rem;
+        font-size: 0.68rem;
         font-weight: 700;
-        color: #888;
-        margin-bottom: 6px;
+        color: #999;
+        margin-bottom: 4px;
     }
     .mini-cal-grid {
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 4px;
+        gap: 3px;
     }
     .mcell {
         aspect-ratio: 1;
-        border-radius: 8px;
+        border-radius: 6px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -1752,26 +1757,26 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
         cursor: pointer;
         transition: transform 0.15s ease, box-shadow 0.15s ease;
         user-select: none;
-        min-height: 34px;
-        border: 1px solid rgba(0,0,0,0.04);
+        min-height: 28px;
+        border: 1px solid rgba(0,0,0,0.03);
     }
     .mcell:hover {
         transform: scale(1.15);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         z-index: 5;
     }
     .mcell.is-today {
-        box-shadow: 0 0 0 2.5px #d81159 !important;
+        box-shadow: 0 0 0 2px #d81159 !important;
     }
     .mcell .mcell-num {
-        font-size: 0.68rem;
+        font-size: 0.64rem;
         font-weight: 700;
         line-height: 1;
     }
     .mcell .mcell-icon {
-        font-size: 0.85rem;
+        font-size: 0.72rem;
         line-height: 1;
-        margin-top: 2px;
+        margin-top: 1px;
     }
     .mcell .mtt {
         display: none;
@@ -1781,14 +1786,14 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
         transform: translateX(-50%);
         background: #1a1a2e;
         color: #ffffff;
-        border-radius: 8px;
-        padding: 6px 10px;
-        font-size: 0.72rem;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 0.7rem;
         white-space: nowrap;
         z-index: 999;
         pointer-events: none;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-        min-width: 130px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+        min-width: 120px;
         text-align: center;
     }
     .mcell:hover .mtt {
@@ -2002,7 +2007,8 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
     DAY_HEADERS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
 
     # ── Build HTML cho tất cả mini-calendar tháng ──
-    full_html = '<div class="mood-cal-container">'
+    cal_cls = "mood-cal-container is-single-month" if view_mode == "single" else "mood-cal-container"
+    full_html = f'<div class="{cal_cls}">'
 
     for m in months_to_render:
         first_dow = date(view_year, m, 1).weekday()  # 0=Mon
