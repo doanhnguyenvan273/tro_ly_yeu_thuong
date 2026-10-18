@@ -539,13 +539,13 @@ def handle_incoming_message(msg: Dict[str, Any]):
             )
             notifier.send_telegram_message(chat_id, reply_msg)
 
-            # Cảnh báo bí mật cho bạn trai nếu tâm trạng tiêu cực
-            if mood_type in ["Sad", "Stressed", "Angry", "Tired"]:
+            # Cảnh báo bí mật cho bạn trai nếu tâm trạng tiêu cực - chỉ khi cô ấy ghi, không phải Anh
+            if mood_type in ["Sad", "Stressed", "Angry", "Tired"] and sender_id_str == her_id:
                 try:
                     note_content = note if note else "Không có ghi chú"
                     secret_msg = (
                         f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
-                        f"Bạn gái vừa cập nhật cảm xúc: <b>{mood_info['name']}</b> qua Telegram.\n"
+                        f"Em bé vừa cập nhật cảm xúc: <b>{mood_info['name']}</b> qua Telegram.\n"
                         f"📝 <b>Ghi chú:</b> {note_content}\n\n"
                         f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon hoặc đồ ngọt cho cô ấy nhé! 🍫🧸💖</i>"
                     )
@@ -557,6 +557,10 @@ def handle_incoming_message(msg: Dict[str, Any]):
     # 0.5 Bắt từ khóa cập nhật cảm xúc (Mood Tracker)
     mood_keywords = ["cảm xúc", "cảm xúc hôm nay", "cập nhật cảm xúc", "mood", "tâm trạng", "tam trang"]
     if any(k in text_lower for k in mood_keywords):
+        # Chỉ cho phép cô ấy dùng Mood Tracker; Anh không cần ghi nhận cảm xúc
+        if sender_id_str != her_id and my_id:
+            notifier.send_telegram_message(chat_id, "💡 Tính năng ghi nhận cảm xúc chỉ dành cho em bé thôi nha! 🌸")
+            return
         prompt = (
             "🌸 <b>NHẬT KÝ CẢM XÚC HÔM NAY</b> 🐱\n\n"
             "Bác sĩ Mèo đang lắng nghe em nè! Hôm nay tâm trạng của em thế nào?\n"
@@ -573,7 +577,12 @@ def handle_incoming_message(msg: Dict[str, Any]):
     ]
     if any(k in text_lower for k in night_keywords):
         import scheduler
-        reply = scheduler.build_good_night_message()
+        if sender_id_str == her_id:
+            # Gửi tin chúc ngủ ngon cá nhân hóa cho cô ấy
+            reply = scheduler.build_good_night_message()
+        else:
+            # Anh nhắn: chỉ báo preview ngắn
+            reply = "🌙 <b>Xem trước tin nhắn ngủ ngon sẽ gửi cho em bé tối nay...</b>\n\n" + scheduler.build_good_night_message()
         notifier.send_telegram_message(chat_id, reply)
         return
 
@@ -584,7 +593,12 @@ def handle_incoming_message(msg: Dict[str, Any]):
     ]
     if any(k in text_lower for k in morning_keywords):
         import scheduler
-        reply = scheduler.build_good_morning_message()
+        if sender_id_str == her_id:
+            # Gửi tin chào sáng cá nhân hóa cho cô ấy
+            reply = scheduler.build_good_morning_message()
+        else:
+            # Anh nhắn: chỉ báo preview ngắn
+            reply = "☀️ <b>Xem trước tin nhắn chào buổi sáng sẽ gửi cho em bé...</b>\n\n" + scheduler.build_good_morning_message()
         notifier.send_telegram_message(chat_id, reply)
         return
 
