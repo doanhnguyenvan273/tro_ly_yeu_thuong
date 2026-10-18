@@ -133,7 +133,7 @@ def handle_take_medicine_command(user_display: str) -> str:
 
 
 def build_deadline_response() -> str:
-    """Tạo tin nhắn tra cứu deadline sắp tới."""
+    """Tạo tin nhắn tra cứu deadline sắp tới kèm số thứ tự để đánh dấu hoàn thành."""
     tasks = database.get_all_tasks()
     active_tasks = [t for t in tasks if t.get("status") != "Đã hoàn thành"]
 
@@ -142,7 +142,7 @@ def build_deadline_response() -> str:
         lines.append("<i>🎉 Tuyệt vời! Hiện tại không có deadline nào đang chờ. Em thật giỏi! 💖</i>")
     else:
         now = config.get_now()
-        for t in active_tasks:
+        for idx, t in enumerate(active_tasks, 1):
             stt = "⏳ Đang làm" if t.get("status") == "Đang làm" else "📝 Chưa làm"
             # Tính giờ còn lại
             try:
@@ -159,15 +159,21 @@ def build_deadline_response() -> str:
             except Exception:
                 urgency = ""
             lines.append(
-                f"• <b>{t['task_name']}</b> ({t['subject_name']})\n"
-                f"  📅 Hạn: <b>{t['deadline']}</b>{urgency} | Trạng thái: {stt}"
+                f"<b>[{idx}]</b> <b>{t['task_name']}</b> ({t['subject_name']})\n"
+                f"   📅 Hạn: <b>{t['deadline']}</b>{urgency} | Trạng thái: {stt}"
             )
-    lines.append("\n💡 <i>Nhắn <code>lịch học</code> để xem lịch tuần | Nhắn <code>xong deadline</code> để đánh dấu hoàn thành bài tập nhé!</i>")
+        lines.append(
+            "\n💡 <b>Cách đánh dấu hoàn thành:</b>\n"
+            "• Xong 1 task: Nhắn <code>xong task 1</code> hoặc <code>done task 1</code>\n"
+            "• Xong nhiều task: Nhắn <code>xong task 1, 3</code> hoặc <code>done task 1, 3</code>"
+        )
     return "\n".join(lines)
 
 
 def handle_complete_deadline_command(text: str, user_display: str) -> str:
-    """Đánh dấu hoàn thành deadline trực tiếp qua tin nhắn Telegram."""
+    """Đánh dấu hoàn thành một hoặc nhiều deadline cùng lúc qua tin nhắn Telegram."""
+    import re
+
     all_tasks = database.get_all_tasks()
     active_tasks = [t for t in all_tasks if t.get("status") != "Đã hoàn thành"]
 
@@ -179,46 +185,75 @@ def handle_complete_deadline_command(text: str, user_display: str) -> str:
         )
 
     text_lower = text.lower()
-    matched_task = None
+    matched_tasks = []
 
-    # 1. Khớp theo số thứ tự (ví dụ: 'xong deadline 1', 'xong deadline 2')
-    import re
-    num_match = re.search(r'\b(\d+)\b', text)
-    if num_match:
-        idx = int(num_match.group(1)) - 1
-        if 0 <= idx < len(active_tasks):
-            matched_task = active_tasks[idx]
+    # 1. Trích xuất tất cả các số thứ tự (ví dụ: 'task 1', '1, 3', 'task 1,3', 'done 1 2')
+    found_nums = [int(n) for n in re.findall(r'\b\d+\b', text)]
+    valid_indices = []
+    for n in found_nums:
+        if 1 <= n <= len(active_tasks):
+            idx = n - 1
+            if idx not in valid_indices:
+                valid_indices.append(idx)
 
-    # 2. Khớp theo từ khóa tên bài tập (ví dụ: 'xong slide', 'xong reflection')
-    if not matched_task:
+    if valid_indices:
+        matched_tasks = [active_tasks[i] for i in valid_indices]
+    elif found_nums and not valid_indices:
+        return (
+            f"⚠️ <b>Không tìm thấy task số {found_nums[0]}!</b>\n\n"
+            f"Hiện tại chỉ có từ <b>task 1 đến task {len(active_tasks)}</b>. "
+            f"Nhắn <code>deadline</code> để xem lại danh sách bài tập nhé! 🌸"
+        )
+
+    # 2. Khớp theo từ khóa tên bài tập (nếu không ghi số, ví dụ: 'xong slide', 'done reflection')
+    if not matched_tasks:
         for t in active_tasks:
             t_name = t["task_name"].lower()
             keywords_in_name = [w for w in re.split(r'[\s\(\)\-_,]+', t_name) if len(w) >= 3]
             if any(k in text_lower for k in keywords_in_name):
-                matched_task = t
+                matched_tasks.append(t)
                 break
 
-    # 3. Mặc định: chọn task có hạn gần nhất (cần làm gấp nhất)
-    if not matched_task:
-        matched_task = active_tasks[0]
+    # 3. Mặc định: nếu chỉ nhắn 'xong deadline' hoặc 'done task' mà không ghi số:
+    if not matched_tasks:
+        matched_tasks = [active_tasks[0]]
 
-    # Cập nhật trạng thái sang Đã hoàn thành
-    database.update_task_status(matched_task["id"], "Đã hoàn thành")
+    # Cập nhật trạng thái trong database sang Đã hoàn thành
+    for t in matched_tasks:
+        database.update_task_status(t["id"], "Đã hoàn thành")
 
-    # Kiểm tra các task còn lại
-    remaining_tasks = [t for t in active_tasks if t["id"] != matched_task["id"]]
-    rem_info = ""
-    if remaining_tasks:
-        rem_info = f"\n\n📝 Hiện em còn <b>{len(remaining_tasks)} bài tập</b> nữa: <i>{remaining_tasks[0]['task_name']}</i>. Cố lên nhé em yêu! 💪🌸"
+    # Kiểm tra các task còn lại sau khi hoàn thành
+    matched_ids = {t["id"] for t in matched_tasks}
+    remaining_tasks = [t for t in active_tasks if t["id"] not in matched_ids]
+
+    # Tạo nội dung danh sách task vừa hoàn thành
+    task_bullets = []
+    for t in matched_tasks:
+        original_idx = active_tasks.index(t) + 1
+        task_bullets.append(f"• <b>[{original_idx}] {t['task_name']}</b> ({t.get('subject_name', 'Môn học')}) ✅")
+    task_done_str = "\n".join(task_bullets)
+
+    if len(matched_tasks) > 1:
+        header_title = (
+            f"🎉 <b>QUÁ ĐỈNH {user_display.upper()} ƠI! MỘT CÔNG ĐÔI VIỆC!</b> ✨\n\n"
+            f"Em đã hoàn thành xuất sắc <b>{len(matched_tasks)} bài tập</b> cùng lúc:\n{task_done_str}"
+        )
     else:
-        rem_info = f"\n\n🎊 <b>Em đã dọn sạch tất cả deadline rồi!</b> Thật tự hào về em! Nghỉ ngơi cho khỏe nhé cô bé giỏi giang! 🍵🧸💖"
+        header_title = (
+            f"🎉 <b>XUẤT SẮC QUÁ {user_display.upper()} ƠI!</b> ✨\n\n"
+            f"Em đã đánh dấu hoàn thành bài tập:\n{task_done_str}"
+        )
 
-    return (
-        f"🎉 <b>XUẤT SẮC QUÁ {user_display.upper()} ƠI!</b> ✨\n\n"
-        f"Em đã đánh dấu hoàn thành bài tập:\n"
-        f"📌 <b>{matched_task['task_name']}</b> ({matched_task.get('subject_name', 'Môn học')}) ✅"
-        f"{rem_info}"
-    )
+    if remaining_tasks:
+        rem_bullets = []
+        for new_idx, r in enumerate(remaining_tasks, 1):
+            rem_bullets.append(f"• <b>[{new_idx}] {r['task_name']}</b> (Hạn: {r['deadline']})")
+        rem_str = "\n".join(rem_bullets)
+        rem_info = f"\n\n📝 <b>Hiện em còn {len(remaining_tasks)} bài tập nữa nè:</b>\n{rem_str}\n\nCố lên nhé em yêu! Anh luôn cổ vũ em! 💪🌸"
+    else:
+        rem_info = f"\n\n🎊 <b>WOAHH! Em đã dọn sạch TẤT CẢ deadline rồi!</b> Thật tự hào về em! Nghỉ ngơi cho khỏe nhé cô bé siêu giỏi giang! 🍵🧸💖"
+
+    return f"{header_title}{rem_info}"
 
 
 def build_cycle_response() -> str:
@@ -352,7 +387,7 @@ def build_help_response(name: str = "Bạn") -> str:
         f"📅 <b>Lịch học:</b> <code>lịch học</code> / <code>tkb</code> / <code>hôm nay học gì</code>\n"
         f"📅 <b>Lịch mai:</b> <code>mai học gì</code> / <code>ngày mai</code>\n"
         f"💊 <b>Uống thuốc:</b> <code>thuốc</code> để xem lịch | <code>đã uống thuốc</code> để xác nhận\n"
-        f"⏰ <b>Deadline:</b> <code>deadline</code> để xem | <code>xong deadline</code> để hoàn thành\n"
+        f"⏰ <b>Deadline:</b> <code>deadline</code> để xem | <code>xong task 1</code> hoặc <code>done task 1, 3</code> để hoàn thành\n"
         f"🌸 <b>Chu kỳ sinh lý:</b> <code>chu kỳ</code> / <code>kỳ tới</code>\n"
         f"💖 <b>Báo đến kỳ:</b> <code>hôm nay đến kỳ</code>\n"
         f"📋 <b>Điểm danh:</b> <code>điểm danh</code> / <code>vắng mặt</code>\n"
@@ -446,14 +481,22 @@ def handle_incoming_message(msg: Dict[str, Any]):
         notifier.send_telegram_message(chat_id, reply)
         return
 
-    # 7. Đánh dấu hoàn thành deadline
-    complete_deadline_keywords = [
-        "xong deadline", "hoàn thành deadline", "hoan thanh deadline",
-        "đã xong deadline", "da xong deadline", "xong bài tập", "xong bai tap",
-        "hoàn thành bài tập", "hoan thanh bai tap", "xong task", "hoàn thành task",
-        "xong hết bài", "làm xong deadline", "đã làm xong", "xong rồi", "xong rùi", "xong r"
+    # 7. Đánh dấu hoàn thành deadline (hỗ trợ: xong task 1, done task 1, hoàn thành task 1, 3, done 1, 3, v.v.)
+    import re
+    complete_deadline_prefixes = [
+        "xong task", "done task", "hoàn thành task", "hoan thanh task",
+        "xong deadline", "done deadline", "hoàn thành deadline", "hoan thanh deadline",
+        "xong bài tập", "done bài tập", "hoàn thành bài tập", "hoan thanh bài tập",
+        "đã xong task", "da xong task", "đã hoàn thành", "da hoan thanh",
+        "xong hết bài", "làm xong deadline", "đã làm xong", "xong rồi", "xong rùi", "done all"
     ]
-    if any(k in text_lower for k in complete_deadline_keywords):
+    is_complete_cmd = any(p in text_lower for p in complete_deadline_prefixes)
+    if not is_complete_cmd:
+        # Nhận diện cú pháp: 'done 1', 'xong 1, 3', 'done 1,3', 'hoàn thành 1, 3', 'done task 1, 3'
+        if re.search(r'\b(xong|done|hoàn thành|hoan thanh)\b.*(\btask\b|\bdeadline\b|\d+)', text_lower):
+            is_complete_cmd = True
+
+    if is_complete_cmd:
         reply = handle_complete_deadline_command(text, user_display)
         notifier.send_telegram_message(chat_id, reply)
         return
