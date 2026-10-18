@@ -309,6 +309,18 @@ def init_db():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
+
+        # Tự động đồng bộ schema cho bảng mood_logs nếu thiếu cột updated_at hoặc UNIQUE index
+        try:
+            cursor.execute("ALTER TABLE mood_logs ADD COLUMN updated_at TIMESTAMP")
+            cursor.execute("UPDATE mood_logs SET updated_at = created_at WHERE updated_at IS NULL")
+        except Exception:
+            pass
+
+        try:
+            cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_mood_logs_date ON mood_logs(date)")
+        except Exception:
+            pass
         
         conn.commit()
 

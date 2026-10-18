@@ -2,9 +2,12 @@ import streamlit as st
 from datetime import datetime, date, timedelta
 import pandas as pd
 import os
+import base64
 
+import importlib
 import config
 import database
+importlib.reload(database)
 import deadline_ml
 import menstrual_ml
 import medicine_ocr
@@ -232,7 +235,7 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
     flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 6px !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
     scrollbar-width: none !important;
@@ -263,13 +266,14 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
 .st-key-sticky_nav_container [data-testid="stRadioOption"] {
     margin: 0 !important;
     padding: 0 !important;
+    flex-shrink: 0 !important;
 }
 .st-key-sticky_nav_container [data-testid="stRadioOption"] > label,
 .st-key-sticky_nav_container [data-testid="stRadioOption"] > div {
     background: rgba(255, 245, 247, 0.75) !important;
     border: 1.2px solid rgba(255, 182, 193, 0.5) !important;
     border-radius: 20px !important;
-    padding: 6px 14px !important;
+    padding: 5px 11px !important;
     margin: 0 !important;
     cursor: pointer !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -287,7 +291,7 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
 }
 .st-key-sticky_nav_container [data-testid="stRadioOption"] p,
 .st-key-sticky_nav_container [data-testid="stRadioOption"] span {
-    font-size: 0.88rem !important;
+    font-size: 0.83rem !important;
     font-weight: 600 !important;
     color: #555555 !important;
     margin: 0 !important;
@@ -412,6 +416,14 @@ div[data-testid="stTabs"] [role="tabpanel"] {
     box-shadow: 0 4px 15px rgba(255, 182, 193, 0.12);
     margin-bottom: 14px;
 }
+.card-hover-click {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s !important;
+}
+.card-hover-click:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 10px 25px rgba(255, 117, 140, 0.25) !important;
+    border-color: #ff758c !important;
+}
 .cat-card {
     background: #FFFFFF;
     border: 1px solid #FFE4E8;
@@ -530,6 +542,12 @@ def get_cat_image_bytes(filename: str):
             return f.read()
     return None
 
+def get_cat_image_base64(filename: str):
+    raw = get_cat_image_bytes(filename)
+    if raw:
+        return base64.b64encode(raw).decode("utf-8")
+    return None
+
 def render_cat(filename: str, caption: str, width: int = 150):
     """Hiển thị sticker mèo mượt mà trực tiếp từ RAM cache."""
     data = get_cat_image_bytes(filename)
@@ -562,8 +580,32 @@ NAV_OPTIONS = [
     "📝 Deadline",
     "🌸 Chu Kỳ",
     "💊 Đơn Thuốc",
+    "📖 Cảm Xúc",
     "⚙️ Cài Đặt",
 ]
+
+NAV_QUERY_MAP = {
+    "TrangChu": "🏠 Trang Chủ",
+    "LichHoc":  "🎒 Lịch Học",
+    "Deadline": "📝 Deadline",
+    "ChuKy":    "🌸 Chu Kỳ",
+    "DonThuoc": "💊 Đơn Thuốc",
+    "CamXuc":   "📖 Cảm Xúc",
+    "CaiDat":   "⚙️ Cài Đặt",
+}
+
+# 1-Click chuyển tab từ các liên kết trên giao diện (?nav=...)
+if "nav" in st.query_params:
+    _qp_nav = st.query_params.get("nav")
+    if _qp_nav in NAV_QUERY_MAP:
+        _target_tab = NAV_QUERY_MAP[_qp_nav]
+        st.session_state["active_nav"] = _target_tab
+        st.session_state["nav_desktop"] = _target_tab
+        st.session_state["nav_mobile"] = _target_tab
+    try:
+        del st.query_params["nav"]
+    except Exception:
+        pass
 
 if "active_nav" not in st.session_state:
     st.session_state["active_nav"] = NAV_OPTIONS[0]
@@ -580,12 +622,18 @@ def sync_nav_from_mobile():
         st.session_state["active_nav"] = val
         st.session_state["nav_desktop"] = val
 
+def goto_nav(target):
+    st.session_state["active_nav"] = target
+    st.session_state["nav_desktop"] = target
+    st.session_state["nav_mobile"] = target
+    st.rerun()
+
 cur_idx = NAV_OPTIONS.index(st.session_state["active_nav"]) if st.session_state["active_nav"] in NAV_OPTIONS else 0
 
 with st.container(key="sticky_nav_container"):
     # ── 1. GIAO DIỆN DESKTOP (width > 768px): Thanh ngang đầy đủ ──
     with st.container(key="desktop_nav_wrap"):
-        c_logo, c_menu, c_status = st.columns([1.4, 4.6, 1.4], vertical_alignment="center")
+        c_logo, c_menu, c_status = st.columns([1.1, 5.8, 1.1], vertical_alignment="center")
         with c_logo:
             st.markdown('<div class="navbar-logo">💖 Trợ Lý Yêu Thương</div>', unsafe_allow_html=True)
         with c_menu:
@@ -642,9 +690,10 @@ st.markdown(f"""
     <div>
         <div class="hero-title">💖 Trợ Lý Yêu Thương 🌸</div>
         <div class="hero-subtitle">Dành riêng cho <b>{her_name}</b> — Đồng hành mỗi ngày<br>trong học tập và chăm sóc sức khỏe!</div>
-        <div>
-            <span class="hero-btn">📅 Xem Lịch Hôm Nay</span>
-            <span class="hero-btn">💊 Nhắc Uống Thuốc</span>
+        <div style="margin-top:14px;">
+            <a href="?nav=LichHoc" target="_self" class="hero-btn">📅 Xem Lịch Hôm Nay</a>
+            <a href="?nav=DonThuoc" target="_self" class="hero-btn">💊 Nhắc Uống Thuốc</a>
+            <a href="?nav=CamXuc" target="_self" class="hero-btn">📖 Ghi Cảm Xúc</a>
         </div>
     </div>
     <div class="hero-status-box">
@@ -682,89 +731,162 @@ if selected_nav == "🏠 Trang Chủ":
     total_meds_home = len(today_meds_home)
     taken_meds_home = sum(1 for m in today_meds_home if m["taken"]) if today_meds_home else 0
 
-    # 1. Bốn Thẻ KPI Tổng Quan Nhanh
+    # 1. Bốn Thẻ KPI Tổng Quan Nhanh (Click trực tiếp vào thẻ để chuyển tab Navbar tương ứng)
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     with kpi1:
-        st.markdown(f"""<div class="card" style="text-align:center;padding:16px;">
-            <div style="font-size:1.8rem;margin-bottom:4px;">🎒</div>
-            <div style="font-weight:700;color:#d81159;font-size:0.95rem;">Lịch Học Hôm Nay</div>
-            <div style="font-size:1.3rem;font-weight:800;color:#333;margin:4px 0;">{len(today_scheds)} ca học</div>
-            <div style="font-size:0.78rem;color:#888;">{today_day_name} ({today_date.strftime('%d/%m')})</div>
-        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+            f'<div class="card card-hover-click" style="text-align:center;padding:18px 14px;cursor:pointer;">'
+            f'<div style="font-size:1.8rem;margin-bottom:4px;">🎒</div>'
+            f'<div style="font-weight:700;color:#d81159;font-size:0.95rem;">Lịch Học Hôm Nay</div>'
+            f'<div style="font-size:1.35rem;font-weight:800;color:#333;margin:4px 0;">{len(today_scheds)} ca học</div>'
+            f'<div style="font-size:0.78rem;color:#888;">{today_day_name} ({today_date.strftime("%d/%m")})</div>'
+            f'<div style="font-size:0.75rem;color:#d81159;margin-top:6px;font-weight:600;">Xem chi tiết ➔</div>'
+            f'</div>'
+            f'</a>',
+            unsafe_allow_html=True,
+        )
 
     with kpi2:
-        st.markdown(f"""<div class="card" style="text-align:center;padding:16px;">
-            <div style="font-size:1.8rem;margin-bottom:4px;">⏰</div>
-            <div style="font-weight:700;color:#e67e22;font-size:0.95rem;">Deadline Cần Làm</div>
-            <div style="font-size:1.3rem;font-weight:800;color:#333;margin:4px 0;">{len(pending_tasks)} bài tập</div>
-            <div style="font-size:0.78rem;color:#888;">Đang chờ hoàn thành</div>
-        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            f'<a href="?nav=Deadline" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+            f'<div class="card card-hover-click" style="text-align:center;padding:18px 14px;cursor:pointer;">'
+            f'<div style="font-size:1.8rem;margin-bottom:4px;">⏰</div>'
+            f'<div style="font-weight:700;color:#e67e22;font-size:0.95rem;">Deadline Cần Làm</div>'
+            f'<div style="font-size:1.35rem;font-weight:800;color:#333;margin:4px 0;">{len(pending_tasks)} bài tập</div>'
+            f'<div style="font-size:0.78rem;color:#888;">Đang chờ hoàn thành</div>'
+            f'<div style="font-size:0.75rem;color:#e67e22;margin-top:6px;font-weight:600;">Quản lý task ➔</div>'
+            f'</div>'
+            f'</a>',
+            unsafe_allow_html=True,
+        )
 
     with kpi3:
         ck_status = f"Còn {pred_home['days_left']} ngày" if pred_home.get("has_data") else "Chưa có dữ liệu"
-        st.markdown(f"""<div class="card" style="text-align:center;padding:16px;">
-            <div style="font-size:1.8rem;margin-bottom:4px;">🌸</div>
-            <div style="font-weight:700;color:#e84393;font-size:0.95rem;">Chu Kỳ Sinh Lý</div>
-            <div style="font-size:1.3rem;font-weight:800;color:#333;margin:4px 0;">{ck_status}</div>
-            <div style="font-size:0.78rem;color:#888;">Dự kiến: {pred_home.get('predicted_next_date', '---')}</div>
-        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            f'<a href="?nav=ChuKy" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+            f'<div class="card card-hover-click" style="text-align:center;padding:18px 14px;cursor:pointer;">'
+            f'<div style="font-size:1.8rem;margin-bottom:4px;">🌸</div>'
+            f'<div style="font-weight:700;color:#e84393;font-size:0.95rem;">Chu Kỳ Sinh Lý</div>'
+            f'<div style="font-size:1.35rem;font-weight:800;color:#333;margin:4px 0;">{ck_status}</div>'
+            f'<div style="font-size:0.78rem;color:#888;">Dự kiến: {pred_home.get("predicted_next_date", "---")}</div>'
+            f'<div style="font-size:0.75rem;color:#e84393;margin-top:6px;font-weight:600;">Xem dự đoán ➔</div>'
+            f'</div>'
+            f'</a>',
+            unsafe_allow_html=True,
+        )
 
     with kpi4:
         med_status = f"{taken_meds_home}/{total_meds_home} liều" if total_meds_home else "Trống lịch"
-        st.markdown(f"""<div class="card" style="text-align:center;padding:16px;">
-            <div style="font-size:1.8rem;margin-bottom:4px;">💊</div>
-            <div style="font-weight:700;color:#00b894;font-size:0.95rem;">Thuốc Hôm Nay</div>
-            <div style="font-size:1.3rem;font-weight:800;color:#333;margin:4px 0;">{med_status}</div>
-            <div style="font-size:0.78rem;color:#888;">{'Đã uống đủ! 🎉' if total_meds_home and taken_meds_home == total_meds_home else 'Nhắc giờ Telegram 🤖'}</div>
-        </div>""", unsafe_allow_html=True)
+        med_sub = 'Đã uống đủ! 🎉' if total_meds_home and taken_meds_home == total_meds_home else 'Nhắc giờ Telegram 🤖'
+        st.markdown(
+            f'<a href="?nav=DonThuoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+            f'<div class="card card-hover-click" style="text-align:center;padding:18px 14px;cursor:pointer;">'
+            f'<div style="font-size:1.8rem;margin-bottom:4px;">💊</div>'
+            f'<div style="font-weight:700;color:#00b894;font-size:0.95rem;">Thuốc Hôm Nay</div>'
+            f'<div style="font-size:1.35rem;font-weight:800;color:#333;margin:4px 0;">{med_status}</div>'
+            f'<div style="font-size:0.78rem;color:#888;">{med_sub}</div>'
+            f'<div style="font-size:0.75rem;color:#00b894;margin-top:6px;font-weight:600;">Xem đơn thuốc ➔</div>'
+            f'</div>'
+            f'</a>',
+            unsafe_allow_html=True,
+        )
 
     # 2. Bố cục 2.5 : 1 — Chi tiết ngày hôm nay & Meme Mèo
     c_home_main, c_home_cat = st.columns([2.5, 1])
     with c_home_main:
-        st.markdown(f"""<div class="card">
-            <div class="section-title">✨ Chào ngày mới, {her_name}! 🌸</div>
-            <p style="font-size:0.93rem;color:#555;line-height:1.75;margin-bottom:14px;">
-            Hôm nay là <b>{today_day_name}, ngày {today_date.strftime('%d/%m/%Y')}</b>. Chúc em một ngày học tập thật hiệu quả, luôn rạng rỡ và nhớ chăm sóc sức khỏe nhé! Anh và Trợ Lý Yêu Thương luôn đồng hành cùng em 💖
-            </p>
-        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            f'<div class="card">'
+            f'<div class="section-title">✨ Chào ngày mới, {her_name}! 🌸</div>'
+            f'<div style="font-size:0.93rem;color:#555;line-height:1.75;margin-bottom:14px;">'
+            f'Hôm nay là <b>{today_day_name}, ngày {today_date.strftime("%d/%m/%Y")}</b>. Chúc em một ngày học tập thật hiệu quả, luôn rạng rỡ và nhớ chăm sóc sức khỏe nhé! Anh và Trợ Lý Yêu Thương luôn đồng hành cùng em 💖'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
         col_sch_d, col_task_d = st.columns(2)
         with col_sch_d:
-            st.markdown("""<div class="card" style="min-height:190px;">
-                <div class="section-title">🎒 Chi tiết lịch học hôm nay</div>""", unsafe_allow_html=True)
             if today_scheds:
+                sch_items = []
                 for sc in today_scheds:
-                    st.markdown(f"""<div style="border-left:3px solid #ff758c;padding-left:10px;margin-bottom:8px;">
-                        <b>{sc['subject_name']}</b><br>
-                        <span style="font-size:0.85rem;color:#666;">🕒 {sc['start_time']} - {sc['end_time']} | 📍 {sc['room'] or 'Chưa có phòng'}</span>
-                    </div>""", unsafe_allow_html=True)
+                    sch_items.append(
+                        f'<div style="border-left:3px solid #ff758c;padding-left:12px;margin-bottom:10px;text-align:left;">'
+                        f'<div style="font-weight:700;color:#333;font-size:0.92rem;">{sc["subject_name"]}</div>'
+                        f'<div style="font-size:0.83rem;color:#666;margin-top:2px;">🕒 {sc["start_time"]} - {sc["end_time"]} | 📍 {sc.get("room") or "Chưa có phòng"}</div>'
+                        f'</div>'
+                    )
+                sch_body_html = "".join(sch_items)
             else:
-                st.markdown("<p style='color:#888;font-size:0.9rem;'>🎉 Hôm nay không có môn học nào! Em thoải mái nghỉ ngơi hoặc ôn bài nhé.</p>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+                sch_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">🎉 Hôm nay không có môn học nào! Em thoải mái nghỉ ngơi hoặc ôn bài nhé.</div>'
+
+            sch_card_html = (
+                f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+                f'<div class="card card-hover-click" style="min-height:190px;cursor:pointer;">'
+                f'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">'
+                f'<div class="section-title" style="margin:0;display:inline-flex;align-items:center;">🎒 Chi tiết lịch học hôm nay</div>'
+                f'<div style="font-size:0.8rem;color:#d81159;font-weight:700;white-space:nowrap;margin-left:auto;">Mở lịch ➔</div>'
+                f'</div>'
+                f'{sch_body_html}'
+                f'</div>'
+                f'</a>'
+            )
+            st.markdown(sch_card_html, unsafe_allow_html=True)
 
         with col_task_d:
-            st.markdown("""<div class="card" style="min-height:190px;">
-                <div class="section-title">⏰ Deadline gần nhất</div>""", unsafe_allow_html=True)
             if pending_tasks:
+                task_items = []
                 for tk in pending_tasks[:3]:
-                    st.markdown(f"""<div style="border-left:3px solid #e67e22;padding-left:10px;margin-bottom:8px;">
-                        <b>{tk['title']}</b><br>
-                        <span style="font-size:0.85rem;color:#666;">⏳ Hạn: {tk['deadline']} | Môn: {tk['subject_name']}</span>
-                    </div>""", unsafe_allow_html=True)
+                    _task_title = tk.get('task_name') or tk.get('title') or 'Nhiệm vụ'
+                    _subject    = tk.get('subject_name') or 'Môn học'
+                    _dl         = tk.get('deadline') or 'Chưa có hạn'
+                    task_items.append(
+                        f'<div style="border-left:3px solid #e67e22;padding-left:12px;margin-bottom:10px;text-align:left;">'
+                        f'<div style="font-weight:700;color:#333;font-size:0.92rem;">{_task_title}</div>'
+                        f'<div style="font-size:0.83rem;color:#666;margin-top:2px;">⏳ Hạn: {_dl} | Môn: {_subject}</div>'
+                        f'</div>'
+                    )
+                task_body_html = "".join(task_items)
             else:
-                st.markdown("<p style='color:#888;font-size:0.9rem;'>✨ Không có deadline nào đang dồn ập! Cứ từ từ thưởng thức ngày mới nha.</p>", unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
+                task_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">✨ Không có deadline nào đang dồn ập! Cứ từ từ thưởng thức ngày mới nha.</div>'
+
+            task_card_html = (
+                f'<a href="?nav=Deadline" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+                f'<div class="card card-hover-click" style="min-height:190px;cursor:pointer;">'
+                f'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">'
+                f'<div class="section-title" style="margin:0;display:inline-flex;align-items:center;">⏰ Deadline gần nhất</div>'
+                f'<div style="font-size:0.8rem;color:#e67e22;font-weight:700;white-space:nowrap;margin-left:auto;">Quản lý ➔</div>'
+                f'</div>'
+                f'{task_body_html}'
+                f'</div>'
+                f'</a>'
+            )
+            st.markdown(task_card_html, unsafe_allow_html=True)
 
     with c_home_cat:
-        st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        render_cat("smile-cat.png", f"Chúc {her_name} một ngày siêu vui vẻ! 😸🌸", width=170)
-        st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown("""<div class="card" style="margin-top:14px;text-align:center;">
-            <div style="font-weight:700;color:#d81159;font-size:0.9rem;">💌 Lời nhắc hôm nay</div>
-            <div style="font-size:0.84rem;color:#666;margin-top:6px;line-height:1.6;">
-            Uống đủ 2 lít nước, không bỏ bữa sáng và nhớ mỉm cười thật nhiều nha bé iu! 🍵✨
-            </div>
-        </div>""", unsafe_allow_html=True)
+        cat_b64 = get_cat_image_base64("smile-cat.png")
+        if cat_b64:
+            cat_card_html = (
+                f'<div class="cat-card">'
+                f'<img src="data:image/png;base64,{cat_b64}" style="width:100%;max-width:180px;border-radius:12px;margin:0 auto 8px auto;display:block;">'
+                f'<div style="font-size:0.84rem;color:#777;font-weight:600;">Chúc {her_name} một ngày siêu vui vẻ! 😸🌸</div>'
+                f'</div>'
+            )
+            st.markdown(cat_card_html, unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="cat-card">', unsafe_allow_html=True)
+            render_cat("smile-cat.png", f"Chúc {her_name} một ngày siêu vui vẻ! 😸🌸", width=170)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        remind_card_html = (
+            f'<div class="card" style="margin-top:14px;text-align:center;">'
+            f'<div style="font-weight:700;color:#d81159;font-size:0.9rem;">💌 Lời nhắc hôm nay</div>'
+            f'<div style="font-size:0.84rem;color:#666;margin-top:6px;line-height:1.6;">'
+            f'Uống đủ 2 lít nước, không bỏ bữa sáng và nhớ mỉm cười thật nhiều nha bé iu! 🍵✨'
+            f'</div>'
+            f'</div>'
+        )
+        st.markdown(remind_card_html, unsafe_allow_html=True)
 
 elif selected_nav == "🎒 Lịch Học":
     all_scheds = get_cached_schedules()
@@ -1528,101 +1650,160 @@ elif selected_nav == "💊 Đơn Thuốc":
                     st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB NHẬT KÝ — CẢM XÚC & BẢN ĐỒ TÂM TRẠNG
+# TAB NHẬT KÝ & CẢM XÚC (MOOD TRACKER & 365 DAYS OF MOOD MATRIX)
 # ══════════════════════════════════════════════════════════════════════════════
-elif selected_nav == "📖 Nhật Ký":
+elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
+    import calendar as _cal
+    from collections import Counter
 
-    # ─── Constants ───
+    # ─── MOOD CONSTANTS ───
     MOOD_OPTIONS = [
-        ("Happy",    "😄 Vui vẻ",    "#D4EDDA", "smile-cat.png",   "😄"),
-        ("Normal",   "🙂 Bình thường","#FFF3CD", "smile-cat.png",   "🙂"),
-        ("Stressed", "😫 Stress",     "#FFE8D6", "burnOut_cat.jpg", "😫"),
-        ("Sad",      "😔 Buồn",       "#CCE5FF", "cry-cat.jpg",     "😔"),
-        ("Angry",    "😡 Bực bội",    "#F8D7DA", "worry_cat.jpg",   "😡"),
+        ("Happy",    "😄 Vui vẻ",      "#A8E6CF", "smile-cat.png",   "😄"),
+        ("Normal",   "🙂 Bình thường",  "#FFD3B6", "smile-cat.png",   "🙂"),
+        ("Stressed", "😫 Stress",       "#D4A5FF", "burnOut_cat.jpg", "😫"),
+        ("Sad",      "😔 Buồn",         "#A8D8EA", "cry-cat.jpg",     "😔"),
+        ("Angry",    "😡 Bực bội",      "#FF8B94", "worry_cat.jpg",   "😡"),
+        ("Tired",    "😴 Mệt mỏi",      "#DCD6F7", "huh-cat.jpg",     "😴"),
     ]
     MOOD_KEY_MAP = {k: (label, bg, cat, icon) for k, label, bg, cat, icon in MOOD_OPTIONS}
     MOOD_LABELS  = [label for _, label, *_ in MOOD_OPTIONS]
     MOOD_KEYS    = [k     for k, *_ in MOOD_OPTIONS]
+    MOOD_COLORS  = {k: (bg, icon) for k, _, bg, _, icon in MOOD_OPTIONS}
+    EMPTY_COLOR  = "#F3F4F6"
 
     AI_RESP_MAP = {
-        "Happy":   "Tuyệt vời quá! Chúc em luôn giữ nụ cười tươi tắn này nhé! 🥰",
-        "Normal":  "Một ngày bình yên cũng là điều tuyệt vời! Cứ từ từ tận hưởng nhé em 🌸",
-        "Stressed":"Đừng quá sức nhé em! Nghỉ ngơi một chút và uống nước ấm nhé em 💖",
-        "Sad":     "Thương em lắm! Có anh và Bác sĩ Mèo luôn ở bên em này! 💫",
-        "Angry":   "Hít thở sâu một cái nhé em — đừng để chuyện bực mình ảnh hưởng sức khỏe em! 💖",
+        "Happy":    "Tuyệt vời quá! Chúc em luôn giữ nụ cười tươi tắn này nhé! Mèo yêu em nhiều 🥰🌸",
+        "Normal":   "Một ngày bình yên trôi qua cũng là điều tuyệt vời! Cứ từ từ tận hưởng nhé em 🌸",
+        "Stressed": "Đừng quá sức nhé em yêu! Nghỉ ngơi một chút, uống nước ấm và để Bác sĩ Mèo ôm cái nào 💖",
+        "Sad":      "Thương em lắm! Có anh và Bác sĩ Mèo luôn ở bên cạnh em, mọi chuyện rồi sẽ ổn thôi 💫🧸",
+        "Angry":    "Hít thở sâu một cái nào cô bé! Đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe và nụ cười xinh nhé 🍵💖",
+        "Tired":    "Hôm nay em vất vả nhiều rồi! Mau đi ngủ sớm sạc lại năng lượng nhé, ngoan nào 😴🛌🌙",
     }
 
-    MOOD_COLORS = {
-        "Happy":    ("#D4EDDA", "😄"),
-        "Normal":   ("#FFF3CD", "🙂"),
-        "Stressed": ("#FFE8D6", "😫"),
-        "Sad":      ("#CCE5FF", "😔"),
-        "Angry":    ("#F8D7DA", "😡"),
-    }
-    EMPTY_MOOD_COLOR = "#F0F0F0"
-
-    # ─── CSS riêng cho tab Nhật Ký ───
+    # ─── CSS RIÊNG CHO MODULE CẢM XÚC ───
     st.markdown("""
     <style>
-    .mood-matrix-wrap { overflow-x:auto; padding-bottom:8px; }
-    .mood-grid {
-        display:grid;
-        gap:3px;
-    }
-    .mood-day {
-        border-radius:5px;
-        display:flex; align-items:center; justify-content:center;
-        font-size:0.72rem; font-weight:600;
-        cursor:pointer;
-        position:relative;
-        transition:transform .15s, box-shadow .15s;
-        min-width:28px; min-height:28px;
-        user-select:none;
-    }
-    .mood-day:hover { transform:scale(1.22); box-shadow:0 4px 14px rgba(0,0,0,.22); z-index:10; }
-    .mood-day .tt {
-        display:none; position:absolute; bottom:118%; left:50%; transform:translateX(-50%);
-        background:#1a1a2e; color:#fff; border-radius:8px; padding:6px 11px;
-        font-size:0.75rem; white-space:nowrap; z-index:9999; pointer-events:none;
-        box-shadow:0 4px 16px rgba(0,0,0,.3); min-width:140px; text-align:center;
-    }
-    .mood-day:hover .tt { display:block; }
-    .week-header-row {
-        display:grid; gap:3px;
-        margin-bottom:4px;
-    }
-    .week-label {
-        font-size:0.65rem; font-weight:700; color:#bbb;
-        text-align:center; letter-spacing:.05em;
-    }
     .cat-speech-bubble {
-        background:#fff8fc;
-        border-radius:16px 16px 16px 4px;
-        padding:13px 16px;
-        margin-top:12px;
-        border:1.5px solid #ffd6e7;
-        font-size:0.84rem;
-        color:#c0397c;
-        line-height:1.7;
-        font-style:italic;
-        position:relative;
+        background: #fff8fc;
+        border-radius: 16px 16px 16px 4px;
+        padding: 13px 16px;
+        margin-top: 12px;
+        border: 1.5px solid #ffd6e7;
+        font-size: 0.86rem;
+        color: #c0397c;
+        line-height: 1.65;
+        font-style: italic;
+        position: relative;
     }
     .cat-speech-bubble::before {
-        content:"";
-        position:absolute;
-        top:-10px; left:18px;
-        border:5px solid transparent;
-        border-bottom-color:#ffd6e7;
+        content: "";
+        position: absolute;
+        top: -10px; left: 18px;
+        border: 5px solid transparent;
+        border-bottom-color: #ffd6e7;
+    }
+    .mood-cal-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+        gap: 16px;
+        margin-top: 14px;
+    }
+    .mini-cal {
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        border: 1px solid #f0f0f5;
+    }
+    .mini-cal-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: #d81159;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .mini-cal-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #888;
+        margin-bottom: 6px;
+    }
+    .mini-cal-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 4px;
+    }
+    .mcell {
+        aspect-ratio: 1;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+        user-select: none;
+        min-height: 34px;
+        border: 1px solid rgba(0,0,0,0.04);
+    }
+    .mcell:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 5;
+    }
+    .mcell.is-today {
+        box-shadow: 0 0 0 2.5px #d81159 !important;
+    }
+    .mcell .mcell-num {
+        font-size: 0.68rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+    .mcell .mcell-icon {
+        font-size: 0.85rem;
+        line-height: 1;
+        margin-top: 2px;
+    }
+    .mcell .mtt {
+        display: none;
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1a1a2e;
+        color: #ffffff;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.72rem;
+        white-space: nowrap;
+        z-index: 999;
+        pointer-events: none;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        min-width: 130px;
+        text-align: center;
+    }
+    .mcell:hover .mtt {
+        display: block;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    today_diary   = date.today()
-    today_str_d   = today_diary.strftime("%Y-%m-%d")
+    today_diary = config.get_now().date()
+    today_str_d = today_diary.strftime("%Y-%m-%d")
 
-    # Session state defaults
-    if "diary_sel_mood"  not in st.session_state: st.session_state["diary_sel_mood"]  = "Happy"
-    if "diary_view_mode" not in st.session_state: st.session_state["diary_view_mode"] = "📅 Tuần này"
+    # Session states
+    if "mood_sel_mood" not in st.session_state:
+        st.session_state["mood_sel_mood"] = "Happy"
+    if "mood_view_year" not in st.session_state:
+        st.session_state["mood_view_year"] = today_diary.year
+    if "mood_view_month" not in st.session_state:
+        st.session_state["mood_view_month"] = today_diary.month
+    if "mood_view_mode" not in st.session_state:
+        st.session_state["mood_view_mode"] = "single"  # 'single' hoặc 'full_year'
 
     # ══════════════════════════════════════════════════════
     # ZONE 1: FORM CẬP NHẬT CẢM XÚC SIÊU TỐC  [2.5 : 1]
@@ -1631,34 +1812,36 @@ elif selected_nav == "📖 Nhật Ký":
 
     with col_form:
         st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">🌸 Cập Nhật Cảm Xúc Hôm Nay</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🌸 Cập Nhật Cảm Xúc Nhanh (3s)</div>', unsafe_allow_html=True)
 
-        # 1. Chọn ngày (mặc định hôm nay, cho phép chọn quá khứ)
-        chosen_date = st.date_input(
-            "📅 Ngày ghi nhận",
-            value=today_diary,
-            max_value=today_diary,
-            key="diary_date_pick",
-            help="Mặc định hôm nay; có thể chọn ngày quá khứ để điền bù",
-        )
-        chosen_date_str = chosen_date.strftime("%Y-%m-%d")
+        # 1. Chọn ngày (Mặc định hôm nay, có thể chọn quá khứ để điền bù)
+        c_date, c_quick_mood = st.columns([1.2, 2.8])
+        with c_date:
+            chosen_date = st.date_input(
+                "📅 Ngày ghi nhận",
+                value=today_diary,
+                max_value=today_diary,
+                key="diary_date_pick",
+                help="Mặc định là hôm nay; có thể chọn ngày quá khứ để điền bù",
+            )
+            chosen_date_str = chosen_date.strftime("%Y-%m-%d")
 
-        # 2. Chọn cảm xúc bằng st.radio nằm ngang
+        # 2. Chọn cảm xúc (1-Click Emoji Selection)
         mood_radio_val = st.radio(
-            "🟡 Tâm trạng",
+            "🟡 Tâm trạng của em hôm nay:",
             options=MOOD_LABELS,
-            index=MOOD_KEYS.index(st.session_state["diary_sel_mood"]),
+            index=MOOD_KEYS.index(st.session_state.get("mood_sel_mood", "Happy")),
             horizontal=True,
             key="diary_mood_radio",
         )
         sel_idx = MOOD_LABELS.index(mood_radio_val)
-        st.session_state["diary_sel_mood"] = MOOD_KEYS[sel_idx]
         sel_mood_key = MOOD_KEYS[sel_idx]
+        st.session_state["mood_sel_mood"] = sel_mood_key
 
         # 3. Ghi chú ngắn
         mood_note_val = st.text_input(
-            "📝 Ghi chú ngắn (không bắt buộc)",
-            placeholder="Hôm nay có chuyện gì kể Bác sĩ Mèo nghe không? (Không bắt buộc)...",
+            "📝 Ghi chú tâm sự (không bắt buộc):",
+            placeholder="Hôm nay có điều gì làm em vui hay mệt mỏi không? Kể Bác sĩ Mèo nghe nhé...",
             key="diary_note",
         )
 
@@ -1673,8 +1856,8 @@ elif selected_nav == "📖 Nhật Ký":
             )
 
         if save_clicked:
-            ai_resp_val  = AI_RESP_MAP.get(sel_mood_key, "Thương em nhiều! 💖")
-            note_clean   = mood_note_val.strip() if mood_note_val.strip() else None
+            ai_resp_val = AI_RESP_MAP.get(sel_mood_key, "Thương em nhiều! 💖")
+            note_clean  = mood_note_val.strip() if mood_note_val.strip() else None
             try:
                 database.upsert_mood_log(
                     date_str    = chosen_date_str,
@@ -1682,11 +1865,11 @@ elif selected_nav == "📖 Nhật Ký":
                     note        = note_clean,
                     ai_response = ai_resp_val,
                 )
-                st.success(f"✅ Đã lưu cảm xúc **{mood_radio_val}** cho ngày {chosen_date_str}!")
+                st.success(f"✅ Đã ghi nhận cảm xúc **{mood_radio_val}** ngày {chosen_date_str}!")
                 invalidate_cache()
 
-                # 🤫 Secret Boy Mode
-                if sel_mood_key in ["Sad", "Stressed", "Angry"]:
+                # 🤫 Secret Boy Mode: Nếu bạn gái buồn / stress / bực / mệt mỏi
+                if sel_mood_key in ["Sad", "Stressed", "Angry", "Tired"]:
                     try:
                         _lbl = MOOD_KEY_MAP[sel_mood_key][0]
                         _note_txt = note_clean if note_clean else "Không có ghi chú"
@@ -1694,7 +1877,7 @@ elif selected_nav == "📖 Nhật Ký":
                             f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
                             f"Bạn gái vừa cập nhật cảm xúc: <b>{_lbl}</b> trên App.\n"
                             f"📝 <b>Ghi chú:</b> {_note_txt}\n\n"
-                            f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon cho cô ấy nhé! 🍫🧸💖</i>"
+                            f"👉 <i>Hãy nhắn tin hỏi thăm, động viên và chuẩn bị đồ ăn ngon cho cô ấy nhé! 🍫🧸💖</i>"
                         )
                     except Exception:
                         pass
@@ -1705,10 +1888,10 @@ elif selected_nav == "📖 Nhật Ký":
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col_cat_display:
-        _cur_mood_key  = st.session_state["diary_sel_mood"]
-        _mood_info     = MOOD_KEY_MAP.get(_cur_mood_key, MOOD_KEY_MAP["Happy"])
+        _cur_mood_key = st.session_state["mood_sel_mood"]
+        _mood_info    = MOOD_KEY_MAP.get(_cur_mood_key, MOOD_KEY_MAP["Happy"])
         _cat_label, _bg_color, _cat_file, _cat_icon = _mood_info
-        _ai_msg        = AI_RESP_MAP.get(_cur_mood_key, "💖")
+        _ai_msg       = AI_RESP_MAP.get(_cur_mood_key, "💖")
 
         st.markdown('<div class="cat-card">', unsafe_allow_html=True)
         render_cat(_cat_file, f"Bác sĩ Mèo đang lắng nghe {_cat_icon}", width=160)
@@ -1720,152 +1903,184 @@ elif selected_nav == "📖 Nhật Ký":
         st.markdown('</div>', unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════════════
-    # ZONE 2: BẢN ĐỒ CẢM XÚC MATRIX
+    # ZONE 2: MA TRẬN LỊCH CẢM XÚC (MOOD CALENDAR MATRIX)
     # ══════════════════════════════════════════════════════
     st.markdown('<div class="card" style="margin-top:18px;">', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">🗓️ Bản Đồ Cảm Xúc</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🗓️ Lịch Theo Dõi Cảm Xúc (Mood Calendar Matrix)</div>', unsafe_allow_html=True)
 
-    view_col, _ = st.columns([2.2, 3])
-    with view_col:
-        vm_options = ["📅 Tuần này", "📆 Tháng này", "🗓️ Cả Năm (365 Ngày)"]
-        view_mode  = st.radio(
-            "Chế độ xem",
-            vm_options,
-            horizontal=True,
+    # Bộ điều khiển: Chọn Tháng, Năm, hoặc Cả năm
+    ctrl_c1, ctrl_c2, ctrl_c3, ctrl_c4 = st.columns([1.6, 1.4, 2.2, 1.8], vertical_alignment="center")
+
+    VN_MONTH_NAME = ["", "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                         "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"]
+
+    with ctrl_c1:
+        # Chọn năm
+        cur_yr = today_diary.year
+        avail_years = list(range(cur_yr - 3, cur_yr + 2))
+        sel_year = st.selectbox(
+            "📅 Năm",
+            options=avail_years,
+            index=avail_years.index(st.session_state["mood_view_year"]) if st.session_state["mood_view_year"] in avail_years else 3,
+            key="mood_sel_year_box",
             label_visibility="collapsed",
-            key="diary_view_radio",
-            index=vm_options.index(st.session_state.get("diary_view_mode", "📅 Tuần này")),
         )
-    st.session_state["diary_view_mode"] = view_mode
+        st.session_state["mood_view_year"] = sel_year
 
-    # Tính toán khoảng ngày
-    if view_mode == "📅 Tuần này":
-        _dow   = today_diary.weekday()
-        start_d = today_diary - timedelta(days=_dow)
-        end_d   = start_d + timedelta(days=6)
-    elif view_mode == "📆 Tháng này":
-        import calendar as _cal
-        start_d = today_diary.replace(day=1)
-        end_d   = today_diary.replace(day=_cal.monthrange(today_diary.year, today_diary.month)[1])
-    else:
-        start_d = date(today_diary.year, 1, 1)
-        end_d   = date(today_diary.year, 12, 31)
+    with ctrl_c2:
+        # Chế độ xem: 1 tháng hay Cả năm
+        mode_label = "📆 Theo Tháng" if st.session_state["mood_view_mode"] == "single" else "🗓️ Cả Năm (12 Tháng)"
+        mode_pick = st.selectbox(
+            "Chế độ xem",
+            options=["📆 Theo Tháng", "🗓️ Cả Năm (12 Tháng)"],
+            index=0 if st.session_state["mood_view_mode"] == "single" else 1,
+            key="mood_mode_selectbox",
+            label_visibility="collapsed",
+        )
+        st.session_state["mood_view_mode"] = "single" if mode_pick == "📆 Theo Tháng" else "full_year"
 
-    start_str_m = start_d.strftime("%Y-%m-%d")
-    end_str_m   = end_d.strftime("%Y-%m-%d")
-
-    # Dữ liệu có cache 60s
-    mood_rows_m  = get_cached_mood_range(start_str_m, end_str_m)
-    mood_data_m  = {r["date"]: r for r in mood_rows_m}
-
-    # Build danh sách ngày
-    all_days_m = []
-    _cur = start_d
-    while _cur <= end_d:
-        all_days_m.append(_cur)
-        _cur += timedelta(days=1)
-
-    VN_DAY_SHORT   = ["T2","T3","T4","T5","T6","T7","CN"]
-    VN_MONTH_SHORT = ["","Th1","Th2","Th3","Th4","Th5","Th6","Th7","Th8","Th9","Th10","Th11","Th12"]
-
-    def _build_cell(d, cell_size="28px", font_size="0.72rem"):
-        ds  = d.strftime("%Y-%m-%d")
-        rec = mood_data_m.get(ds)
-        if rec:
-            mk  = rec.get("mood_type", "")
-            bg, icon = MOOD_COLORS.get(mk, (EMPTY_MOOD_COLOR, "⚪"))
-            _nt = rec.get("note") or ""
-            _lbl = MOOD_KEY_MAP.get(mk, ("⚪",))[0]
-            tt  = f"{ds} | {_lbl}" + (f" | {_nt[:30]}..." if len(_nt) > 30 else (f" | {_nt}" if _nt else ""))
+    with ctrl_c3:
+        if st.session_state["mood_view_mode"] == "single":
+            sel_month = st.selectbox(
+                "Chọn tháng",
+                options=list(range(1, 13)),
+                format_func=lambda m: f"{VN_MONTH_NAME[m]} / {st.session_state['mood_view_year']}",
+                index=st.session_state["mood_view_month"] - 1,
+                key="mood_sel_month_box",
+                label_visibility="collapsed",
+            )
+            st.session_state["mood_view_month"] = sel_month
         else:
-            bg, icon = EMPTY_MOOD_COLOR, ""
-            tt = f"{ds} | Chưa ghi chép"
-        _border = "border:2px solid #e84393;" if d == today_diary else "border:1px solid rgba(0,0,0,.07);"
-        _num    = str(d.day) if not icon else icon
-        return (
-            f'<div class="mood-day" style="background:{bg};{_border}'
-            f'min-width:{cell_size};min-height:{cell_size};font-size:{font_size};" '
-            f'title="{tt}">{_num}'
-            f'<span class="tt">{tt}</span></div>'
-        )
+            st.markdown(f"<div style='font-weight:700;color:#d81159;padding-top:6px;'>🌈 365 Days of Mood — Năm {st.session_state['mood_view_year']}</div>", unsafe_allow_html=True)
 
-    if view_mode == "📅 Tuần này":
-        hdr = '<div class="week-header-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;">'
-        hdr += "".join(f'<div class="week-label">{VN_DAY_SHORT[i]}</div>' for i in range(7))
-        hdr += "</div>"
-        cells = "".join(_build_cell(d, "52px", "1.1rem") for d in all_days_m)
-        grid  = f'<div class="mood-grid" style="grid-template-columns:repeat(7,1fr);">{cells}</div>'
-        st.markdown('<div class="mood-matrix-wrap">' + hdr + grid + '</div>', unsafe_allow_html=True)
+    with ctrl_c4:
+        if st.session_state["mood_view_mode"] == "single":
+            btn_prev, btn_now, btn_next = st.columns(3)
+            with btn_prev:
+                if st.button("◀", key="mood_prev_m", help="Tháng trước", use_container_width=True):
+                    m = st.session_state["mood_view_month"] - 1
+                    if m < 1:
+                        st.session_state["mood_view_month"] = 12
+                        st.session_state["mood_view_year"] -= 1
+                    else:
+                        st.session_state["mood_view_month"] = m
+                    st.rerun()
+            with btn_now:
+                if st.button("Nay", key="mood_cur_m", help="Tháng hiện tại", use_container_width=True):
+                    st.session_state["mood_view_year"] = today_diary.year
+                    st.session_state["mood_view_month"] = today_diary.month
+                    st.rerun()
+            with btn_next:
+                if st.button("▶", key="mood_next_m", help="Tháng sau", use_container_width=True):
+                    m = st.session_state["mood_view_month"] + 1
+                    if m > 12:
+                        st.session_state["mood_view_month"] = 1
+                        st.session_state["mood_view_year"] += 1
+                    else:
+                        st.session_state["mood_view_month"] = m
+                    st.rerun()
 
-    elif view_mode == "📆 Tháng này":
-        hdr = '<div class="week-header-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;">'
-        hdr += "".join(f'<div class="week-label">{VN_DAY_SHORT[i]}</div>' for i in range(7))
-        hdr += "</div>"
-        _first_dow = start_d.weekday()
-        _padded    = [None] * _first_dow + all_days_m
-        while len(_padded) % 7 != 0:
-            _padded.append(None)
-        cells = ""
-        for _d in _padded:
-            if _d is None:
-                cells += '<div class="mood-day" style="background:transparent;border:none;min-width:36px;min-height:36px;"></div>'
+    view_year = st.session_state["mood_view_year"]
+    view_mode = st.session_state["mood_view_mode"]
+
+    if view_mode == "single":
+        months_to_render = [st.session_state["mood_view_month"]]
+    else:
+        months_to_render = list(range(1, 13))
+
+    # Query toàn bộ dữ liệu mood cho năm được chọn (1 lần duy nhất, có cache)
+    yr_start = f"{view_year}-01-01"
+    yr_end   = f"{view_year}-12-31"
+    mood_rows_yr = get_cached_mood_range(yr_start, yr_end)
+    mood_map_yr  = {r["date"]: r for r in mood_rows_yr}
+
+    DAY_HEADERS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"]
+
+    # ── Build HTML cho tất cả mini-calendar tháng ──
+    full_html = '<div class="mood-cal-container">'
+
+    for m in months_to_render:
+        first_dow = date(view_year, m, 1).weekday()  # 0=Mon
+        days_in   = _cal.monthrange(view_year, m)[1]
+
+        month_html  = '<div class="mini-cal">'
+        month_html += f'<div class="mini-cal-title">{VN_MONTH_NAME[m]} {view_year}</div>'
+
+        # Header ngày trong tuần
+        month_html += '<div class="mini-cal-header">'
+        for dh in DAY_HEADERS:
+            month_html += f'<span>{dh}</span>'
+        month_html += '</div>'
+
+        # Lưới ô ngày
+        month_html += '<div class="mini-cal-grid">'
+
+        # Ô trống đầu tháng
+        for _ in range(first_dow):
+            month_html += '<div class="mcell" style="background:transparent;border:none;"></div>'
+
+        # Ô cho mỗi ngày trong tháng
+        for day in range(1, days_in + 1):
+            ds = f"{view_year}-{m:02d}-{day:02d}"
+            d_obj = date(view_year, m, day)
+            rec = mood_map_yr.get(ds)
+
+            is_today = (d_obj == today_diary)
+            today_cls = " is-today" if is_today else ""
+
+            if rec:
+                mk = rec.get("mood_type", "")
+                bg, icon = MOOD_COLORS.get(mk, (EMPTY_COLOR, ""))
+                _lbl = MOOD_KEY_MAP.get(mk, ("",))[0]
+                _nt  = rec.get("note") or ""
+                tooltip = f"{ds} — {_lbl}" + (f" — {_nt[:35]}" if _nt else "")
+                month_html += (
+                    f'<div class="mcell{today_cls}" style="background:{bg};">'
+                    f'<span class="mcell-num">{day}</span>'
+                    f'<span class="mcell-icon">{icon}</span>'
+                    f'<span class="mtt">{tooltip}</span>'
+                    f'</div>'
+                )
             else:
-                cells += _build_cell(_d, "36px", "0.88rem")
-        grid = f'<div class="mood-grid" style="grid-template-columns:repeat(7,1fr);">{cells}</div>'
-        st.markdown('<div class="mood-matrix-wrap">' + hdr + grid + '</div>', unsafe_allow_html=True)
+                # Ô trống — chưa ghi cảm xúc (cho phép rỗng tự nhiên)
+                tooltip = f"{ds} — Chưa ghi chép"
+                future  = d_obj > today_diary
+                cell_bg = "transparent" if future else EMPTY_COLOR
+                num_color = "#ccc" if future else "#888"
+                month_html += (
+                    f'<div class="mcell{today_cls}" style="background:{cell_bg};">'
+                    f'<span class="mcell-num" style="color:{num_color};">{day}</span>'
+                    f'<span class="mtt">{tooltip}</span>'
+                    f'</div>'
+                )
 
-    else:  # 🗓️ Cả Năm — GitHub contributions style
-        _jan1_dow   = date(today_diary.year, 1, 1).weekday()
-        _padded_yr  = [None] * _jan1_dow + all_days_m
-        while len(_padded_yr) % 7 != 0:
-            _padded_yr.append(None)
-        _total_wks = len(_padded_yr) // 7
+        # Ô trống cuối tháng
+        total_cells = first_dow + days_in
+        remaining = (7 - total_cells % 7) % 7
+        for _ in range(remaining):
+            month_html += '<div class="mcell" style="background:transparent;border:none;"></div>'
 
-        # Month label row
-        _prev_m = None
-        _month_spans = ""
-        for _wi in range(_total_wks):
-            _d0 = _padded_yr[_wi * 7]
-            _m  = _d0.month if _d0 else None
-            if _m != _prev_m and _m is not None:
-                _month_spans += f'<span style="grid-column:{_wi+1};font-size:.58rem;color:#aaa;font-weight:700;">{VN_MONTH_SHORT[_m]}</span>'
-                _prev_m = _m
-        _month_row = (
-            f'<div style="display:grid;grid-template-columns:repeat({_total_wks},1fr);gap:3px;margin-bottom:2px;">'
-            + _month_spans + "</div>"
-        )
+        month_html += '</div>'  # .mini-cal-grid
+        month_html += '</div>'  # .mini-cal
+        full_html += month_html
 
-        # Cells (column-first ordering via grid-auto-flow:column)
-        _cells_yr = ""
-        for _wi in range(_total_wks):
-            for _di in range(7):
-                _d = _padded_yr[_wi * 7 + _di]
-                if _d is None:
-                    _cells_yr += '<div class="mood-day" style="background:transparent;border:none;min-width:13px;min-height:13px;"></div>'
-                else:
-                    _cells_yr += _build_cell(_d, "13px", "0.55rem")
+    full_html += '</div>'  # .mood-cal-container
 
-        _grid_yr = (
-            f'<div class="mood-grid" style="'
-            f'grid-template-columns:repeat({_total_wks},1fr);'
-            f'grid-template-rows:repeat(7,13px);'
-            f'grid-auto-flow:column;">'
-            + _cells_yr + "</div>"
-        )
-        st.markdown('<div class="mood-matrix-wrap">' + _month_row + _grid_yr + '</div>', unsafe_allow_html=True)
+    st.markdown(full_html, unsafe_allow_html=True)
 
-    # Legend
-    _legend = '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center;">'
-    _legend += f'<div style="display:flex;align-items:center;gap:5px;"><div style="width:13px;height:13px;border-radius:3px;background:{EMPTY_MOOD_COLOR};border:1px solid #ddd;"></div><span style="font-size:.78rem;color:#999;">Chưa ghi</span></div>'
-    for _mk, _lbl, _bg, *_ in MOOD_OPTIONS:
-        _icon_l = MOOD_COLORS[_mk][1]
-        _legend += f'<div style="display:flex;align-items:center;gap:5px;"><div style="width:13px;height:13px;border-radius:3px;background:{_bg};border:1px solid #ddd;text-align:center;font-size:.65rem;line-height:13px;">{_icon_l}</div><span style="font-size:.78rem;color:#666;">{_lbl}</span></div>'
+    # ── Chú thích màu sắc (Legend) ──
+    _legend = '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;padding-top:10px;border-top:1px solid #f0f0f5;align-items:center;">'
+    _legend += f'<div style="display:flex;align-items:center;gap:6px;"><div style="width:16px;height:16px;border-radius:4px;background:{EMPTY_COLOR};border:1px solid #ddd;"></div><span style="font-size:.8rem;color:#777;">Chưa ghi chép (rỗng)</span></div>'
+    for _mk, _lbl, _bg, _, _ic in MOOD_OPTIONS:
+        _legend += f'<div style="display:flex;align-items:center;gap:6px;"><div style="width:16px;height:16px;border-radius:4px;background:{_bg};border:1px solid rgba(0,0,0,.08);text-align:center;font-size:.7rem;line-height:16px;">{_ic}</div><span style="font-size:.8rem;color:#555;">{_lbl}</span></div>'
     _legend += '</div>'
     st.markdown(_legend, unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)  # .card kết thúc matrix
+    st.markdown('</div>', unsafe_allow_html=True)  # .card
 
-    # ── Chi tiết nhật ký theo ngày cụ thể ──
+    # ══════════════════════════════════════════════════════
+    # ZONE 3: XEM CHI TIẾT NHẬT KÝ THEO NGÀY
+    # ══════════════════════════════════════════════════════
     st.markdown('<div class="card" style="margin-top:14px;">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">📌 Xem Chi Tiết Nhật Ký Ngày</div>', unsafe_allow_html=True)
     _dc_col, _ = st.columns([1.4, 3])
@@ -1873,19 +2088,18 @@ elif selected_nav == "📖 Nhật Ký":
         _detail_date = st.date_input(
             "Chọn ngày",
             value=today_diary,
-            max_value=today_diary,
             key="diary_detail_pick",
             label_visibility="collapsed",
         )
     _ds = _detail_date.strftime("%Y-%m-%d")
-    _drec = mood_data_m.get(_ds) or database.get_mood_log_by_date(_ds)
+    _drec = mood_map_yr.get(_ds) or database.get_mood_log_by_date(_ds)
     if _drec:
-        _mk2  = _drec.get("mood_type", "")
-        _bg2, _icon2 = MOOD_COLORS.get(_mk2, (EMPTY_MOOD_COLOR, "⚪"))
+        _mk2 = _drec.get("mood_type", "")
+        _bg2, _icon2 = MOOD_COLORS.get(_mk2, (EMPTY_COLOR, "⚪"))
         _lbl2 = MOOD_KEY_MAP.get(_mk2, ("⚪","","",""))[0]
         _note2 = _drec.get("note") or "—"
-        _upd2  = _drec.get("updated_at") or ""
-        _ai2   = _drec.get("ai_response") or ""
+        _upd2 = _drec.get("updated_at") or ""
+        _ai2  = _drec.get("ai_response") or ""
         st.markdown(f"""
         <div style="background:{_bg2};border-radius:14px;padding:18px 22px;
                     display:flex;gap:20px;align-items:flex-start;">
@@ -1902,6 +2116,37 @@ elif selected_nav == "📖 Nhật Ký":
     else:
         st.info(f"⚪ Chưa có ghi chép cảm xúc nào cho ngày **{_ds}**.")
     st.markdown('</div>', unsafe_allow_html=True)
+
+    # ══════════════════════════════════════════════════════
+    # ZONE 4: THỐNG KÊ CẢM XÚC TRONG NĂM
+    # ══════════════════════════════════════════════════════
+    if mood_rows_yr:
+        st.markdown('<div class="card" style="margin-top:14px;">', unsafe_allow_html=True)
+        st.markdown(f'<div class="section-title">📊 Thống Kê Cảm Xúc Năm {view_year}</div>', unsafe_allow_html=True)
+        _counts = Counter(r["mood_type"] for r in mood_rows_yr)
+        _total  = len(mood_rows_yr)
+        stat_html = '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;">'
+        for _mk, _lbl, _bg, _, _ic in MOOD_OPTIONS:
+            _c = _counts.get(_mk, 0)
+            _pct = round(_c / _total * 100, 1) if _total else 0
+            stat_html += f'''
+            <div style="background:{_bg};border-radius:12px;padding:12px 18px;min-width:120px;text-align:center;
+                        border:1px solid rgba(0,0,0,.06);">
+                <div style="font-size:1.5rem;">{_ic}</div>
+                <div style="font-weight:700;font-size:1.1rem;color:#333;">{_c} ngày</div>
+                <div style="font-size:.78rem;color:#666;">{_lbl}</div>
+                <div style="font-size:.72rem;color:#999;">{_pct}%</div>
+            </div>'''
+        stat_html += f'''
+        <div style="background:{EMPTY_COLOR};border-radius:12px;padding:12px 18px;min-width:120px;text-align:center;
+                    border:1px solid rgba(0,0,0,.06);">
+            <div style="font-size:1.5rem;">📋</div>
+            <div style="font-weight:700;font-size:1.1rem;color:#333;">{_total} ngày</div>
+            <div style="font-size:.78rem;color:#666;">Tổng đã ghi</div>
+        </div>'''
+        stat_html += '</div>'
+        st.markdown(stat_html, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 5 — CÀI ĐẶT & TELEGRAM BOT
