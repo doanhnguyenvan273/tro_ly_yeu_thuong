@@ -902,6 +902,14 @@ _provided_key = (
 if _provided_key and str(_provided_key).strip() == app_passcode:
     st.session_state["is_authenticated"] = True
 
+# Luôn duy trì key trong query_params khi đã xác thực để các thao tác chuyển tab/cập nhật không bị văng ra màn hình khóa
+if st.session_state.get("is_authenticated", False):
+    if "key" not in st.query_params:
+        try:
+            st.query_params["key"] = app_passcode
+        except Exception:
+            pass
+
 # 2. Xử lý yêu cầu khóa ứng dụng / đăng xuất (?logout=1)
 if "logout" in st.query_params:
     st.session_state["is_authenticated"] = False
@@ -1034,6 +1042,9 @@ if "task_act" in st.query_params:
     except Exception:
         pass
     st.session_state["active_nav"] = "Deadline"
+    st.session_state["nav_desktop"] = "Deadline"
+    st.session_state["nav_mobile"] = "Deadline"
+    st.session_state["nav_radio_pills"] = "Deadline"
     st.rerun()
 
 if "active_nav" not in st.session_state:
@@ -1209,7 +1220,7 @@ if "Trang Chủ" in selected_nav:
 
     st.markdown(f"""
     <div class="bento-grid">
-        <a href="?nav=LichHoc" target="_self" class="bento-link">
+        <a href="?nav=LichHoc&key={app_passcode}" target="_self" class="bento-link">
             <div class="bento-widget">
                 <div class="bento-icon-badge bento-icon-active">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1226,7 +1237,7 @@ if "Trang Chủ" in selected_nav:
                 </div>
             </div>
         </a>
-        <a href="?nav=Deadline" target="_self" class="bento-link">
+        <a href="?nav=Deadline&key={app_passcode}" target="_self" class="bento-link">
             <div class="bento-widget">
                 <div class="bento-icon-badge bento-icon-white">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1241,7 +1252,7 @@ if "Trang Chủ" in selected_nav:
                 </div>
             </div>
         </a>
-        <a href="?nav=ChuKy" target="_self" class="bento-link">
+        <a href="?nav=ChuKy&key={app_passcode}" target="_self" class="bento-link">
             <div class="bento-widget">
                 <div class="bento-icon-badge bento-icon-active">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
@@ -1255,7 +1266,7 @@ if "Trang Chủ" in selected_nav:
                 </div>
             </div>
         </a>
-        <a href="?nav=DonThuoc" target="_self" class="bento-link">
+        <a href="?nav=DonThuoc&key={app_passcode}" target="_self" class="bento-link">
             <div class="bento-widget">
                 <div class="bento-icon-badge bento-icon-white">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -1758,10 +1769,10 @@ elif "Deadline" in selected_nav:
                         <div>{clean_msg}</div>
                     </div>
                     <div class="task-action-row">
-                        <a href="?task_act=pending&tid={t['id']}" target="_self" class="task-action-btn {btn_p_cls}">Chưa làm</a>
-                        <a href="?task_act=progress&tid={t['id']}" target="_self" class="task-action-btn {btn_w_cls}">Đang làm</a>
-                        <a href="?task_act=done&tid={t['id']}" target="_self" class="task-action-btn {btn_d_cls}">Hoàn thành</a>
-                        <a href="?task_act=del&tid={t['id']}" target="_self" class="task-action-btn task-btn-del">Xóa</a>
+                        <a href="?task_act=pending&tid={t['id']}&key={app_passcode}" target="_self" class="task-action-btn {btn_p_cls}">Chưa làm</a>
+                        <a href="?task_act=progress&tid={t['id']}&key={app_passcode}" target="_self" class="task-action-btn {btn_w_cls}">Đang làm</a>
+                        <a href="?task_act=done&tid={t['id']}&key={app_passcode}" target="_self" class="task-action-btn {btn_d_cls}">Hoàn thành</a>
+                        <a href="?task_act=del&tid={t['id']}&key={app_passcode}" target="_self" class="task-action-btn task-btn-del">Xóa</a>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
