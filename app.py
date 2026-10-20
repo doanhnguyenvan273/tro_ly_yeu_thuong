@@ -3,6 +3,7 @@ from datetime import datetime, date, timedelta, time
 import pandas as pd
 import os
 import base64
+import re
 
 import config
 import database
@@ -628,6 +629,129 @@ div.stButton > button {
 div.stButton > button:hover { transform: scale(1.025) translateY(-1px) !important; }
 
 /* ══════════════════════════════════════════════════════
+   TASK CARD & ACTION BUTTONS (iOS Pink Monochromatic Style)
+   ══════════════════════════════════════════════════════ */
+.task-card-item {
+    background: rgba(255, 255, 255, 0.88) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
+    border-radius: 22px !important;
+    padding: 16px 18px 14px 18px !important;
+    box-shadow: 0 8px 24px rgba(230, 73, 128, 0.08) !important;
+    margin-bottom: 6px !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* Khóa hàng nút thao tác task luôn nằm trên 1 hàng ngang duy nhất (Desktop & Mobile) */
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin-top: 0px !important;
+    margin-bottom: 18px !important;
+}
+
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+    flex: 1 1 25% !important;
+    min-width: 0 !important;
+    max-width: 25% !important;
+    width: 25% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] button {
+    width: 100% !important;
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 4px 2px !important;
+    border-radius: 20px !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.2px !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] button:hover {
+    transform: translateY(-1px) scale(1.02) !important;
+}
+
+/* Nút 1: Chưa làm (Milky White with subtle pink border) */
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(1) button {
+    background: #ffffff !important;
+    border: 1.5px solid #ffd1df !important;
+    color: #495057 !important;
+}
+
+/* Nút 2: Đang làm (Soft Rose Pill) */
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(2) button {
+    background: #fff0f6 !important;
+    border: 1.5px solid #faa2c1 !important;
+    color: #d6336c !important;
+}
+
+/* Nút 3: Hoàn thành (Active Control Center Pink Gradient) */
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) button {
+    background: linear-gradient(135deg, #f783ac 0%, #e64980 100%) !important;
+    border: 1.5px solid #e64980 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(230, 73, 128, 0.28) !important;
+}
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) button p,
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(3) button span {
+    color: #ffffff !important;
+}
+
+/* Nút 4: Xóa (Minimalist delicate muted pill) */
+div[data-testid="stVerticalBlock"]:has(.task-item-flag) div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:nth-child(4) button {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid #ffd8e4 !important;
+    color: #868e96 !important;
+}
+
+/* Bảo hiểm cho giao diện điện thoại: Ngăn chặn triệt để hiện tượng vỡ cột thành hàng dọc */
+@media (max-width: 640px) {
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) > div[data-testid="column"] {
+        flex: 1 1 25% !important;
+        min-width: 0 !important;
+        max-width: 25% !important;
+        width: 25% !important;
+        padding: 0 !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) button {
+        padding: 4px 2px !important;
+        font-size: 0.72rem !important;
+        min-height: 36px !important;
+        height: 36px !important;
+        white-space: nowrap !important;
+        border-radius: 18px !important;
+    }
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) button p,
+    div[data-testid="stHorizontalBlock"]:has(> div[data-testid="column"]:nth-child(4)) button span {
+        font-size: 0.72rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════
    FOOTER
    ══════════════════════════════════════════════════════ */
 .page-footer {
@@ -732,6 +856,13 @@ def render_mascot_banner(filename: str, title: str, quote: str, badge: str = Non
     )
     st.markdown(banner_html, unsafe_allow_html=True)
 
+def strip_emojis(text: str) -> str:
+    """Loại bỏ hoàn toàn mọi emoji màu mè, giữ lại văn bản tinh gọn thanh lịch."""
+    if not text:
+        return ""
+    clean = re.sub(r'[\U00010000-\U0010ffff\u2600-\u26ff\u2700-\u27bf\ufe00-\ufe0f\u200d\u200c]', '', str(text))
+    return re.sub(r'\s+', ' ', clean).strip()
+
 settings = get_cached_settings()
 her_name = settings.get("her_name", "Cậu 🌸")
 app_passcode = str(settings.get("app_passcode", "2010")).strip()
@@ -824,23 +955,23 @@ def check_schedule_conflicts(schedules):
 # STICKY NAVBAR (Widget Điều Hướng Tự Động Thích Ứng Desktop & Mobile)
 # ──────────────────────────────────────────────────────────────────────────────
 NAV_OPTIONS = [
-    "🏠 Trang Chủ",
-    "🎒 Lịch Học",
-    "📝 Deadline",
-    "🌸 Chu Kỳ",
-    "💊 Đơn Thuốc",
-    "📖 Cảm Xúc",
-    "⚙️ Cài Đặt",
+    "Trang Chủ",
+    "Lịch Học",
+    "Deadline",
+    "Chu Kỳ",
+    "Đơn Thuốc",
+    "Cảm Xúc",
+    "Cài Đặt",
 ]
 
 NAV_QUERY_MAP = {
-    "TrangChu": "🏠 Trang Chủ",
-    "LichHoc":  "🎒 Lịch Học",
-    "Deadline": "📝 Deadline",
-    "ChuKy":    "🌸 Chu Kỳ",
-    "DonThuoc": "💊 Đơn Thuốc",
-    "CamXuc":   "📖 Cảm Xúc",
-    "CaiDat":   "⚙️ Cài Đặt",
+    "TrangChu": "Trang Chủ",
+    "LichHoc":  "Lịch Học",
+    "Deadline": "Deadline",
+    "ChuKy":    "Chu Kỳ",
+    "DonThuoc": "Đơn Thuốc",
+    "CamXuc":   "Cảm Xúc",
+    "CaiDat":   "Cài Đặt",
 }
 
 # 1-Click chuyển tab từ các liên kết trên giao diện (?nav=...)
@@ -882,7 +1013,9 @@ cur_idx = NAV_OPTIONS.index(st.session_state["active_nav"]) if st.session_state[
 st.markdown(f"""
 <div class="top-nav-bar">
     <div class="top-nav-brand">
-        <div class="brand-heart-circle">💖</div>
+        <div class="brand-heart-circle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
         <div>
             <span class="brand-title">Trợ Lý Yêu Thương</span>
             <span class="brand-her">• {her_name}</span>
@@ -910,7 +1043,7 @@ st.session_state["active_nav"] = selected_nav
 # ══════════════════════════════════════════════════════════════════════════════
 # ROUTING NỘI DUNG THEO NAVBAR
 # ══════════════════════════════════════════════════════════════════════════════
-if selected_nav == "🏠 Trang Chủ":
+if "Trang Chủ" in selected_nav:
     # ── Trang Chủ Dashboard ──
     today_date = date.today()
     day_idx = today_date.weekday()
@@ -1170,7 +1303,7 @@ if selected_nav == "🏠 Trang Chủ":
         )
         st.markdown(task_card_html, unsafe_allow_html=True)
 
-elif selected_nav == "🎒 Lịch Học":
+elif "Lịch Học" in selected_nav:
     all_scheds = get_cached_schedules()
     has_conflict, c_s1, c_s2 = check_schedule_conflicts(all_scheds)
 
@@ -1394,10 +1527,10 @@ elif selected_nav == "🎒 Lịch Học":
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 2 — DEADLINE & AI
 # ══════════════════════════════════════════════════════════════════════════════
-elif selected_nav == "📝 Deadline":
+elif "Deadline" in selected_nav:
     # ── Header row ──
-    st.subheader("⏰ Quản Lý Deadline & AI Dự Đoán Rủi Ro")
-    st.markdown('<p class="hint-text">Thêm bài tập, AI tự tính xác suất trễ hạn và Bot nhắc nhở đúng các mốc thời gian.</p>', unsafe_allow_html=True)
+    st.subheader("Quản Lý Deadline & AI Dự Đoán Rủi Ro")
+    st.markdown('<p class="hint-text">Thêm bài tập, AI tự tính xác suất trễ hạn và hệ thống nhắc nhở đúng các mốc thời gian.</p>', unsafe_allow_html=True)
 
     tasks = get_cached_tasks()
     all_scheds = get_cached_schedules()
@@ -1412,13 +1545,13 @@ elif selected_nav == "📝 Deadline":
     _has_pending_p = any(t["status"] != "Đã hoàn thành" for t in tasks) if tasks else False
 
     if not tasks or not _has_pending_p:
-        render_mascot_banner("smile-cat.png", "Mèo Thảnh Thơi ✨", "Không có deadline nào đang chờ! Cậu thoải mái tận hưởng ngày mới nhé! 🌸", badge="0 Deadline")
+        render_mascot_banner("smile-cat.png", "Mèo Thảnh Thơi", "Không có deadline nào đang chờ! Cậu thoải mái tận hưởng ngày mới nhé!", badge="0 Deadline")
     elif _has_overdue_p:
-        render_mascot_banner("cry-cat.jpg", "Mèo Hốt Hoảng 😿", "Huhu có bài tập bị quá hạn rồi! Hoàn thành sớm để nhẹ đầu nha cậu!", badge="Có task trễ hạn")
+        render_mascot_banner("cry-cat.jpg", "Mèo Hốt Hoảng", "Huhu có bài tập bị quá hạn rồi! Hoàn thành sớm để nhẹ đầu nha cậu!", badge="Có task trễ hạn")
     else:
-        render_mascot_banner("burnOut_cat.jpg", "Mèo Nước Rút 🔥", "Deadline đang dí sát nút rùi! Tập trung hoàn thành từng bài một nha!", badge="Đang có deadline")
+        render_mascot_banner("burnOut_cat.jpg", "Mèo Nước Rút", "Deadline đang dí sát nút rùi! Tập trung hoàn thành từng bài một nha!", badge="Đang có deadline")
 
-    sub_add_t, sub_list_t, sub_ai_t = st.tabs(["➕ Thêm Deadline", "📋 Danh Sách Task", "🤖 Kiểm Tra AI Nhanh"])
+    sub_add_t, sub_list_t, sub_ai_t = st.tabs(["Thêm Deadline", "Danh Sách Task", "Kiểm Tra AI Nhanh"])
 
     # ── Thêm deadline ──
     with sub_add_t:
@@ -1441,15 +1574,15 @@ elif selected_nav == "📝 Deadline":
         if "dl_time_val" not in st.session_state:
             st.session_state["dl_time_val"] = time(23, 59)
 
-        st.markdown('<p class="hint-text">⚡ <b>Lối tắt mốc giờ phổ biến</b> (hoặc tự do chỉnh mọi giờ:phút bên dưới):</p>', unsafe_allow_html=True)
+        st.markdown('<p class="hint-text"><b>Lối tắt mốc giờ phổ biến</b> (hoặc tự do chỉnh mọi giờ:phút bên dưới):</p>', unsafe_allow_html=True)
         dq1, dq2, dq3, dq4 = st.columns(4)
-        if dq1.button("🌙 23:59\n(Cuối ngày)", use_container_width=True, key="btn_dl_night"):
+        if dq1.button("23:59\n(Cuối ngày)", use_container_width=True, key="btn_dl_night"):
             st.session_state["dl_time_val"] = time(23, 59); st.rerun()
-        if dq2.button("🕛 12:00\n(Nghỉ trưa)", use_container_width=True, key="btn_dl_noon"):
+        if dq2.button("12:00\n(Nghỉ trưa)", use_container_width=True, key="btn_dl_noon"):
             st.session_state["dl_time_val"] = time(12, 0); st.rerun()
-        if dq3.button("🕔 17:00\n(Cuối chiều)", use_container_width=True, key="btn_dl_eve"):
+        if dq3.button("17:00\n(Cuối chiều)", use_container_width=True, key="btn_dl_eve"):
             st.session_state["dl_time_val"] = time(17, 0); st.rerun()
-        if dq4.button("🕗 08:00\n(Đầu sáng)", use_container_width=True, key="btn_dl_morn"):
+        if dq4.button("08:00\n(Đầu sáng)", use_container_width=True, key="btn_dl_morn"):
             st.session_state["dl_time_val"] = time(8, 0); st.rerun()
 
         tb1, tb2 = st.columns(2)
@@ -1461,7 +1594,7 @@ elif selected_nav == "📝 Deadline":
             due_hour = due_time_pick.strftime("%H:%M")
 
         st.markdown('<span class="step-label">3</span> <b>Khối lượng công việc dự kiến</b>', unsafe_allow_html=True)
-        est_hours = st.number_input("⏱️ Cần khoảng bao nhiêu giờ để hoàn thành? (*mọi số giờ*)",
+        est_hours = st.number_input("Cần khoảng bao nhiêu giờ để hoàn thành? (*mọi số giờ*)",
             min_value=0.5, max_value=120.0, value=3.0, step=0.5,
             help="Gợi ý: Bài tập nhỏ 1-2h, Tiểu luận 3-5h, Đồ án lớn 8-20h...")
 
@@ -1471,18 +1604,20 @@ elif selected_nav == "📝 Deadline":
             diff_h       = (deadline_dt - config.get_now()).total_seconds() / 3600.0
             if diff_h > 0:
                 quick_ai   = deadline_ml.predict_deadline_risk(task_name, classes_today, diff_h, est_hours)
-                risk_color = "#d81159" if quick_ai["risk_percentage"] >= 70 else ("#d97706" if quick_ai["risk_percentage"] >= 40 else "#0d8a52")
+                risk_color = "#c2255c" if quick_ai["risk_percentage"] >= 70 else ("#d97706" if quick_ai["risk_percentage"] >= 40 else "#0d8a52")
+                clean_t_name = strip_emojis(task_name)
+                clean_s_task = strip_emojis(subj_task)
                 st.markdown(f"""<div class="preview-box">
-                    <b>👁️ Xem trước:</b><br>
-                    📌 <b>{task_name}</b> &nbsp;|&nbsp; 📖 {subj_task}<br>
-                    ⏳ Deadline: <b>{due_date.strftime('%d/%m/%Y')} lúc {due_hour}</b> (còn <b>{diff_h:.1f} giờ</b>)<br>
-                    ⏱️ Ước tính: <b>{est_hours}h</b><br>
-                    🤖 AI rủi ro hôm nay: <b style="color:{risk_color};">{quick_ai['risk_percentage']}% — {quick_ai['warning_level']}</b>
+                    <b>Xem trước:</b><br>
+                    <b>{clean_t_name}</b> &nbsp;•&nbsp; Môn: {clean_s_task}<br>
+                    Deadline: <b>{due_date.strftime('%d/%m/%Y')} lúc {due_hour}</b> (còn <b>{diff_h:.1f} giờ</b>)<br>
+                    Ước tính: <b>{est_hours}h</b><br>
+                    AI rủi ro hôm nay: <b style="color:{risk_color};">{quick_ai['risk_percentage']}% — {quick_ai['warning_level']}</b>
                 </div>""", unsafe_allow_html=True)
             else:
-                st.warning("⚠️ Ngày deadline đã qua rồi! Hãy chọn lại ngày đúng nhé.")
+                st.warning("Ngày deadline đã qua rồi! Hãy chọn lại ngày đúng nhé.")
 
-        if st.button("🚀 Lưu Task & Bắt Đầu Theo Dõi", use_container_width=True, type="primary"):
+        if st.button("Lưu Task & Bắt Đầu Theo Dõi", use_container_width=True, type="primary"):
             if not task_name.strip():
                 st.error("Chưa nhập tên bài tập!")
             elif not subj_task or not str(subj_task).strip():
@@ -1491,19 +1626,19 @@ elif selected_nav == "📝 Deadline":
                 deadline_str = f"{due_date.strftime('%Y-%m-%d')} {due_hour}"
                 database.add_task(task_name.strip(), str(subj_task), deadline_str, float(est_hours), "Chưa làm")
                 invalidate_cache()
-                st.success(f"✅ Đã lưu task '{task_name}'! Bot Telegram sẽ nhắc đúng các mốc thời gian.")
+                st.success(f"Đã lưu task '{task_name}'! Hệ thống sẽ nhắc đúng các mốc thời gian.")
                 st.rerun()
 
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("""<div class="card" style="margin-top:14px;">
-            <div class="section-title">⚡ Mẹo Deadline & Nhắc Nhở Tự Động</div>
+            <div class="section-title">Mẹo Quản Lý Deadline</div>
             <div style="font-size:.87rem;line-height:1.8;color:#555;">
-            🤖 AI phân tích dựa trên số ca học hôm đó & giờ rảnh thực tế.<br>
-            🔴 <b>Rủi ro ≥70%:</b> Nên làm ngay hôm nay!<br>
-            🟡 <b>Rủi ro 40–70%:</b> Ưu tiên làm sớm.<br>
-            🟢 <b>Rủi ro &lt;40%:</b> Còn thời gian thoải mái.<br>
-            📱 Bot tự nhắc trước <b>24h, 6h và 1h</b> deadline!
+            • AI phân tích dựa trên số ca học hôm đó & giờ rảnh thực tế.<br>
+            • <b>Rủi ro ≥70%:</b> Nên làm ngay hôm nay!<br>
+            • <b>Rủi ro 40–70%:</b> Ưu tiên làm sớm.<br>
+            • <b>Rủi ro &lt;40%:</b> Còn thời gian thoải mái.<br>
+            • Hệ thống tự động nhắc trước <b>24h, 6h và 1h</b> deadline.
             </div>
         </div>""", unsafe_allow_html=True)
 
@@ -1511,8 +1646,8 @@ elif selected_nav == "📝 Deadline":
     with sub_list_t:
         if not tasks:
             st.markdown("""<div class="card" style="padding:24px;">
-                <div class="section-title">🎉 Trống deadline!</div>
-                <p style="color:#555;line-height:1.75;">Cậu không có deadline nào đang chờ. Được nghỉ ngơi rồi! Tận hưởng khoảnh khắc nhé 🌸</p>
+                <div class="section-title">Trống deadline</div>
+                <p style="color:#555;line-height:1.75;">Cậu không có deadline nào đang chờ. Được nghỉ ngơi rồi, an tâm thư giãn nhé.</p>
             </div>""", unsafe_allow_html=True)
         else:
             has_overdue = any(
@@ -1529,31 +1664,80 @@ elif selected_nav == "📝 Deadline":
                 d_dt   = datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M")
                 diff_h = (d_dt - now_dt).total_seconds() / 3600.0
                 pred   = deadline_ml.predict_deadline_risk(t["task_name"], classes_today, max(0.1,diff_h), t["estimated_hours"])
-                badge_cls = "badge-safe" if t["status"]=="Đã hoàn thành" else ("badge-warn" if t["status"]=="Đang làm" else "badge-danger")
-                risk_icon = "🔴" if pred["risk_percentage"]>=70 else ("🟡" if pred["risk_percentage"]>=40 else "🟢")
+                
+                # Làm sạch dữ liệu, triệt tiêu hoàn toàn emoji
+                clean_name = strip_emojis(t['task_name'])
+                clean_subj = strip_emojis(t['subject_name'])
+                clean_msg  = strip_emojis(pred['warning_message'])
+
+                # Style huy hiệu trạng thái theo chuẩn Monochromatic Pink (iOS Control Center)
+                if t["status"] == "Đã hoàn thành":
+                    badge_html = """<span style="background:rgba(255,227,236,0.95);color:#c2255c;border:1px solid #fcc2d7;font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c2255c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Hoàn thành
+                    </span>"""
+                elif t["status"] == "Đang làm":
+                    badge_html = """<span style="background:rgba(255,240,246,0.95);color:#d6336c;border:1px solid #faa2c1;font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#d6336c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Đang làm
+                    </span>"""
+                else:
+                    badge_html = """<span style="background:rgba(248,249,250,0.95);color:#868e96;border:1px solid #e9ecef;font-size:0.75rem;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#868e96" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+                        Chưa làm
+                    </span>"""
+
                 with st.container():
-                    st.markdown(f"""<div class="card">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                          <span style="font-weight:700;font-size:1rem;">📌 {t['task_name']}</span>
-                          <span class="{badge_cls}">{t['status']}</span>
+                    st.markdown(f"""
+                    <div class="task-card-item">
+                        <div class="task-item-flag" style="display:none;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg, #f783ac, #e64980);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(230,73,128,0.25);flex-shrink:0;">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                </div>
+                                <span style="font-weight:700;font-size:0.98rem;color:#2b2b2b;">{clean_name}</span>
+                            </div>
+                            {badge_html}
                         </div>
-                        📖 {t['subject_name']} &nbsp;|&nbsp; ⏳ Hạn: <b>{t['deadline']}</b> (còn <b>{max(0,diff_h):.1f}h</b>) &nbsp;|&nbsp; ⏱️ {t['estimated_hours']}h<br>
-                        {risk_icon} <b>AI Rủi ro:</b> {pred['risk_percentage']}% — {pred['warning_message']}
-                    </div>""", unsafe_allow_html=True)
-                    b1,b2,b3,b4 = st.columns(4)
-                    if b1.button("⏳ Chưa làm", key=f"td_{t['id']}"):
+                        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:0.83rem;color:#495057;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,228,232,0.6);">
+                            <span style="display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                                <b>{clean_subj}</b>
+                            </span>
+                            <span style="display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                Hạn: <b>{t['deadline']}</b> (còn <b>{max(0,diff_h):.1f}h</b>)
+                            </span>
+                            <span style="display:inline-flex;align-items:center;gap:5px;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35l-.85-.85"/><path d="M9 5h6"/><path d="M12 2v3"/></svg>
+                                Dự kiến: <b>{t['estimated_hours']}h</b>
+                            </span>
+                        </div>
+                        <div style="background:rgba(255,240,243,0.7);border:1px solid rgba(255,209,220,0.85);border-radius:14px;padding:8px 12px;font-size:0.82rem;line-height:1.5;color:#495057;">
+                            <div style="display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;font-weight:700;color:#c2255c;background:#ffffff;border:1px solid #ffd1df;border-radius:12px;padding:1px 8px;margin-bottom:4px;">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                AI Rủi ro: {pred['risk_percentage']}%
+                            </div>
+                            <div>{clean_msg}</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    b1, b2, b3, b4 = st.columns(4)
+                    if b1.button("Chưa làm", key=f"td_{t['id']}", use_container_width=True):
                         database.update_task_status(t["id"],"Chưa làm")
                         invalidate_cache()
                         st.rerun()
-                    if b2.button("🔨 Đang làm",  key=f"tp_{t['id']}"):
+                    if b2.button("Đang làm",  key=f"tp_{t['id']}", use_container_width=True):
                         database.update_task_status(t["id"],"Đang làm")
                         invalidate_cache()
                         st.rerun()
-                    if b3.button("🎉 Đã xong",   key=f"td2_{t['id']}"):
+                    if b3.button("Hoàn thành",   key=f"td2_{t['id']}", use_container_width=True):
                         database.update_task_status(t["id"],"Đã hoàn thành")
                         invalidate_cache()
                         st.rerun()
-                    if b4.button("🗑️ Xóa",        key=f"del_{t['id']}", type="secondary"):
+                    if b4.button("Xóa",        key=f"del_{t['id']}", use_container_width=True):
                         database.delete_task(t["id"])
                         invalidate_cache()
                         st.rerun()
@@ -1580,7 +1764,7 @@ elif selected_nav == "📝 Deadline":
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 3 — CHU KỲ SINH LÝ
 # ══════════════════════════════════════════════════════════════════════════════
-elif selected_nav == "🌸 Chu Kỳ":
+elif "Chu Kỳ" in selected_nav:
     pred = get_cached_cycle_prediction()
 
     # ── Mascot Banner Trạng Thái Chu Kỳ ──
@@ -1691,7 +1875,7 @@ elif selected_nav == "🌸 Chu Kỳ":
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 4 — LỊCH UỐNG THUỐC & OCR
 # ══════════════════════════════════════════════════════════════════════════════
-elif selected_nav == "💊 Đơn Thuốc":
+elif "Đơn Thuốc" in selected_nav:
     today_str_m  = date.today().strftime("%Y-%m-%d")
     today_meds   = get_cached_today_meds(today_str_m)
     total_h      = len(today_meds)
@@ -1901,7 +2085,7 @@ elif selected_nav == "💊 Đơn Thuốc":
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB NHẬT KÝ & CẢM XÚC (MOOD TRACKER & 365 DAYS OF MOOD MATRIX)
 # ══════════════════════════════════════════════════════════════════════════════
-elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
+elif "Cảm Xúc" in selected_nav or "Nhật Ký" in selected_nav:
     import calendar as _cal
     from collections import Counter
 
@@ -2414,7 +2598,7 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
 # TAB 5 — CÀI ĐẶT & TELEGRAM BOT
 # ══════════════════════════════════════════════════════════════════════════════
 
-elif selected_nav == "⚙️ Cài Đặt":
+elif "Cài Đặt" in selected_nav:
     st.subheader("⚙️ Cài Đặt Không Gian Riêng & Kết Nối")
     render_mascot_banner("chating_cat.jpg", "Góc Nhỏ Cài Đặt 🐾", "Nơi tùy chỉnh thông tin, mật mã và kết nối tin nhắn riêng của hai đứa mình!", badge="Cài đặt")
 
@@ -2602,8 +2786,8 @@ elif selected_nav == "⚙️ Cài Đặt":
 # ──────────────────────────────────────────────────────────────────────────────
 # FOOTER
 # ──────────────────────────────────────────────────────────────────────────────
-st.markdown("""
+st.markdown(f"""
 <div class="page-footer">
-    Dự án <b>Trợ Lý Yêu Thương 💖</b> &nbsp;•&nbsp; Tự động đồng bộ Turso Cloud & Telegram 24/7 &nbsp;•&nbsp; Crafted with Love 🌸
+    <b>Trợ Lý Yêu Thương</b> &nbsp;•&nbsp; Luôn đồng hành cùng {her_name} mỗi ngày
 </div>
 """, unsafe_allow_html=True)
