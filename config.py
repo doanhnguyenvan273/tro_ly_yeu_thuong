@@ -35,13 +35,11 @@ DATA_DIR = BASE_DIR / "data"
 MODELS_DIR = BASE_DIR / "models"
 MODEL_DIR = str(MODELS_DIR)  # Hỗ trợ string path
 UPLOADS_DIR = DATA_DIR / "uploads"
-VOICE_DIR = DATA_DIR / "voice_notes"
 
 # Đảm bảo các thư mục cần thiết tồn tại
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 MODELS_DIR.mkdir(parents=True, exist_ok=True)
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-VOICE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Đường dẫn CSDL và Mô hình AI
 DB_PATH = DATA_DIR / "schedule_data.db"

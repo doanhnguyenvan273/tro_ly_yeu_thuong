@@ -473,75 +473,6 @@ def handle_incoming_callback_query(cq: Dict[str, Any]):
         )
         notifier.send_telegram_message(chat_id, prompt)
 
-def handle_incoming_voice_message(voice_obj: Dict[str, Any], chat_id: Union[str, int], user_display: str):
-    """
-    Xử lý tin nhắn thoại Voice Note từ Telegram:
-    - Tải file âm thanh về và lưu trữ an toàn trong data/voice_notes/
-    - Tự động ghi nhận vào sổ nhật ký cảm xúc
-    - Gửi thông báo bí mật cho bạn trai & phản hồi lại cho cô ấy.
-    """
-    file_id = voice_obj.get("file_id")
-    duration = voice_obj.get("duration", 0)
-    if not file_id:
-        return
-
-    bot_token = (config.TELEGRAM_BOT_TOKEN or config.load_settings().get("telegram_bot_token", "")).strip()
-    if not bot_token:
-        return
-
-    try:
-        # 1. Gọi getFile để lấy file_path
-        res = requests.get(f"https://api.telegram.org/bot{bot_token}/getFile", params={"file_id": file_id}, timeout=10)
-        if res.status_code == 200:
-            tg_file_path = res.json().get("result", {}).get("file_path")
-            if tg_file_path:
-                dl_url = f"https://api.telegram.org/file/bot{bot_token}/{tg_file_path}"
-                audio_res = requests.get(dl_url, timeout=25)
-                if audio_res.status_code == 200:
-                    today_tag = config.get_now().strftime("%Y%m%d_%H%M%S")
-                    local_filename = f"voice_{today_tag}_{file_id[:8]}.ogg"
-                    dest = config.VOICE_DIR / local_filename
-                    with open(dest, "wb") as f_out:
-                        f_out.write(audio_res.content)
-    except Exception as e_voice:
-        print(f"[Voice Handler] Lỗi khi tải file âm thanh: {e_voice}")
-
-    today_str = config.get_now().strftime("%Y-%m-%d")
-    now_hm = config.get_now().strftime("%H:%M")
-
-    # 2. Ghi nhận vào CSDL nhật ký
-    try:
-        note_text = f"🎙️ [Tin nhắn thoại {duration}s gửi lúc {now_hm}]"
-        ai_resp = f"Bác sĩ Mèo đã cất giữ tin nhắn thoại của {user_display} vào Hòm Thư Yêu Thương! 🌸🎧"
-        database.upsert_mood_log(
-            date_str=today_str,
-            mood_type="Happy",
-            note=note_text,
-            ai_response=ai_resp,
-        )
-    except Exception as e_db:
-        print(f"[Voice Handler] Lỗi ghi CSDL: {e_db}")
-
-    # 3. Thông báo bí mật cho Bạn Trai (nếu người gửi là cô ấy)
-    settings = config.load_settings()
-    her_id = str(config.HER_CHAT_ID or settings.get("telegram_her_chat_id", "")).strip()
-    if str(chat_id).strip() == her_id:
-        notifier.notify_you_secret(
-            f"🎙️ <b>[TIN NHẮN THOẠI MỚI TỪ CẬU ẤY]</b> 💖\n\n"
-            f"Cậu ấy vừa gửi 1 tin nhắn thoại dài <b>{duration} giây</b> vào Bot!\n"
-            f"Tớ đã tự động lưu lại vào Hòm Thư trên Web App. Cậu có thể mở app để lắng nghe nhé! 🎧🌸"
-        )
-
-    # 4. Phản hồi ngọt ngào cho người gửi
-    magic = config.get_magic_link(nav="CamXuc")
-    magic_row = f"\n👉 <a href='{magic}'>Bấm vào đây để mở Sổ Nhật Ký</a>" if magic else ""
-    reply = (
-        f"🎙️ <b>Bác sĩ Mèo đã nhận được tin nhắn thoại của {user_display}!</b> ({duration}s) 🌸\n\n"
-        f"🎧 Lời nhắn thoại của cậu đã được lưu an toàn vào <b>Hòm Thư Tâm Sự</b> trên Web App.{magic_row}\n\n"
-        f"<i>Cậu cứ tự nhiên gửi thêm bất cứ khi nào muốn tâm sự nhé! 💖</i>"
-    )
-    notifier.send_telegram_message(chat_id, reply)
-
 
 def handle_incoming_message(msg: Dict[str, Any]):
     """
@@ -575,10 +506,12 @@ def handle_incoming_message(msg: Dict[str, Any]):
     else:
         user_display = msg.get("from", {}).get("first_name", "Bạn")
 
-    # Xử lý tin nhắn thoại Voice Note
-    voice_obj = msg.get("voice") or msg.get("audio")
-    if voice_obj:
-        handle_incoming_voice_message(voice_obj, chat_id, user_display)
+    # Nếu gửi voice/audio: Không tải/lưu file để tiết kiệm 100% dung lượng
+    if msg.get("voice") or msg.get("audio"):
+        notifier.send_telegram_message(
+            chat_id,
+            f"Tớ chỉ đọc được tin nhắn chữ thôi nha {user_display}! Cậu gõ tin nhắn chữ để tớ hỗ trợ ngay nhé 🌸"
+        )
         return
 
     text = (msg.get("text") or "").strip()

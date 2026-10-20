@@ -2170,25 +2170,6 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
         st.markdown(stat_html, unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ══════════════════════════════════════════════════════
-    # ZONE 5: HÒM THƯ & BĂNG GHI ÂM TÂM SỰ TELEGRAM
-    # ══════════════════════════════════════════════════════
-    voice_files = sorted(list(config.VOICE_DIR.glob("*.ogg")), reverse=True) if config.VOICE_DIR.exists() else []
-    if voice_files:
-        st.markdown('<div class="card" style="margin-top:14px;">', unsafe_allow_html=True)
-        st.markdown(f'<div class="section-title">🎙️ Hòm Thư &amp; Băng Ghi Âm Giọng Nói Yêu Thương ({len(voice_files)} lời nhắn)</div>', unsafe_allow_html=True)
-        st.markdown('<p class="hint-text">Những tin nhắn thoại người ấy gửi qua Telegram Bot đều được lưu giữ cẩn thận tại đây để cùng nghe lại.</p>', unsafe_allow_html=True)
-        for vf in voice_files[:8]:
-            v_name = vf.name
-            v_date_str = v_name.replace("voice_", "").split("_")[0]
-            try:
-                d_fmt = datetime.strptime(v_date_str, "%Y%m%d").strftime("%d/%m/%Y")
-            except Exception:
-                d_fmt = "Gần đây"
-            st.markdown(f'<div style="font-weight:600;font-size:0.88rem;color:#d81159;margin-top:8px;">🎧 Lời nhắn ngày {d_fmt}:</div>', unsafe_allow_html=True)
-            st.audio(str(vf), format="audio/ogg")
-        st.markdown('</div>', unsafe_allow_html=True)
-
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 5 — CÀI ĐẶT & TELEGRAM BOT
 # ══════════════════════════════════════════════════════════════════════════════
