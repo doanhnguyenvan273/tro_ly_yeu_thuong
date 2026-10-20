@@ -430,7 +430,8 @@ def build_help_response(name: str = "Bạn") -> str:
         f"☀️ <b>Chào buổi sáng:</b> <code>chào buổi sáng</code>\n"
         f"🌙 <b>Chúc ngủ ngon:</b> <code>chúc ngủ ngon</code> (tâm sự theo cảm xúc hôm nay)\n"
         f"📋 <b>Điểm danh:</b> <code>điểm danh</code> / <code>vắng mặt</code>\n"
-        f"📊 <b>Trạng thái:</b> <code>status</code> / <code>tình trạng</code>\n\n"
+        f"📊 <b>Trạng thái:</b> <code>status</code> / <code>tình trạng</code>\n"
+        f"📱 <b>Mở Web App:</b> <code>app</code> / <code>link</code> (Lấy Magic Link 1-chạm)\n\n"
         f"<i>Chúc {name} một ngày luôn rạng ngời và ngập tràn hạnh phúc! ✨</i>"
     )
 
@@ -686,6 +687,25 @@ def handle_incoming_message(msg: Dict[str, Any]):
     status_keywords = ["status", "tình trạng", "tinh trang", "trạng thái", "trang thai", "/status", "hệ thống", "he thong"]
     if any(k in text_lower for k in status_keywords):
         reply = build_status_response()
+        notifier.send_telegram_message(chat_id, reply)
+        return
+
+    # 9.5 Tra cứu Magic Link mở App 1-Chạm
+    app_link_keywords = ["link", "web", "app", "mở web", "mo web", "mở app", "mo app", "/app", "/link"]
+    if any(k == text_lower or text_lower.startswith(k) for k in app_link_keywords):
+        magic = config.get_magic_link()
+        if magic:
+            reply = (
+                f"🌸 <b>MAGIC LINK MỞ APP 1-CHẠM</b> 💖\n\n"
+                f"👉 Bấm vào liên kết này để vào thẳng Web mà không cần mật khẩu:\n"
+                f"{magic}\n\n"
+                f"<i>Lưu ý: Đây là chìa khóa riêng của 2 bạn, đừng gửi cho người lạ nhé! 🤫</i>"
+            )
+        else:
+            reply = (
+                f"🌸 <b>Chưa cấu hình Địa Chỉ Web Public!</b>\n\n"
+                f"Cậu hãy vào tab <b>⚙️ Cài Đặt</b> trên Web và điền địa chỉ Web Public để tự động tạo Magic Link nhé."
+            )
         notifier.send_telegram_message(chat_id, reply)
         return
 

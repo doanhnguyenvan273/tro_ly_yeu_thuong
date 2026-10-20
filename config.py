@@ -55,7 +55,9 @@ DEFAULT_SETTINGS = {
     "her_name": "Cậu 🌸",
     "my_name": "Tớ 💫",
     "startup_greeting_sent": False,
-    "secret_mode_enabled": True
+    "secret_mode_enabled": True,
+    "app_passcode": "2010",
+    "web_app_url": ""
 }
 
 def load_settings() -> dict:
@@ -98,7 +100,9 @@ MY_NAME = os.getenv("MY_NAME") or _settings.get("my_name", "Tớ 💫")
 ALLOWED_CHAT_IDS = [str(cid).strip() for cid in [HER_CHAT_ID, YOUR_CHAT_ID] if str(cid).strip()]
 
 # Mật khẩu bảo vệ giao diện Web (Streamlit trên Render hoặc mạng LAN)
-WEB_PASSWORD = os.getenv("WEB_PASSWORD", "Love2010")
+APP_PASSCODE = os.getenv("APP_PASSCODE") or _settings.get("app_passcode", "2010")
+WEB_PASSWORD = os.getenv("WEB_PASSWORD", APP_PASSCODE)
+WEB_APP_URL  = os.getenv("WEB_APP_URL") or _settings.get("web_app_url", "")
 
 # TURSO CLOUD DATABASE
 TURSO_DATABASE_URL = os.getenv("TURSO_DATABASE_URL", "").strip()
@@ -110,3 +114,15 @@ TURSO_AUTH_TOKEN = os.getenv("TURSO_AUTH_TOKEN", "").strip()
 settings = _settings
 TELEGRAM_HER_CHAT_ID = HER_CHAT_ID
 TELEGRAM_MY_CHAT_ID = YOUR_CHAT_ID
+
+def get_magic_link(nav=None) -> str:
+    """Trả về Magic Link 1-chạm mở thẳng Web App nếu web_app_url đã cấu hình."""
+    cfg = load_settings()
+    base_url = os.getenv("WEB_APP_URL") or cfg.get("web_app_url", "").strip()
+    passcode = os.getenv("APP_PASSCODE") or cfg.get("app_passcode", "2010").strip()
+    if not base_url:
+        return ""
+    url = f"{base_url.rstrip('/')}/?key={passcode}"
+    if nav:
+        url += f"&nav={nav}"
+    return url

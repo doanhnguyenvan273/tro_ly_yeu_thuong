@@ -600,6 +600,77 @@ def render_mascot_banner(filename: str, title: str, quote: str, badge: str = Non
 
 settings = get_cached_settings()
 her_name = settings.get("her_name", "Cậu 🌸")
+app_passcode = str(settings.get("app_passcode", "2010")).strip()
+
+# ══════════════════════════════════════════════════════════════════════════════
+# BẢO MẬT & XÁC THỰC: MÀN HÌNH KHÓA CẶP ĐÔI & MAGIC LINK 1-CHẠM
+# ══════════════════════════════════════════════════════════════════════════════
+# 1. Kiểm tra Magic Link từ Telegram (?key=... hoặc ?token=... hoặc ?passcode=...)
+_provided_key = (
+    st.query_params.get("key") or
+    st.query_params.get("token") or
+    st.query_params.get("passcode")
+)
+if _provided_key and str(_provided_key).strip() == app_passcode:
+    st.session_state["is_authenticated"] = True
+
+# 2. Xử lý yêu cầu khóa ứng dụng / đăng xuất (?logout=1)
+if "logout" in st.query_params:
+    st.session_state["is_authenticated"] = False
+    try:
+        del st.query_params["logout"]
+        for _pk in ["key", "token", "passcode"]:
+            if _pk in st.query_params:
+                del st.query_params[_pk]
+    except Exception:
+        pass
+    st.rerun()
+
+# 3. Chặn hoàn toàn và hiển thị Màn hình Khóa Mèo Bảo Vệ nếu chưa mở khóa
+if not st.session_state.get("is_authenticated", False):
+    st.markdown("""
+    <div style="max-width: 440px; margin: 36px auto 16px; text-align: center;">
+        <div style="background: white; border-radius: 24px; border: 2px solid #ffd6e0; box-shadow: 0 10px 30px rgba(255,107,139,0.12); padding: 26px 20px;">
+            <div style="font-size: 3.2rem; margin-bottom: 6px;">🐱🔐</div>
+            <div style="font-size: 1.25rem; font-weight: 800; color: #d81159; margin-bottom: 6px;">Khu Vườn Bí Mật Của Cậu &amp; Tớ 💖</div>
+            <p style="font-size: 0.88rem; color: #666; line-height: 1.6; margin: 0 0 14px;">
+                Không gian riêng tư được bảo vệ 24/7.<br>
+                Vui lòng nhập mật mã hoặc mở qua Magic Link nhé! 🐾
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_pad_l, col_center_box, col_pad_r = st.columns([1, 2.2, 1])
+    with col_center_box:
+        with st.form("lock_screen_form"):
+            user_pin_input = st.text_input(
+                "🔑 Mã PIN / Mật mã mở khóa:",
+                type="password",
+                placeholder="Nhập mã mở khóa (VD: 2010)...",
+                help="Mật mã bí mật do hai người quy định",
+            )
+            remember_device = st.checkbox("💖 Ghi nhớ mở khóa trên thiết bị này", value=True)
+            submit_unlock = st.form_submit_button("Mở Khóa Khu Vườn 🌸", use_container_width=True, type="primary")
+
+            if submit_unlock:
+                if user_pin_input.strip() == app_passcode:
+                    st.session_state["is_authenticated"] = True
+                    if remember_device:
+                        st.query_params["key"] = app_passcode
+                    st.success("✨ Mở khóa thành công! Chào mừng cậu về nhà! 🌸")
+                    st.rerun()
+                else:
+                    st.error("🐾 Mã mở khóa chưa đúng rồi nha! Cậu thử lại xem nhé.")
+
+        st.markdown(
+            '<div style="text-align: center; margin-top: 14px; font-size: 0.82rem; color: #888;">'
+            '💡 <i>Gợi ý: Nếu bấm link trực tiếp từ tin nhắn Telegram của Bot, cậu sẽ được vào thẳng không cần gõ mã!</i>'
+            '</div>',
+            unsafe_allow_html=True
+        )
+
+    st.stop()
 
 def check_schedule_conflicts(schedules):
     """Kiểm tra trùng lịch."""
@@ -677,7 +748,10 @@ cur_idx = NAV_OPTIONS.index(st.session_state["active_nav"]) if st.session_state[
 st.markdown(f"""
 <div class="top-nav-bar">
     <div class="top-nav-brand">💖 Trợ Lý Yêu Thương <span class="top-nav-her">• {her_name}</span></div>
-    <div class="top-nav-status">🟢 <b>Cloud 24/7 &amp; Turso DB</b></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <div class="top-nav-status">🟢 <b>Cloud 24/7</b></div>
+        <a href="?logout=1" target="_self" style="text-decoration:none;font-size:0.78rem;font-weight:600;color:#888;background:#f8f9fa;border:1px solid #e2e8f0;padding:4px 10px;border-radius:14px;display:inline-flex;align-items:center;gap:4px;" title="Khóa ứng dụng (Đăng xuất)">🔒 Khóa</a>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -2140,6 +2214,18 @@ elif selected_nav == "⚙️ Cài Đặt":
             value=cur.get("secret_mode_enabled", True),
             help="Bot tự nhắn bí mật cho bạn trước 4 ngày chu kỳ của cậu ấy")
 
+        st.markdown("#### 🔒 Bảo Mật & Magic Link 1-Chạm")
+        sec_col1, sec_col2 = st.columns(2)
+        with sec_col1:
+            passcode_v = st.text_input("Mật Mã / Mã PIN Mở Khóa (*)",
+                value=cur.get("app_passcode", "2010"),
+                help="Mã PIN 4 số hoặc mật khẩu riêng tư để mở khóa app")
+        with sec_col2:
+            web_url_v = st.text_input("Địa Chỉ Web Public (Nếu có)",
+                value=cur.get("web_app_url", ""),
+                placeholder="VD: https://duanbimat.streamlit.app",
+                help="Dùng để tự động tạo Magic Link 1-chạm gửi qua Telegram")
+
         if st.form_submit_button("💾 Lưu Tất Cả Cài Đặt", use_container_width=True):
             cur.update({
                 "telegram_bot_token":    bot_token.strip(),
@@ -2148,11 +2234,34 @@ elif selected_nav == "⚙️ Cài Đặt":
                 "her_name":              her_name_v.strip(),
                 "my_name":               my_name_v.strip(),
                 "secret_mode_enabled":   secret_on,
+                "app_passcode":          passcode_v.strip() if passcode_v.strip() else "2010",
+                "web_app_url":           web_url_v.strip(),
             })
             if config.save_settings(cur):
                 invalidate_cache()
                 st.success("✅ Đã lưu cấu hình!")
                 st.rerun()
+
+    # ── Hộp hiển thị Magic Link tiện lợi ──
+    _cur_passcode = cur.get("app_passcode", "2010")
+    _cur_web_url = cur.get("web_app_url", "").strip()
+    _sample_base = _cur_web_url if _cur_web_url else "https://your-domain.streamlit.app"
+    _magic_link_full = f"{_sample_base.rstrip('/')}/?key={_cur_passcode}"
+
+    st.markdown(f"""
+    <div class="card" style="margin-top: 14px; background: #fffcfd; border: 1.5px solid #ffccd5;">
+        <div class="section-title">✨ Magic Link 1-Chạm Dành Cho Cậu Ấy</div>
+        <p style="font-size: 0.88rem; color: #555; line-height: 1.6; margin-bottom: 8px;">
+            Gửi đường link này cho cậu ấy (hoặc lưu vào Bookmark / Màn hình chính điện thoại). Khi bấm vào, web sẽ <b>tự động mở khóa ngay lập tức</b> mà không bao giờ bị hỏi mật khẩu:
+        </p>
+        <div style="background: white; border: 1px dashed #ff758c; padding: 10px 14px; border-radius: 10px; font-family: monospace; font-size: 0.88rem; color: #d81159; word-break: break-all; margin-bottom: 10px;">
+            {_magic_link_full}
+        </div>
+        <p style="font-size: 0.8rem; color: #888; margin: 0;">
+            🔒 <i>Người ngoài truy cập link gốc không có <code>?key={_cur_passcode}</code> sẽ lập tức bị chặn ở màn hình khóa Mèo bảo vệ!</i>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.divider()
     st.markdown("#### 🧪 Kiểm Tra Thông Báo Yêu Thương (Telegram)")
