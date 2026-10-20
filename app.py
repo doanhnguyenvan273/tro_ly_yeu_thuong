@@ -92,28 +92,28 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
 }
 
 /* ══════════════════════════════════════════════════════
-   TOP APP BAR (Thanh tiêu đề ứng dụng in-flow)
+   TOP APP BAR (iOS 18 Minimal Glass Header)
    ══════════════════════════════════════════════════════ */
 .top-nav-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 16px;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1.5px solid rgba(255, 182, 193, 0.45);
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(255, 182, 193, 0.12);
-    margin-bottom: 10px;
-    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 209, 220, 0.6);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(255, 182, 193, 0.08);
+    margin-bottom: 12px;
+    backdrop-filter: blur(12px);
 }
 .top-nav-brand {
-    font-size: 1.15rem;
-    font-weight: 700;
+    font-size: 1.12rem;
+    font-weight: 800;
     color: #d81159;
     display: flex;
     align-items: center;
     gap: 6px;
-    white-space: nowrap;
+    letter-spacing: -0.2px;
 }
 .top-nav-her {
     font-size: 0.88rem;
@@ -121,33 +121,34 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
     color: #ff758c;
     white-space: nowrap;
 }
-.top-nav-status {
-    background: #e8f8f0;
-    border: 1px solid #b7ebd0;
-    color: #0d8a52;
-    font-size: 0.78rem;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 20px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    white-space: nowrap;
+.ios-lock-btn {
+    text-decoration: none !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    color: #666 !important;
+    background: rgba(248, 249, 250, 0.9) !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 5px 12px !important;
+    border-radius: 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.ios-lock-btn:hover {
+    background: #fff0f5 !important;
+    color: #d81159 !important;
+    border-color: #ffd6e0 !important;
+    transform: translateY(-1px) !important;
 }
 
 @media (max-width: 600px) {
     .top-nav-bar {
-        padding: 8px 12px;
+        padding: 8px 14px;
+        border-radius: 16px;
     }
     .top-nav-brand {
-        font-size: 1rem;
-    }
-    .top-nav-her {
-        display: none;
-    }
-    .top-nav-status {
-        font-size: 0.74rem;
-        padding: 3px 9px;
+        font-size: 0.98rem;
     }
 }
 
@@ -333,63 +334,164 @@ div[data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar {
 }
 
 /* ══════════════════════════════════════════════════════
-   HERO SECTION
+   iOS 18 BENTO HERO BANNER
    ══════════════════════════════════════════════════════ */
-.hero-section {
-    background: linear-gradient(135deg, #FF758C 0%, #FF7EB3 100%);
-    border-radius: 20px;
-    padding: 28px 36px 24px 36px;
+.ios-hero-banner {
+    background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 50%, #ffa07a 100%);
+    border-radius: 26px;
+    padding: 24px 28px;
     color: white;
-    box-shadow: 0 10px 30px rgba(255, 117, 140, 0.28);
-    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(255, 117, 140, 0.25);
+    margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 20px;
+    position: relative;
+    overflow: hidden;
 }
-.hero-title {
-    font-size: 1.9rem;
-    font-weight: 700;
+.ios-hero-content {
+    flex: 1;
+}
+.ios-hero-title {
+    font-size: 1.65rem;
+    font-weight: 800;
     margin: 0 0 6px 0;
-    line-height: 1.2;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
 }
-.hero-subtitle {
-    font-size: 0.95rem;
-    opacity: 0.92;
-    margin: 0 0 16px 0;
+.ios-hero-sub {
+    font-size: 0.93rem;
+    opacity: 0.95;
     line-height: 1.55;
+    margin: 0 0 12px 0;
+    max-width: 620px;
 }
-.hero-btn, a.hero-btn, a.hero-btn:visited, a.hero-btn:hover, a.hero-btn:active {
-    display: inline-block !important;
-    background: rgba(255,255,255,0.22) !important;
-    border: 1.5px solid rgba(255,255,255,0.5) !important;
-    border-radius: 24px !important;
-    padding: 8px 20px !important;
-    font-size: 0.85rem !important;
-    font-weight: 700 !important;
-    color: #ffffff !important;
-    cursor: pointer !important;
-    margin-right: 8px !important;
-    backdrop-filter: blur(4px) !important;
-    transition: all 0.2s !important;
-    text-decoration: none !important;
-}
-.hero-btn:hover, a.hero-btn:hover {
-    background: rgba(255,255,255,0.38) !important;
-    transform: translateY(-1px) !important;
-    color: #ffffff !important;
-    text-decoration: none !important;
-}
-.hero-status-box {
-    background: rgba(255,255,255,0.18);
-    border: 1.5px solid rgba(255,255,255,0.35);
-    border-radius: 16px;
-    padding: 14px 20px;
-    text-align: center;
-    min-width: 170px;
+.ios-hero-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
     backdrop-filter: blur(6px);
 }
-.hero-status-row { font-size: 0.82rem; margin: 3px 0; opacity: 0.95; }
+.ios-avatar-badge {
+    width: 68px;
+    height: 68px;
+    background: rgba(255, 255, 255, 0.22);
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    flex-shrink: 0;
+    margin-left: 16px;
+}
+@media (max-width: 600px) {
+    .ios-hero-banner {
+        padding: 20px;
+        border-radius: 20px;
+    }
+    .ios-hero-title {
+        font-size: 1.35rem;
+    }
+    .ios-hero-sub {
+        font-size: 0.86rem;
+    }
+    .ios-avatar-badge {
+        width: 54px;
+        height: 54px;
+        font-size: 1.8rem;
+        margin-left: 10px;
+    }
+}
+
+/* ══════════════════════════════════════════════════════
+   iOS 18 BENTO GRID WIDGETS
+   ══════════════════════════════════════════════════════ */
+.bento-widget {
+    border-radius: 22px;
+    padding: 16px 14px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 142px;
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+}
+.bento-widget:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+.bento-icon-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+.bento-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+}
+.bento-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1d1d1f;
+    line-height: 1.2;
+    margin-bottom: 4px;
+}
+.bento-desc {
+    font-size: 0.76rem;
+    font-weight: 600;
+    opacity: 0.75;
+}
+
+/* Biến thể màu sắc Pastel iOS 18 */
+.bento-purple {
+    background: linear-gradient(145deg, #faf8ff 0%, #f0ebff 100%);
+    border-color: #e5dcff;
+}
+.bento-purple .bento-icon-badge { background: #e5dbff; }
+.bento-purple .bento-title { color: #5f3dc4; }
+
+.bento-orange {
+    background: linear-gradient(145deg, #fff9f6 0%, #ffefe6 100%);
+    border-color: #ffd8c7;
+}
+.bento-orange .bento-icon-badge { background: #ffd3bf; }
+.bento-orange .bento-title { color: #d9480f; }
+
+.bento-pink {
+    background: linear-gradient(145deg, #fff6f9 0%, #ffe6ef 100%);
+    border-color: #ffc9db;
+}
+.bento-pink .bento-icon-badge { background: #ffbfd4; }
+.bento-pink .bento-title { color: #c2255c; }
+
+.bento-green {
+    background: linear-gradient(145deg, #f5fbf7 0%, #e6f7ee 100%);
+    border-color: #c3eed7;
+}
+.bento-green .bento-icon-badge { background: #b8ebd0; }
+.bento-green .bento-title { color: #099268; }
 
 /* ══════════════════════════════════════════════════════
    NAVBAR TABS (st.tabs override — full-width polished)
@@ -746,10 +848,9 @@ cur_idx = NAV_OPTIONS.index(st.session_state["active_nav"]) if st.session_state[
 
 st.markdown(f"""
 <div class="top-nav-bar">
-    <div class="top-nav-brand">💖 Trợ Lý Yêu Thương <span class="top-nav-her">• {her_name}</span></div>
+    <div class="top-nav-brand">🌸 Không Gian Của {her_name}</div>
     <div style="display:flex;align-items:center;gap:8px;">
-        <div class="top-nav-status">🟢 <b>Cloud 24/7</b></div>
-        <a href="?logout=1" target="_self" style="text-decoration:none;font-size:0.78rem;font-weight:600;color:#888;background:#f8f9fa;border:1px solid #e2e8f0;padding:4px 10px;border-radius:14px;display:inline-flex;align-items:center;gap:4px;" title="Khóa ứng dụng (Đăng xuất)">🔒 Khóa</a>
+        <a href="?logout=1" target="_self" class="ios-lock-btn" title="Khóa ứng dụng (Đăng xuất)">🔒 Khóa</a>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -787,16 +888,37 @@ if selected_nav == "🏠 Trang Chủ":
     total_meds_home = len(today_meds_home)
     taken_meds_home = sum(1 for m in today_meds_home if m["taken"]) if today_meds_home else 0
 
+    # Lời chào theo khung giờ trong ngày (ấm áp, tự nhiên như bạn trai nhắn)
+    current_hour = datetime.now().hour
+    if 5 <= current_hour < 11:
+        greeting_time = f"Chào buổi sáng, {her_name} ☀️"
+        sub_time = "Chúc cậu ngày mới thật nhiều năng lượng! Đừng quên ăn sáng ấm bụng nhé 🌸"
+    elif 11 <= current_hour < 14:
+        greeting_time = f"Nghỉ trưa thôi nào, {her_name} 🍱"
+        sub_time = "Học cả buổi sáng vất vả rồi, cậu nhớ ăn cơm đúng giờ và chợp mắt xíu nha 💖"
+    elif 14 <= current_hour < 18:
+        greeting_time = f"Buổi chiều an lành nha, {her_name} ☕"
+        sub_time = "Cố gắng nốt buổi chiều rồi tối về nghỉ ngơi xả hơi nha cậu ✨"
+    elif 18 <= current_hour < 23:
+        greeting_time = f"Buổi tối ấm áp nha, {her_name} 🌙"
+        sub_time = "Hôm nay cậu làm tốt lắm rồi! Tối nay nghỉ ngơi, nghe nhạc cho thư giãn nhé 🍵"
+    else:
+        greeting_time = f"Khuya rồi, ngủ sớm thôi {her_name} 🧸"
+        sub_time = "Đừng thức khuya mệt người nha cậu, ngủ một giấc thật ngon để mai gặp lại nhé 💫"
+
     st.markdown(f"""
-    <div class="hero-section">
-        <div>
-            <div class="hero-title">💖 Trợ Lý Yêu Thương 🌸</div>
-            <div class="hero-subtitle">Dành riêng cho <b>{her_name}</b> — Hôm nay là <b>{today_day_name}, ngày {today_date.strftime("%d/%m/%Y")}</b>.<br>Đồng hành cùng cậu mỗi ngày trong học tập và chăm sóc sức khỏe!</div>
+    <div class="ios-hero-banner">
+        <div class="ios-hero-content">
+            <div class="ios-hero-title">{greeting_time}</div>
+            <div class="ios-hero-sub">{sub_time}</div>
+            <div class="ios-hero-meta">
+                <span>📅 {today_day_name}, {today_date.strftime("%d/%m")}</span>
+                <span>•</span>
+                <span>💖 Luôn có tớ đồng hành cùng cậu</span>
+            </div>
         </div>
-        <div class="hero-status-box">
-            <div style="font-size:1.4rem;margin-bottom:2px;">🐱</div>
-            <div class="hero-status-row">🟢 <b>Cloud 24/7</b></div>
-            <div class="hero-status-row" style="font-size:0.75rem;opacity:0.85;">Turso Cloud &amp; Telegram</div>
+        <div class="ios-hero-side">
+            <div class="ios-avatar-badge">🌸</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -838,73 +960,90 @@ if selected_nav == "🏠 Trang Chủ":
                 st.toast("✨ Cậu đã đọc lời nhắn rồi! Chúc cậu một ngày thật vui vẻ! 💖")
                 st.rerun()
 
-    # 1. Bốn Thẻ KPI Tổng Quan Nhanh (Click trực tiếp vào thẻ để chuyển tab Navbar tương ứng)
-    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-    with kpi1:
+    # 1. Bốn Thẻ Bento Widgets iOS 18 (Thiết kế bo tròn hiện đại, click để chuyển tab)
+    bento1, bento2, bento3, bento4 = st.columns(4)
+    with bento1:
+        sch_val = f"{len(today_scheds)} ca học" if today_scheds else "Hôm nay nghỉ 🎉"
+        sch_desc = f"{today_day_name} ({today_date.strftime('%d/%m')})"
         st.markdown(
             f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="card card-hover-click" style="text-align:center;padding:18px 14px;cursor:pointer;">'
-            f'<div style="font-size:1.8rem;margin-bottom:4px;">🎒</div>'
-            f'<div style="font-weight:700;color:#d81159;font-size:0.95rem;">Lịch Học Hôm Nay</div>'
-            f'<div style="font-size:1.35rem;font-weight:800;color:#333;margin:4px 0;">{len(today_scheds)} ca học</div>'
-            f'<div style="font-size:0.78rem;color:#888;">{today_day_name} ({today_date.strftime("%d/%m")})</div>'
-            f'<div style="font-size:0.75rem;color:#d81159;margin-top:6px;font-weight:600;">Xem chi tiết ➔</div>'
+            f'<div class="bento-widget bento-purple">'
+            f'<div class="bento-icon-badge">🎒</div>'
+            f'<div>'
+            f'<div class="bento-title">Lịch Học</div>'
+            f'<div class="bento-value">{sch_val}</div>'
+            f'<div class="bento-desc">{sch_desc}</div>'
+            f'</div>'
             f'</div>'
             f'</a>',
             unsafe_allow_html=True,
         )
 
-    with kpi2:
+    with bento2:
+        task_val = f"{len(pending_tasks)} bài tập" if pending_tasks else "Đã xong hết ✨"
+        task_desc = "Cần hoàn thành" if pending_tasks else "Thảnh thơi nghỉ ngơi nha 🏖️"
         st.markdown(
             f'<a href="?nav=Deadline" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="card card-hover-click" style="text-align:center;padding:18px 14px;cursor:pointer;">'
-            f'<div style="font-size:1.8rem;margin-bottom:4px;">⏰</div>'
-            f'<div style="font-weight:700;color:#e67e22;font-size:0.95rem;">Deadline Cần Làm</div>'
-            f'<div style="font-size:1.35rem;font-weight:800;color:#333;margin:4px 0;">{len(pending_tasks)} bài tập</div>'
-            f'<div style="font-size:0.78rem;color:#888;">Đang chờ hoàn thành</div>'
-            f'<div style="font-size:0.75rem;color:#e67e22;margin-top:6px;font-weight:600;">Quản lý task ➔</div>'
+            f'<div class="bento-widget bento-orange">'
+            f'<div class="bento-icon-badge">⏰</div>'
+            f'<div>'
+            f'<div class="bento-title">Deadline</div>'
+            f'<div class="bento-value">{task_val}</div>'
+            f'<div class="bento-desc">{task_desc}</div>'
+            f'</div>'
             f'</div>'
             f'</a>',
             unsafe_allow_html=True,
         )
 
-    with kpi3:
-        ck_status = f"Còn {pred_home['days_left']} ngày" if pred_home.get("has_data") else "Chưa có dữ liệu"
+    with bento3:
+        if pred_home.get("has_data"):
+            ck_val = f"Còn {pred_home['days_left']} ngày"
+            ck_desc = f"Dự kiến: {pred_home.get('predicted_next_date', '---')}"
+        else:
+            ck_val = "Chưa có kỳ"
+            ck_desc = "Theo dõi chu kỳ"
         st.markdown(
             f'<a href="?nav=ChuKy" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="card card-hover-click" style="text-align:center;padding:18px 14px;cursor:pointer;">'
-            f'<div style="font-size:1.8rem;margin-bottom:4px;">🌸</div>'
-            f'<div style="font-weight:700;color:#e84393;font-size:0.95rem;">Chu Kỳ Sinh Lý</div>'
-            f'<div style="font-size:1.35rem;font-weight:800;color:#333;margin:4px 0;">{ck_status}</div>'
-            f'<div style="font-size:0.78rem;color:#888;">Dự kiến: {pred_home.get("predicted_next_date", "---")}</div>'
-            f'<div style="font-size:0.75rem;color:#e84393;margin-top:6px;font-weight:600;">Xem dự đoán ➔</div>'
+            f'<div class="bento-widget bento-pink">'
+            f'<div class="bento-icon-badge">🌸</div>'
+            f'<div>'
+            f'<div class="bento-title">Chu Kỳ</div>'
+            f'<div class="bento-value">{ck_val}</div>'
+            f'<div class="bento-desc">{ck_desc}</div>'
+            f'</div>'
             f'</div>'
             f'</a>',
             unsafe_allow_html=True,
         )
 
-    with kpi4:
-        med_status = f"{taken_meds_home}/{total_meds_home} liều" if total_meds_home else "Trống lịch"
-        med_sub = 'Đã uống đủ! 🎉' if total_meds_home and taken_meds_home == total_meds_home else 'Nhắc giờ Telegram 🤖'
+    with bento4:
+        if total_meds_home:
+            med_val = f"{taken_meds_home}/{total_meds_home} liều"
+            med_desc = "Đã uống đủ! 💖" if taken_meds_home == total_meds_home else f"Còn {total_meds_home - taken_meds_home} liều nữa nha"
+        else:
+            med_val = "Trống lịch"
+            med_desc = "Khỏe mạnh mỗi ngày ✨"
         st.markdown(
             f'<a href="?nav=DonThuoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="card card-hover-click" style="text-align:center;padding:18px 14px;cursor:pointer;">'
-            f'<div style="font-size:1.8rem;margin-bottom:4px;">💊</div>'
-            f'<div style="font-weight:700;color:#00b894;font-size:0.95rem;">Thuốc Hôm Nay</div>'
-            f'<div style="font-size:1.35rem;font-weight:800;color:#333;margin:4px 0;">{med_status}</div>'
-            f'<div style="font-size:0.78rem;color:#888;">{med_sub}</div>'
-            f'<div style="font-size:0.75rem;color:#00b894;margin-top:6px;font-weight:600;">Xem đơn thuốc ➔</div>'
+            f'<div class="bento-widget bento-green">'
+            f'<div class="bento-icon-badge">💊</div>'
+            f'<div>'
+            f'<div class="bento-title">Uống Thuốc</div>'
+            f'<div class="bento-value">{med_val}</div>'
+            f'<div class="bento-desc">{med_desc}</div>'
+            f'</div>'
             f'</div>'
             f'</a>',
             unsafe_allow_html=True,
         )
 
-    # 2. Banner Mèo Đồng Hành Trang Chủ (Cân đối, không khoảng trống thừa)
+    # 2. Lời Nhắn Yêu Thương & Chăm Sóc Hôm Nay
     render_mascot_banner(
         "smile-cat.png",
-        "Trợ Lý Meow 🌸",
-        f"Chúc {her_name} một ngày siêu vui vẻ! Nhớ uống đủ nước, ăn đủ bữa và mỉm cười thật nhiều nha cậu! ✨💖",
-        badge=f"Hôm nay {today_day_name}"
+        "Bác Sĩ Mèo 🐾",
+        f"Cậu nhớ uống đủ nước ấm, ăn đúng bữa và giữ tinh thần thật thoải mái nhé {her_name}! Tớ luôn ở đây cùng cậu nè ✨💖",
+        badge=f"{today_day_name}"
     )
 
     # 3. Lịch học & Deadline chi tiết (Bố cục 2 cột cân đối 50/50 tràn viền hoàn hảo)
@@ -2211,9 +2350,8 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 elif selected_nav == "⚙️ Cài Đặt":
-    st.subheader("⚙️ Cấu Hình Telegram Bot & Thông Báo")
-    st.markdown('<p class="hint-text">Thiết lập kết nối Telegram Cloud 24/7 để Bot tự động gửi lời yêu thương và nhắc nhở đúng giờ.</p>', unsafe_allow_html=True)
-    render_mascot_banner("chating_cat.jpg", "Trợ Lý Meow 🤖", "Thiết lập kết nối Telegram Cloud 24/7 để Bot tự động gửi lời yêu thương và nhắc nhở cậu đúng giờ!", badge="Cloud 24/7")
+    st.subheader("⚙️ Cài Đặt Không Gian Riêng & Kết Nối")
+    render_mascot_banner("chating_cat.jpg", "Góc Nhỏ Cài Đặt 🐾", "Nơi tùy chỉnh thông tin, mật mã và kết nối tin nhắn riêng của hai đứa mình!", badge="Cài đặt")
 
     cur = get_cached_settings()
 
