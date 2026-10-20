@@ -57,7 +57,10 @@ DEFAULT_SETTINGS = {
     "startup_greeting_sent": False,
     "secret_mode_enabled": True,
     "app_passcode": "2010",
-    "web_app_url": ""
+    "web_app_url": "",
+    "weather_city": "Hà Nội",
+    "weather_latitude": 21.0285,
+    "weather_longitude": 105.8542
 }
 
 def load_settings() -> dict:

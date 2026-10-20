@@ -7,9 +7,11 @@ from typing import Optional
 if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
+import requests
+import config
+from config import load_settings, save_settings, get_now
 import database
 import notifier
-from config import load_settings, save_settings, get_now
 import deadline_ml
 import menstrual_ml
 
@@ -36,8 +38,81 @@ def check_and_send_startup_greeting():
             save_settings(settings)
             print("[Scheduler] Đã gửi tin nhắn chào mừng thành công!")
 
+WMO_WEATHER_MAP = {
+    0: ("Trời trong xanh, nắng đẹp", "☀️"),
+    1: ("Trời ít mây, nắng ấm", "🌤️"),
+    2: ("Trời râm mát, có mây", "⛅"),
+    3: ("Trời nhiều mây u ám", "☁️"),
+    45: ("Sáng sớm có sương mù nhẹ", "🌫️"),
+    48: ("Có sương mù rải rác", "🌫️"),
+    51: ("Có mưa phùn lất phất", "🌦️"),
+    53: ("Có mưa phùn rải rác", "🌦️"),
+    55: ("Có mưa phùn dày hạt", "🌧️"),
+    61: ("Có mưa rào nhẹ", "🌧️"),
+    63: ("Có mưa rào", "🌧️"),
+    65: ("Có mưa to", "🌧️"),
+    80: ("Có mưa rào bất chợt", "🌦️"),
+    81: ("Có mưa rào từng đợt", "🌧️"),
+    82: ("Có mưa dông mạnh", "⛈️"),
+    95: ("Có dông sét", "⛈️"),
+    96: ("Có mưa dông sấm sét", "⛈️"),
+    99: ("Có mưa dông dồn dập", "⛈️"),
+}
+
+def get_today_weather_advice(lat: float = None, lon: float = None, city_name: str = None) -> str:
+    """
+    Lấy thông tin thời tiết thực tế từ Open-Meteo API (0MB lưu trữ, 0% CPU, siêu nhẹ).
+    Tự động ghép lời dặn dò tinh tế cho bạn gái.
+    """
+    settings = load_settings()
+    try:
+        if lat is None:
+            lat = float(settings.get("weather_latitude", 21.0285))
+        if lon is None:
+            lon = float(settings.get("weather_longitude", 105.8542))
+    except (ValueError, TypeError):
+        lat, lon = 21.0285, 105.8542
+
+    if city_name is None:
+        city_name = settings.get("weather_city", "Hà Nội")
+
+    try:
+        url = (
+            f"https://api.open-meteo.com/v1/forecast"
+            f"?latitude={lat}&longitude={lon}"
+            f"&current=temperature_2m,relative_humidity_2m,weather_code,apparent_temperature"
+            f"&timezone=Asia%2FHo_Chi_Minh"
+        )
+        resp = requests.get(url, timeout=3)
+        if resp.status_code != 200:
+            return ""
+
+        data = resp.json().get("current", {})
+        temp = round(data.get("temperature_2m", 25))
+        code = data.get("weather_code", 0)
+
+        weather_desc, weather_icon = WMO_WEATHER_MAP.get(code, ("Thời tiết mát mẻ", "⛅"))
+
+        # Lời dặn dò tinh tế theo thời tiết thực tế
+        if code in [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82, 95, 96, 99]:
+            advice = "Đi học cậu nhớ mang theo ô hoặc áo mưa kẻo ướt nhé! 🍵"
+        elif temp < 20:
+            advice = "Sáng nay trời se lạnh, cậu nhớ mặc áo ấm và giữ ấm cổ nha! 🧣"
+        elif temp >= 32:
+            advice = "Trời khá nắng gắt, cậu nhớ che chắn kỹ, bôi kem chống nắng và mang bình nước mát nha! 🧴🥤"
+        else:
+            advice = "Không khí hôm nay rất dễ chịu, chúc cậu một ngày học tập thật hứng khởi! ✨"
+
+        return (
+            f"{weather_icon} <b>Thời tiết {city_name} hôm nay ({temp}°C):</b> {weather_desc}.\n"
+            f"👉 <i>{advice}</i>"
+        )
+    except Exception as e_w:
+        print(f"[Weather API] Không thể lấy thời tiết (bỏ qua nhẹ nhàng): {e_w}")
+        return ""
+
 def build_good_morning_message(now=None) -> str:
-    """Tạo tin nhắn chào buổi sáng kèm tóm tắt lịch học và deadline cần chú ý."""
+    """Tạo tin nhắn chào buổi sáng kèm thời tiết thực tế, tóm tắt lịch học và deadline cần chú ý."""
     if now is None:
         now = get_now()
 
@@ -73,6 +148,11 @@ def build_good_morning_message(now=None) -> str:
         f"<i>{greeting}</i>\n\n"
     )
 
+    # Thêm thông tin thời tiết thực tế tự động (0MB lưu trữ, 0% CPU)
+    weather_text = get_today_weather_advice()
+    if weather_text:
+        msg += f"{weather_text}\n\n"
+
     if today_classes:
         msg += f"🎒 <b>Lịch học hôm nay ({len(today_classes)} môn):</b>\n"
         for c in today_classes:
@@ -89,6 +169,10 @@ def build_good_morning_message(now=None) -> str:
             label = f"còn ~{int(h_left)}h" if h_left > 1 else "⚡ GẤP!"
             msg += f"  • <b>{t['task_name']}</b> ({t['subject_name']}) – {label}\n"
         msg += "\n"
+
+    magic = config.get_magic_link()
+    if magic:
+        msg += f"📱 <a href='{magic}'>Mở App Yêu Thương (1-Chạm)</a>\n\n"
 
     msg += "💌 <i>Tớ luôn quý cậu và ở đây cổ vũ cậu mỗi ngày! 💖</i>"
     return msg

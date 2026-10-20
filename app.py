@@ -2225,6 +2225,27 @@ elif selected_nav == "⚙️ Cài Đặt":
                 placeholder="VD: https://duanbimat.streamlit.app",
                 help="Dùng để tự động tạo Magic Link 1-chạm gửi qua Telegram")
 
+        st.markdown("#### 🌤️ Dự Báo Thời Tiết Buổi Sáng (Open-Meteo)")
+        CITY_COORDS = {
+            "Hà Nội": (21.0285, 105.8542),
+            "TP. Hồ Chí Minh": (10.8231, 106.6297),
+            "Đà Nẵng": (16.0544, 108.2022),
+            "Hải Phòng": (20.8449, 106.6881),
+            "Cần Thơ": (10.0452, 105.7469),
+            "Huế": (16.4637, 107.5909),
+            "Nha Trang": (12.2388, 109.1967),
+            "Đà Lạt": (11.9404, 108.4583),
+        }
+        current_city = cur.get("weather_city", "Hà Nội")
+        city_list = list(CITY_COORDS.keys())
+        city_idx = city_list.index(current_city) if current_city in city_list else 0
+        wt_col1, wt_col2 = st.columns(2)
+        with wt_col1:
+            sel_city = st.selectbox("Tỉnh / Thành phố dự báo (*)", city_list, index=city_idx,
+                help="Chọn thành phố của người ấy để nhận lời chúc chuẩn theo thời tiết")
+        with wt_col2:
+            st.markdown(f'<div style="font-size:0.85rem;color:#666;margin-top:28px;">📍 Tọa độ: <b>{CITY_COORDS[sel_city][0]}, {CITY_COORDS[sel_city][1]}</b> (0MB ổ cứng, 0% CPU)</div>', unsafe_allow_html=True)
+
         if st.form_submit_button("💾 Lưu Tất Cả Cài Đặt", use_container_width=True):
             cur.update({
                 "telegram_bot_token":    bot_token.strip(),
@@ -2235,6 +2256,9 @@ elif selected_nav == "⚙️ Cài Đặt":
                 "secret_mode_enabled":   secret_on,
                 "app_passcode":          passcode_v.strip() if passcode_v.strip() else "2010",
                 "web_app_url":           web_url_v.strip(),
+                "weather_city":          sel_city,
+                "weather_latitude":      CITY_COORDS[sel_city][0],
+                "weather_longitude":     CITY_COORDS[sel_city][1],
             })
             if config.save_settings(cur):
                 invalidate_cache()

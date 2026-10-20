@@ -431,6 +431,7 @@ def build_help_response(name: str = "Bạn") -> str:
         f"🌙 <b>Chúc ngủ ngon:</b> <code>chúc ngủ ngon</code> (tâm sự theo cảm xúc hôm nay)\n"
         f"📋 <b>Điểm danh:</b> <code>điểm danh</code> / <code>vắng mặt</code>\n"
         f"📊 <b>Trạng thái:</b> <code>status</code> / <code>tình trạng</code>\n"
+        f"🌤️ <b>Thời tiết:</b> <code>thời tiết</code> / <code>mưa không</code>\n"
         f"📱 <b>Mở Web App:</b> <code>app</code> / <code>link</code> (Lấy Magic Link 1-chạm)\n\n"
         f"<i>Chúc {name} một ngày luôn rạng ngời và ngập tràn hạnh phúc! ✨</i>"
     )
@@ -714,6 +715,18 @@ def handle_incoming_message(msg: Dict[str, Any]):
                 f"🌸 <b>Chưa cấu hình Địa Chỉ Web Public!</b>\n\n"
                 f"Cậu hãy vào tab <b>⚙️ Cài Đặt</b> trên Web và điền địa chỉ Web Public để tự động tạo Magic Link nhé."
             )
+        notifier.send_telegram_message(chat_id, reply)
+        return
+
+    # 9.6 Tra cứu thời tiết hôm nay
+    weather_keywords = ["thời tiết", "thoi tiet", "weather", "mưa không", "mua khong", "nhiệt độ", "nhiet do", "/weather"]
+    if any(k in text_lower for k in weather_keywords):
+        import scheduler
+        w_advice = scheduler.get_today_weather_advice()
+        if w_advice:
+            reply = f"🌤️ <b>TÌNH HÌNH THỜI TIẾT HÔM NAY</b> 🌸\n\n{w_advice}\n\n<i>Chúc {user_display} một ngày thật an lành và ấm áp nhé! 💖</i>"
+        else:
+            reply = f"🌸 Tớ chưa kết nối được đài khí tượng lúc này. Cậu cứ mặc đồ thoải mái và nhớ giữ gìn sức khỏe nha {user_display}! 💖"
         notifier.send_telegram_message(chat_id, reply)
         return
 
