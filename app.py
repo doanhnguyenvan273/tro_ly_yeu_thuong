@@ -26,19 +26,11 @@ st.set_page_config(
 
 # Khởi động scheduler & telegram listener (chỉ 1 lần duy nhất cho toàn bộ app)
 @st.cache_resource
-def init_background_services(cache_key: str = "v2.2_fix_bot_listener"):
-    import importlib
-    import bot_interactive
-    try:
-        bot_interactive.stop_telegram_listener()
-        importlib.reload(bot_interactive)
-    except Exception:
-        pass
+def init_background_services(cache_key: str = "v2.3_fast_bot"):
     scheduler.start_scheduler()
-    bot_interactive.start_telegram_listener()
     return True
 
-init_background_services("v2.2_fix_bot_listener")
+init_background_services("v2.3_fast_bot")
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PWA & MOBILE META INJECTION
