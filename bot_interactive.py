@@ -60,11 +60,11 @@ MOOD_KEYBOARD = {
 }
 
 AI_RESPONSES = {
-    "Happy": "Tuyệt vời quá! Chúc em bé luôn giữ nụ cười tươi tắn này nhé! 🥰",
-    "Sad": "Thương em lắm! Đừng buồn nhé, có anh và Bác sĩ Mèo luôn ở bên em này! Nghỉ ngơi một chút và uống nước ấm nha em! 💖",
-    "Stressed": "Thương em lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha em! 💖",
-    "Angry": "Thương em lắm! Hít thở thật sâu một chút nhé em bé, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
-    "Tired": "Thương em nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé em! 🍵💤💖",
+    "Happy": "Tuyệt vời quá! Chúc cậu luôn giữ nụ cười tươi tắn này nhé! 🥰",
+    "Sad": "Thương cậu lắm! Đừng buồn nhé, có tớ và Bác sĩ Mèo luôn ở bên cậu này! Nghỉ ngơi một chút và uống nước ấm nha cậu! 💖",
+    "Stressed": "Thương cậu lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha cậu! 💖",
+    "Angry": "Thương cậu lắm! Hít thở thật sâu một chút nhé, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
+    "Tired": "Thương cậu nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé cậu! 🍵💤💖",
 }
 
 # ======================= BUILD RESPONSE FUNCTIONS =======================
@@ -86,7 +86,7 @@ def build_schedule_response(for_tomorrow: bool = False) -> str:
 
     lines.append(f"📅 <b>{title_label} ({target_day_name}, {target_date_str}):</b>")
     if not target_classes:
-        lines.append(f"<i>🎉 {title_label.lower().capitalize()} em không có lịch học nào cả! Nghỉ ngơi thật tốt nhé! 💖</i>\n")
+        lines.append(f"<i>🎉 {title_label.lower().capitalize()} cậu không có lịch học nào cả! Nghỉ ngơi thật tốt nhé! 💖</i>\n")
     else:
         for c in target_classes:
             room_str = f" | 📍 Phòng <code>{c['room']}</code>" if c.get('room') else ""
@@ -128,7 +128,7 @@ def build_medicine_response() -> str:
 
     lines = ["💊 <b>LỊCH UỐNG THUỐC HÔM NAY</b> 🌸\n"]
     if not meds:
-        lines.append("<i>Hôm nay em không có lịch uống thuốc nào. Mong em luôn khỏe mạnh nhé! 💖</i>")
+        lines.append("<i>Hôm nay cậu không có lịch uống thuốc nào. Mong cậu luôn khỏe mạnh nhé! 💖</i>")
     else:
         taken_count = sum(1 for m in meds if m["taken"])
         lines.append(f"📊 Tiến độ: <b>{taken_count}/{len(meds)}</b> liều đã uống\n")
@@ -138,7 +138,7 @@ def build_medicine_response() -> str:
                 f"• <b>{m['medicine_name']}</b> — 🕒 <b>{m['time_slot']}</b>: {stt}\n"
                 f"  🥄 Liều: {m['dosage']} (Ngày {m['day_number']}/{m['total_days']})"
             )
-        lines.append("\n👉 <i>Uống xong em nhắn <code>đã uống thuốc</code> để bot ghi nhận nhé! 🍵</i>")
+        lines.append("\n👉 <i>Uống xong cậu nhắn <code>đã uống thuốc</code> để bot ghi nhận nhé! 🍵</i>")
     return "\n".join(lines)
 
 
@@ -148,11 +148,11 @@ def handle_take_medicine_command(user_display: str) -> str:
     meds = database.get_today_medicine_status(today_str)
 
     if not meds:
-        return f"💖 Hôm nay {user_display} không có đơn thuốc nào cần uống cả. Chúc em luôn khỏe mạnh nhé!"
+        return f"💖 Hôm nay {user_display} không có đơn thuốc nào cần uống cả. Chúc cậu luôn khỏe mạnh nhé!"
 
     untaken = [m for m in meds if not m["taken"]]
     if not untaken:
-        return f"🌸 Bé giỏi lắm! Hôm nay {user_display} đã uống đủ tất cả các liều thuốc rồi nhé! 🍵💖"
+        return f"🌸 Cậu giỏi lắm! Hôm nay {user_display} đã uống đủ tất cả các liều thuốc rồi nhé! 🍵💖"
 
     now_str = config.get_now().strftime("%H:%M")
     marked_names = []
@@ -163,8 +163,8 @@ def handle_take_medicine_command(user_display: str) -> str:
     joined_names = ", ".join(marked_names)
     return (
         f"✅ <b>ĐÃ GHI NHẬN UỐNG THUỐC!</b> 🌸\n\n"
-        f"Bé giỏi quá! Em đã ghi nhận liều: <b>{joined_names}</b> vào lúc {now_str} hôm nay rồi nhé!\n"
-        f"Uống nhiều nước ấm và nghỉ ngơi cho mau khỏe nha cô bé của anh! 🍵💖"
+        f"Cậu giỏi quá! Đã ghi nhận liều: <b>{joined_names}</b> vào lúc {now_str} hôm nay rồi nhé!\n"
+        f"Uống nhiều nước ấm và nghỉ ngơi cho mau khỏe nha cậu! 🍵💖"
     )
 
 
@@ -175,7 +175,7 @@ def build_deadline_response() -> str:
 
     lines = ["⏰ <b>DANH SÁCH DEADLINE & BÀI TẬP CẦN LÀM</b> 🌸\n"]
     if not active_tasks:
-        lines.append("<i>🎉 Tuyệt vời! Hiện tại không có deadline nào đang chờ. Em thật giỏi! 💖</i>")
+        lines.append("<i>🎉 Tuyệt vời! Hiện tại không có deadline nào đang chờ. Cậu thật giỏi! 💖</i>")
     else:
         now = config.get_now()
         for idx, t in enumerate(active_tasks, 1):
@@ -217,7 +217,7 @@ def handle_complete_deadline_command(text: str, user_display: str) -> str:
         return (
             f"🎉 <b>HOÀN THÀNH SẠCH SẼ!</b> 💖\n\n"
             f"Tuyệt vời quá {user_display} ơi! Hiện tại không có deadline nào đang chờ cả, "
-            f"em đã dọn dẹp sạch sẽ bài tập rồi! Tận hưởng thời gian nghỉ ngơi xả hơi thôi nào! 🏖️✨"
+            f"cậu đã dọn dẹp sạch sẽ bài tập rồi! Tận hưởng thời gian nghỉ ngơi xả hơi thôi nào! 🏖️✨"
         )
 
     text_lower = text.lower()
@@ -272,12 +272,12 @@ def handle_complete_deadline_command(text: str, user_display: str) -> str:
     if len(matched_tasks) > 1:
         header_title = (
             f"🎉 <b>QUÁ ĐỈNH {user_display.upper()} ƠI! MỘT CÔNG ĐÔI VIỆC!</b> ✨\n\n"
-            f"Em đã hoàn thành xuất sắc <b>{len(matched_tasks)} bài tập</b> cùng lúc:\n{task_done_str}"
+            f"Cậu đã hoàn thành xuất sắc <b>{len(matched_tasks)} bài tập</b> cùng lúc:\n{task_done_str}"
         )
     else:
         header_title = (
             f"🎉 <b>XUẤT SẮC QUÁ {user_display.upper()} ƠI!</b> ✨\n\n"
-            f"Em đã đánh dấu hoàn thành bài tập:\n{task_done_str}"
+            f"Cậu đã đánh dấu hoàn thành bài tập:\n{task_done_str}"
         )
 
     if remaining_tasks:
@@ -285,9 +285,9 @@ def handle_complete_deadline_command(text: str, user_display: str) -> str:
         for new_idx, r in enumerate(remaining_tasks, 1):
             rem_bullets.append(f"• <b>[{new_idx}] {r['task_name']}</b> (Hạn: {r['deadline']})")
         rem_str = "\n".join(rem_bullets)
-        rem_info = f"\n\n📝 <b>Hiện em còn {len(remaining_tasks)} bài tập nữa nè:</b>\n{rem_str}\n\nCố lên nhé em bé! Anh luôn cổ vũ em! 💪🌸"
+        rem_info = f"\n\n📝 <b>Hiện cậu còn {len(remaining_tasks)} bài tập nữa nè:</b>\n{rem_str}\n\nCố lên nhé cậu! Tớ luôn cổ vũ cậu! 💪🌸"
     else:
-        rem_info = f"\n\n🎊 <b>WOAHH! Em đã dọn sạch TẤT CẢ deadline rồi!</b> Thật tự hào về em! Nghỉ ngơi cho khỏe nhé cô bé siêu giỏi giang! 🍵🧸💖"
+        rem_info = f"\n\n🎊 <b>WOAHH! Cậu đã dọn sạch TẤT CẢ deadline rồi!</b> Thật tự hào về cậu! Nghỉ ngơi cho khỏe nhé cậu bạn siêu giỏi giang! 🍵🧸💖"
 
     return f"{header_title}{rem_info}"
 
@@ -298,8 +298,8 @@ def build_cycle_response() -> str:
     if not pred.get("has_data"):
         return (
             "🌸 <b>CHU KỲ SINH LÝ PHỤ NỮ</b> 🌸\n\n"
-            "Hiện tại chưa có dữ liệu chu kỳ nào. Khi bắt đầu kỳ mới, em chỉ cần nhắn "
-            "<code>hôm nay đến kỳ</code> để AI bắt đầu học và theo dõi chu kỳ cho em nhé! 💖"
+            "Hiện tại chưa có dữ liệu chu kỳ nào. Khi bắt đầu kỳ mới, cậu chỉ cần nhắn "
+            "<code>hôm nay đến kỳ</code> để AI bắt đầu học và theo dõi chu kỳ cho cậu nhé! 💖"
         )
 
     days_left = pred["days_left"]
@@ -310,11 +310,11 @@ def build_cycle_response() -> str:
     advice = pred.get("advice_for_her")
     if not advice:
         if days_left <= 0:
-            advice = "💖 <b>Hôm nay hoặc đã đến ngày bắt đầu kỳ mới rồi!</b> Em nhớ giữ ấm bụng, mang theo đồ dùng cá nhân và chườm nóng nếu đau nhé!"
+            advice = "💖 <b>Hôm nay hoặc đã đến ngày bắt đầu kỳ mới rồi!</b> Cậu nhớ giữ ấm bụng, mang theo đồ dùng cá nhân và chườm nóng nếu đau nhé!"
         elif days_left <= 4:
-            advice = f"🌸 <b>Đang trong giai đoạn PMS (còn {days_left} ngày)!</b> Mấy ngày này em nhớ uống nước ấm, ngủ sớm, hạn chế đồ lạnh và đồ cay nha em!"
+            advice = f"🌸 <b>Đang trong giai đoạn PMS (còn {days_left} ngày)!</b> Mấy ngày này cậu nhớ uống nước ấm, ngủ sớm, hạn chế đồ lạnh và đồ cay nha cậu!"
         else:
-            advice = f"✨ <b>Sức khỏe bình thường</b>, còn <b>{days_left} ngày</b> nữa mới đến chu kỳ kế tiếp. Chúc em mỗi ngày đều tràn đầy năng lượng!"
+            advice = f"✨ <b>Sức khỏe bình thường</b>, còn <b>{days_left} ngày</b> nữa mới đến chu kỳ kế tiếp. Chúc cậu mỗi ngày đều tràn đầy năng lượng!"
 
     return (
         f"🌸 <b>DỰ ĐOÁN CHU KỲ SINH LÝ (AI)</b> 🌸\n\n"
@@ -323,7 +323,7 @@ def build_cycle_response() -> str:
         f"🔮 Độ dài chu kỳ dự kiến: <b>{cycle_len} ngày</b>\n"
         f"🍵 Giai đoạn PMS bắt đầu từ: <b>{pms_date}</b>\n\n"
         f"{advice}\n\n"
-        f"💡 <i>Khi bắt đầu kỳ mới, em chỉ cần nhắn <code>hôm nay đến kỳ</code> là bot tự động cập nhật ngay nhé!</i>"
+        f"💡 <i>Khi bắt đầu kỳ mới, cậu chỉ cần nhắn <code>hôm nay đến kỳ</code> là bot tự động cập nhật ngay nhé!</i>"
     )
 
 
@@ -336,17 +336,17 @@ def handle_log_period_start(user_display: str) -> str:
     secret_msg = (
         f"🍓 <b>[CHẾ ĐỘ BÍ MẬT - THÔNG BÁO CHO BẠN]</b> 🍓\n\n"
         f"Sếp ơi! {user_display} vừa thông báo hôm nay bắt đầu kỳ mới rồi ({today_str}).\n"
-        f"Mấy ngày này em ấy sẽ rất mệt, đau lưng và đau bụng. Nhớ chuẩn bị túi chườm ấm, trà gừng, đồ ngọt và kiên nhẫn yêu thương em ấy nhiều hơn nhé! 🍫🧸💖"
+        f"Mấy ngày này cậu ấy sẽ rất mệt, đau lưng và đau bụng. Nhớ chuẩn bị túi chườm ấm, trà gừng, đồ ngọt và kiên nhẫn quan tâm cậu ấy nhiều hơn nhé! 🍫🧸💖"
     )
     notifier.notify_you_secret(secret_msg)
 
     return (
         f"💖 <b>ĐÃ GHI NHẬN BẮT ĐẦU CHU KỲ MỚI!</b> 🌸\n\n"
-        f"Em đã lưu ngày hôm nay ({today_str}) vào hệ thống và huấn luyện lại AI cơ địa cho {user_display} rồi nhé.\n\n"
+        f"Đã lưu ngày hôm nay ({today_str}) vào hệ thống và huấn luyện lại AI cơ địa cho {user_display} rồi nhé.\n\n"
         f"🍵 <b>Lời dặn yêu thương:</b>\n"
         f"• Nhớ uống nước ấm, ăn đồ nóng, hạn chế đồ lạnh và cà phê nhé.\n"
         f"• Chườm ấm bụng và nghỉ ngơi thật nhiều nha.\n"
-        f"• Em đã nhắn tin 'nhắc nhở' anh ấy chăm sóc em thật chu đáo rồi đó! Thương em nhiều! 🧸🍓✨"
+        f"• Đã nhắn tin thông báo cho cậu ấy rồi đó! Chúc cậu mau khỏe nhé! 🧸🍓✨"
     )
 
 
@@ -382,7 +382,7 @@ def build_status_response() -> str:
         f"⏰ Deadline đang chờ: <b>{len(active_tasks)} việc</b>\n"
         f"💊 Thuốc hôm nay: <b>{taken_count}/{len(meds_today)}</b> liều đã uống"
         f"{cycle_info}\n\n"
-        f"💖 <i>Mọi thứ đang hoạt động tốt! Anh luôn dõi theo em nhé!</i>"
+        f"💖 <i>Mọi thứ đang hoạt động tốt! Tớ luôn dõi theo cậu nhé!</i>"
     )
 
 
@@ -411,14 +411,14 @@ def build_attendance_response() -> str:
             f"  ✅ Đã đi: {s['attended']} | ❌ Đã vắng: <b>{s['absent']}/{max_abs} buổi tối đa</b> | 💻 Online: {s['online']}\n"
             f"  📊 Tổng: {s['total']} buổi | Còn được nghỉ: <b>{rem} buổi</b>"
         )
-    lines.append("\n💡 <i>Bot sẽ tự động cảnh báo khi em chạm ngưỡng số buổi nghỉ cho phép. Cố gắng đi đủ nhé bé yêu! 💪</i>")
+    lines.append("\n💡 <i>Bot sẽ tự động cảnh báo khi cậu chạm ngưỡng số buổi nghỉ cho phép. Cố gắng đi đủ nhé cậu! 💪</i>")
     return "\n".join(lines)
 
 
 def build_help_response(name: str = "Bạn") -> str:
     """Tin nhắn chào mừng và hướng dẫn các lệnh tra cứu thông minh 24/7."""
     return (
-        f"🌸 <b>Xin chào {name}! Em là Trợ Lý Yêu Thương 💖</b>\n\n"
+        f"🌸 <b>Xin chào {name}! Tớ là Trợ Lý Yêu Thương 💖</b>\n\n"
         f"Hệ thống đang chạy ngầm <b>24/7</b> trên Cloud. Bạn có thể nhắn tin tra cứu mọi lúc:\n\n"
         f"📅 <b>Lịch học:</b> <code>lịch học</code> / <code>tkb</code> / <code>hôm nay học gì</code>\n"
         f"📅 <b>Lịch mai:</b> <code>mai học gì</code> / <code>ngày mai</code>\n"
@@ -466,8 +466,8 @@ def handle_incoming_callback_query(cq: Dict[str, Any]):
         }
         mood_info = MOOD_MAP.get(mood_type, {"name": mood_type, "icon": "🌸"})
         prompt = (
-            f"Bác sĩ Mèo đã ghi nhận em đang <b>{mood_info['name']}</b>! 🌸\n\n"
-            f"Em có muốn nhắn thêm điều gì đã xảy ra hôm nay không?\n"
+            f"Bác sĩ Mèo đã ghi nhận cậu đang <b>{mood_info['name']}</b>! 🌸\n\n"
+            f"Cậu có muốn nhắn thêm điều gì đã xảy ra hôm nay không?\n"
             f"👉 <i>(Gõ nội dung ghi chú, hoặc gõ <code>Không</code> để bỏ qua nhé!)</i>"
         )
         notifier.send_telegram_message(chat_id, prompt)
@@ -505,9 +505,9 @@ def handle_incoming_message(msg: Dict[str, Any]):
     text_lower = text.lower()
 
     if sender_id_str == her_id:
-        user_display = config.HER_NAME or settings.get("her_name", "Em bé 🌸")
+        user_display = config.HER_NAME or settings.get("her_name", "Cậu 🌸")
     elif sender_id_str == my_id:
-        user_display = config.MY_NAME or settings.get("my_name", "Dawn 💫")
+        user_display = config.MY_NAME or settings.get("my_name", "Tớ 💫")
     else:
         user_display = msg.get("from", {}).get("first_name", "Bạn")
 
@@ -523,7 +523,7 @@ def handle_incoming_message(msg: Dict[str, Any]):
             else:
                 note = note_raw
 
-            ai_response = AI_RESPONSES.get(mood_type, "Thương em nhiều! Luôn giữ gìn sức khỏe nhé! 💖")
+            ai_response = AI_RESPONSES.get(mood_type, "Thương cậu nhiều! Luôn giữ gìn sức khỏe nhé! 💖")
             today_str = config.get_now().strftime("%Y-%m-%d")
 
             try:
@@ -539,15 +539,15 @@ def handle_incoming_message(msg: Dict[str, Any]):
             )
             notifier.send_telegram_message(chat_id, reply_msg)
 
-            # Cảnh báo bí mật cho bạn trai nếu tâm trạng tiêu cực - chỉ khi cô ấy ghi, không phải Anh
+            # Cảnh báo bí mật nếu tâm trạng tiêu cực - chỉ khi cậu ấy ghi
             if mood_type in ["Sad", "Stressed", "Angry", "Tired"] and sender_id_str == her_id:
                 try:
                     note_content = note if note else "Không có ghi chú"
                     secret_msg = (
                         f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
-                        f"Em bé vừa cập nhật cảm xúc: <b>{mood_info['name']}</b> qua Telegram.\n"
+                        f"Cậu ấy vừa cập nhật cảm xúc: <b>{mood_info['name']}</b> qua Telegram.\n"
                         f"📝 <b>Ghi chú:</b> {note_content}\n\n"
-                        f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon hoặc đồ ngọt cho cô ấy nhé! 🍫🧸💖</i>"
+                        f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon hoặc đồ ngọt cho cậu ấy nhé! 🍫🧸💖</i>"
                     )
                     notifier.notify_you_secret(secret_msg)
                 except Exception as notify_err:
@@ -557,14 +557,14 @@ def handle_incoming_message(msg: Dict[str, Any]):
     # 0.5 Bắt từ khóa cập nhật cảm xúc (Mood Tracker)
     mood_keywords = ["cảm xúc", "cảm xúc hôm nay", "cập nhật cảm xúc", "mood", "tâm trạng", "tam trang"]
     if any(k in text_lower for k in mood_keywords):
-        # Chỉ cho phép cô ấy dùng Mood Tracker; Anh không cần ghi nhận cảm xúc
+        # Chỉ cho phép cậu ấy dùng Mood Tracker
         if sender_id_str != her_id and my_id:
-            notifier.send_telegram_message(chat_id, "💡 Tính năng ghi nhận cảm xúc chỉ dành cho em bé thôi nha! 🌸")
+            notifier.send_telegram_message(chat_id, "💡 Tính năng ghi nhận cảm xúc chỉ dành cho cậu thôi nha! 🌸")
             return
         prompt = (
             "🌸 <b>NHẬT KÝ CẢM XÚC HÔM NAY</b> 🐱\n\n"
-            "Bác sĩ Mèo đang lắng nghe em nè! Hôm nay tâm trạng của em thế nào?\n"
-            "<i>Bấm vào một nút bên dưới để chia sẻ với em nhé:</i>"
+            "Bác sĩ Mèo đang lắng nghe cậu nè! Hôm nay tâm trạng của cậu thế nào?\n"
+            "<i>Bấm vào một nút bên dưới để chia sẻ nhé:</i>"
         )
         notifier.send_telegram_message(chat_id, prompt, reply_markup=MOOD_KEYBOARD)
         return
@@ -578,11 +578,11 @@ def handle_incoming_message(msg: Dict[str, Any]):
     if any(k in text_lower for k in night_keywords):
         import scheduler
         if sender_id_str == her_id:
-            # Gửi tin chúc ngủ ngon cá nhân hóa cho cô ấy
+            # Gửi tin chúc ngủ ngon cá nhân hóa cho cậu ấy
             reply = scheduler.build_good_night_message()
         else:
-            # Anh nhắn: chỉ báo preview ngắn
-            reply = "🌙 <b>Xem trước tin nhắn ngủ ngon sẽ gửi cho em bé tối nay...</b>\n\n" + scheduler.build_good_night_message()
+            # Preview
+            reply = "🌙 <b>Xem trước tin nhắn ngủ ngon sẽ gửi cho cậu ấy tối nay...</b>\n\n" + scheduler.build_good_night_message()
         notifier.send_telegram_message(chat_id, reply)
         return
 
@@ -594,11 +594,11 @@ def handle_incoming_message(msg: Dict[str, Any]):
     if any(k in text_lower for k in morning_keywords):
         import scheduler
         if sender_id_str == her_id:
-            # Gửi tin chào sáng cá nhân hóa cho cô ấy
+            # Gửi tin chào sáng cá nhân hóa cho cậu ấy
             reply = scheduler.build_good_morning_message()
         else:
-            # Anh nhắn: chỉ báo preview ngắn
-            reply = "☀️ <b>Xem trước tin nhắn chào buổi sáng sẽ gửi cho em bé...</b>\n\n" + scheduler.build_good_morning_message()
+            # Preview
+            reply = "☀️ <b>Xem trước tin nhắn chào buổi sáng sẽ gửi cho cậu ấy...</b>\n\n" + scheduler.build_good_morning_message()
         notifier.send_telegram_message(chat_id, reply)
         return
 
@@ -698,8 +698,8 @@ def handle_incoming_message(msg: Dict[str, Any]):
 
     # 11. Default: gợi ý nhẹ nhàng
     default_reply = (
-        f"Dạ em đây! 🌸 Em chưa hiểu yêu cầu <i>\"{text}\"</i> của {user_display}.\n\n"
-        f"👉 Nhắn <code>help</code> để xem tất cả lệnh em hỗ trợ nhé! 💖"
+        f"Tớ đây! 🌸 Tớ chưa hiểu yêu cầu <i>\"{text}\"</i> của {user_display}.\n\n"
+        f"👉 Nhắn <code>help</code> để xem tất cả lệnh tớ hỗ trợ nhé! 💖"
     )
     notifier.send_telegram_message(chat_id, default_reply)
 

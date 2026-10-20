@@ -81,20 +81,20 @@ def predict_deadline_risk(task_name: str, classes_today: int, free_hours_left: f
         warning_level = "NGUY CƠ CAO"
         warning_message = (
             f"⚠️ CẢNH BÁO: Task '{task_name}' có {risk_percentage:.0f}% nguy cơ trễ hạn do "
-            f"hôm đó em có {classes_today} ca học và chỉ còn {free_hours_left:.1f} giờ rảnh "
+            f"hôm đó cậu có {classes_today} ca học và chỉ còn {free_hours_left:.1f} giờ rảnh "
             f"(khối lượng dự kiến: {estimated_hours:.1f}h). Hãy làm sớm nhé! 🌸"
         )
     elif risk_percentage >= 40:
         warning_level = "CHÚ Ý"
         warning_message = (
             f"⚡ LƯU Ý: Task '{task_name}' có {risk_percentage:.0f}% nguy cơ trễ hạn. "
-            f"Em còn {free_hours_left:.1f} giờ rảnh và {classes_today} ca học. Hãy sắp xếp thời gian làm sớm nha! 💖"
+            f"Cậu còn {free_hours_left:.1f} giờ rảnh và {classes_today} ca học. Hãy sắp xếp thời gian làm sớm nha! 💖"
         )
     else:
         warning_level = "AN TOÀN"
         warning_message = (
             f"✅ TIẾN ĐỘ TỐT: Task '{task_name}' chỉ có {risk_percentage:.0f}% rủi ro. "
-            f"Thời gian còn lại rất thoải mái ({free_hours_left:.1f}h rảnh). Cố lên em nhé! ✨"
+            f"Thời gian còn lại rất thoải mái ({free_hours_left:.1f}h rảnh). Cố lên cậu nhé! ✨"
         )
         
     return {

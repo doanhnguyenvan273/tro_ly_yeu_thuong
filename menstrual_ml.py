@@ -68,56 +68,56 @@ def get_health_advice(current_phase: str, days_remaining: int, ovulation_date: d
     if days_remaining < 0:
         overdue_days = abs(days_remaining)
         advice_her = (
-            f"Chu kỳ đã trễ {overdue_days} ngày so với dự kiến. Đừng quá lo lắng nhé em, "
+            f"Chu kỳ đã trễ {overdue_days} ngày so với dự kiến. Đừng quá lo lắng nhé cậu, "
             "thời tiết, học tập căng thẳng hay thức khuya đều có thể làm cơ thể dao động nhẹ. "
-            "Hãy giữ tinh thần thoải mái, uống nước ấm và ngủ sớm nha em! 🌸"
+            "Hãy giữ tinh thần thoải mái, uống nước ấm và ngủ sớm nha cậu! 🌸"
         )
         advice_you = (
-            f"🍓 [BÍ MẬT DÀNH CHO BẠN]: Em ấy đã trễ kinh {overdue_days} ngày. "
+            f"🍓 [BÍ MẬT DÀNH CHO BẠN]: Cậu ấy đã trễ kinh {overdue_days} ngày. "
             "Căng thẳng và áp lực là nguyên nhân hàng đầu gây trễ kinh. Bạn hãy luôn động viên, "
-            "tránh hỏi dồn dập khiến em ấy áp lực và tạo không gian thư giãn cho cô ấy nhé! 🍵"
+            "tránh hỏi dồn dập khiến cậu ấy áp lực và tạo không gian thư giãn cho cậu ấy nhé! 🍵"
         )
     elif days_remaining == 0:
         advice_her = (
-            "💖 Hôm nay là ngày dự kiến bắt đầu chu kỳ mới! Em nhớ chuẩn bị sẵn đồ dùng cá nhân "
-            "trong túi xách khi đi học. Nếu thấy đau bụng dưới, hãy chườm ấm và nhắn anh ngay nhé! 🌸"
+            "💖 Hôm nay là ngày dự kiến bắt đầu chu kỳ mới! Cậu nhớ chuẩn bị sẵn đồ dùng cá nhân "
+            "trong túi xách khi đi học. Nếu thấy đau bụng dưới, hãy chườm ấm và nhắn tớ ngay nhé! 🌸"
         )
         advice_you = (
-            "🍓 [BÍ MẬT DÀNH CHO BẠN]: HÔM NAY là ngày dự kiến 'dâu rụng' của em ấy! "
-            "Hãy chủ động hỏi thăm nhẹ nhàng, chuẩn bị túi sưởi ấm hoặc đồ uống ấm cho cô ấy. "
-            "Tuyệt đối không để em ấy làm việc nặng hoặc uống nước đá hôm nay nhé sếp! 🍫🧸"
+            "🍓 [BÍ MẬT DÀNH CHO BẠN]: HÔM NAY là ngày dự kiến 'dâu rụng' của cậu ấy! "
+            "Hãy chủ động hỏi thăm nhẹ nhàng, chuẩn bị túi sưởi ấm hoặc đồ uống ấm cho cậu ấy. "
+            "Tuyệt đối không để cậu ấy làm việc nặng hoặc uống nước đá hôm nay nhé! 🍫🧸"
         )
     elif "Hành Kinh" in current_phase:
         advice_her = (
-            "Em đang trong những ngày hành kinh. Cơ thể cần được nghỉ ngơi nhiều hơn. "
+            "Cậu đang trong những ngày hành kinh. Cơ thể cần được nghỉ ngơi nhiều hơn. "
             "Hãy giữ ấm bụng dưới bằng túi chườm ấm, uống trà gừng mật ong ấm, tránh đồ lạnh và không thức khuya nhé! 🍵"
         )
         advice_you = (
-            "🍓 [BÍ MẬT DÀNH CHO BẠN]: Em ấy đang trong những ngày hành kinh. Cơ thể dễ mỏi lưng, "
+            "🍓 [BÍ MẬT DÀNH CHO BẠN]: Cậu ấy đang trong những ngày hành kinh. Cơ thể dễ mỏi lưng, "
             "đau bụng và mệt. Bạn hãy nhường nhịn tối đa, chiều chuộng hơn và chuẩn bị sẵn đồ ăn vặt ấm nóng nhé! 💖"
         )
     elif "PMS" in current_phase or (1 <= days_remaining <= 4):
         advice_her = (
             f"Giai đoạn tiền kinh nguyệt (PMS - còn {days_remaining} ngày nữa đến kỳ). "
-            "Nội tiết tố thay đổi dễ làm em nhạy cảm hoặc thèm đồ ngọt. Hãy uống nhiều nước ấm, "
-            "bổ sung magie (chuối, sô-cô-la đen, hạt dinh dưỡng) và ngủ đủ giấc nhé cô bé! 🍫🌸"
+            "Nội tiết tố thay đổi dễ làm cậu nhạy cảm hoặc thèm đồ ngọt. Hãy uống nhiều nước ấm, "
+            "bổ sung magie (chuối, sô-cô-la đen, hạt dinh dưỡng) và ngủ đủ giấc nhé cậu! 🍫🌸"
         )
         advice_you = (
             f"🍓 [BÍ MẬT DÀNH CHO BẠN - TỐI QUAN TRỌNG]: BÁO ĐỘNG PMS! Chỉ còn {days_remaining} ngày nữa là đến kỳ. "
-            "Progesterone sụt giảm khiến tâm lý em ấy rất nhạy cảm, dễ tủi thân hoặc cáu gắt vô cớ. "
-            "Bí kíp yêu thương: Luôn kiên nhẫn, nhường nhịn trong mọi tranh cãi, mua trà sữa/đồ ngọt "
-            "và tặng một cái ôm ấm áp! 🍫🧸💖"
+            "Progesterone sụt giảm khiến tâm lý cậu ấy rất nhạy cảm, dễ tủi thân hoặc cáu gắt vô cớ. "
+            "Bí kíp quan tâm: Luôn kiên nhẫn, nhường nhịn trong mọi tình huống, mua trà sữa/đồ ngọt "
+            "và gửi những lời động viên ấm áp! 🍫🧸💖"
         )
     elif "Cửa Sổ Thụ Thai" in current_phase or "Rụng Trứng" in current_phase:
         advice_her = (
-            f"Em đang trong giai đoạn rụng trứng (đỉnh điểm quanh ngày {ovulation_str}). "
+            f"Cậu đang trong giai đoạn rụng trứng (đỉnh điểm quanh ngày {ovulation_str}). "
             "Lượng Estrogen cao giúp làn da căng mịn, tràn đầy năng lượng và tự tin nhất trong tháng. "
-            "Chú ý dinh dưỡng giàu vitamin và chú ý an toàn sức khỏe nếu hai bạn chưa có kế hoạch sinh em bé nhé! ✨"
+            "Chú ý dinh dưỡng giàu vitamin và chú ý an toàn sức khỏe nhé! ✨"
         )
         advice_you = (
-            f"🍓 [BÍ MẬT DÀNH CHO BẠN]: Em ấy đang ở giai đoạn rụng trứng (đỉnh điểm ngày {ovulation_str})! "
-            "Nét rạng ngời và sức hút của cô ấy đang ở mức cao nhất trong tháng. Đây là thời điểm tuyệt vời "
-            "để khen ngợi chân thành, hẹn hò lãng mạn. Nhớ lưu ý biện pháp an toàn tuyệt đối nếu chưa có kế hoạch sinh con nhé sếp! 🌹"
+            f"🍓 [BÍ MẬT DÀNH CHO BẠN]: Cậu ấy đang ở giai đoạn rụng trứng (đỉnh điểm ngày {ovulation_str})! "
+            "Nét rạng ngời và sức hút của cậu ấy đang ở mức cao nhất trong tháng. Đây là thời điểm tuyệt vời "
+            "để khen ngợi chân thành và trò chuyện vui vẻ cùng nhau nhé! 🌹"
         )
     elif "Nang Trứng" in current_phase:
         advice_her = (
@@ -125,8 +125,8 @@ def get_health_advice(current_phase: str, days_remaining: int, ovulation_date: d
             "tinh thần phấn chấn và khả năng tập trung cao độ. Rất thích hợp để học tập, thể thao nhẹ và làm việc hiệu quả! 🌿"
         )
         advice_you = (
-            "🍓 [BÍ MẬT DÀNH CHO BẠN]: Em ấy đang ở giai đoạn năng lượng hồi phục tốt nhất! "
-            "Tâm trạng thoải mái, yêu đời và năng động. Hãy rủ cô ấy đi dạo, ăn uống những món cô ấy thích nhé! 🎈"
+            f"🍓 [BÍ MẬT DÀNH CHO BẠN]: Cậu ấy đang ở giai đoạn năng lượng hồi phục tốt nhất! "
+            "Tâm trạng thoải mái, yêu đời và năng động. Hãy cùng nhau đi dạo, ăn uống những món cậu ấy thích nhé! 🎈"
         )
     else: # Hoàng thể sớm
         advice_her = (
@@ -134,8 +134,8 @@ def get_health_advice(current_phase: str, days_remaining: int, ovulation_date: d
             "Hãy duy trì chế độ ăn uống lành mạnh, uống đủ 2 lít nước mỗi ngày và giữ thói quen vận động nhẹ nhàng nhé! ✨"
         )
         advice_you = (
-            f"🍓 [BÍ MẬT DÀNH CHO BẠN]: Sức khỏe em ấy đang ổn định (còn {days_remaining} ngày nữa đến kỳ). "
-            "Hãy duy trì sự quan tâm đều đặn mỗi ngày để cô ấy luôn cảm thấy được yêu thương và chở che! 💌"
+            f"🍓 [BÍ MẬT DÀNH CHO BẠN]: Sức khỏe cậu ấy đang ổn định (còn {days_remaining} ngày nữa đến kỳ). "
+            "Hãy duy trì sự quan tâm đều đặn mỗi ngày để cậu ấy luôn cảm thấy được sẻ chia và đồng hành! 💌"
         )
 
     return advice_her, advice_you
@@ -172,8 +172,8 @@ def predict_next_cycle(records: Optional[List[Dict[str, Any]]] = None) -> Dict[s
             "secret_alert_date": None,
             "current_phase": "Chưa có dữ liệu",
             "status_text": "Chưa có dữ liệu chu kỳ. Hãy bấm nút 'Hôm nay bắt đầu kỳ mới' để AI bắt đầu theo dõi nhé!",
-            "advice_for_her": "Chưa có dữ liệu chu kỳ. Em hãy nhấn nút 'Hôm nay bắt đầu kỳ mới' để AI bắt đầu chăm sóc em nhé! 🌸",
-            "secret_advice_for_you": "Chưa có dữ liệu chu kỳ của bạn gái. Khi cô ấy cập nhật ngày đầu tiên, hệ thống sẽ kích hoạt kênh bí mật cho bạn! 🍓",
+            "advice_for_her": "Chưa có dữ liệu chu kỳ. Cậu hãy nhấn nút 'Hôm nay bắt đầu kỳ mới' để AI bắt đầu chăm sóc cậu nhé! 🌸",
+            "secret_advice_for_you": "Chưa có dữ liệu chu kỳ của cậu ấy. Khi cậu ấy cập nhật ngày đầu tiên, hệ thống sẽ kích hoạt kênh bí mật cho bạn! 🍓",
             "algorithm_used": "Medical Baseline (Layer 1)",
             "history_count": 0,
             "cycle_history": [],

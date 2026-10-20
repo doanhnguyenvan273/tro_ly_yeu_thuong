@@ -59,11 +59,11 @@ MOOD_MAP = {
 }
 
 AI_RESPONSES = {
-    "Happy": "Tuyệt vời quá! Chúc em bé luôn giữ nụ cười tươi tắn này nhé! 🥰",
-    "Sad": "Thương em lắm! Đừng buồn nhé, có anh và Bác sĩ Mèo luôn ở bên em này! Nghỉ ngơi một chút và uống nước ấm nha em! 💖",
-    "Stressed": "Thương em lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha em! 💖",
-    "Angry": "Thương em lắm! Hít thở thật sâu một chút nhé em bé, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
-    "Tired": "Thương em nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé em! 🍵💤💖",
+    "Happy": "Tuyệt vời quá! Chúc cậu luôn giữ nụ cười tươi tắn này nhé! 🥰",
+    "Sad": "Thương cậu lắm! Đừng buồn nhé, có tớ và Bác sĩ Mèo luôn ở bên cậu này! Nghỉ ngơi một chút và uống nước ấm nha cậu! 💖",
+    "Stressed": "Thương cậu lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha cậu! 💖",
+    "Angry": "Thương cậu lắm! Hít thở thật sâu một chút nhé, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
+    "Tired": "Thương cậu nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé cậu! 🍵💤💖",
 }
 
 
@@ -98,8 +98,8 @@ async def start_mood_conversation(update: Update, context: ContextTypes.DEFAULT_
 
     text = (
         "🌸 <b>NHẬT KÝ CẢM XÚC HÔM NAY</b> 🐱\n\n"
-        "Bác sĩ Mèo đang lắng nghe em nè! Hôm nay tâm trạng của em thế nào?\n"
-        "<i>Bấm vào một nút bên dưới để chia sẻ với em nhé:</i>"
+        "Bác sĩ Mèo đang lắng nghe cậu nè! Hôm nay tâm trạng của cậu thế nào?\n"
+        "<i>Bấm vào một nút bên dưới để chia sẻ nhé:</i>"
     )
     
     if update.message:
@@ -127,8 +127,8 @@ async def handle_mood_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     mood_name = mood_info["name"]
 
     prompt_text = (
-        f"Bác sĩ Mèo đã ghi nhận em đang <b>{mood_name}</b>! 🌸\n\n"
-        f"Em có muốn nhắn thêm điều gì đã xảy ra hôm nay không?\n"
+        f"Bác sĩ Mèo đã ghi nhận cậu đang <b>{mood_name}</b>! 🌸\n\n"
+        f"Cậu có muốn nhắn thêm điều gì đã xảy ra hôm nay không?\n"
         f"👉 <i>(Gõ nội dung ghi chú, hoặc gõ <code>Không</code> để bỏ qua nhé!)</i>"
     )
 
@@ -156,7 +156,7 @@ async def handle_mood_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         note = text_input
 
     # Câu an ủi vỗ về
-    ai_response = AI_RESPONSES.get(mood_type, "Thương em nhiều! Luôn giữ gìn sức khỏe nhé! 💖")
+    ai_response = AI_RESPONSES.get(mood_type, "Thương cậu nhiều! Luôn giữ gìn sức khỏe nhé! 💖")
     today_str = config.get_now().strftime("%Y-%m-%d")
 
     # 1. Lưu an toàn vào CSDL (Turso Cloud / SQLite)
@@ -171,7 +171,7 @@ async def handle_mood_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     except Exception as e:
         logger.error(f"Lỗi khi lưu mood_log vào DB: {e}")
 
-    # 2. Phản hồi cho bạn gái
+    # 2. Phản hồi cho cậu ấy
     note_str = f"\n📝 <i>Ghi chú: \"{note}\"</i>" if note else ""
     reply_msg = (
         f"🐱 <b>BÁC SĨ MÈO ĐÃ LẮNG NGHE!</b> 🌸\n\n"
@@ -180,15 +180,15 @@ async def handle_mood_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     )
     await update.message.reply_text(reply_msg, parse_mode="HTML")
 
-    # 3. Gửi cảnh báo bí mật cho bạn trai nếu tâm trạng Sad / Stressed / Angry / Tired
+    # 3. Gửi cảnh báo bí mật cho bạn nếu tâm trạng Sad / Stressed / Angry / Tired
     if mood_type in ["Sad", "Stressed", "Angry", "Tired"]:
         try:
             note_content = note if note else "Không có ghi chú"
             secret_msg = (
                 f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
-                f"Bạn gái vừa cập nhật cảm xúc: <b>{mood_name}</b> qua Telegram.\n"
+                f"Cậu ấy vừa cập nhật cảm xúc: <b>{mood_name}</b> qua Telegram.\n"
                 f"📝 <b>Ghi chú:</b> {note_content}\n\n"
-                f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon hoặc đồ ngọt cho cô ấy nhé! 🍫🧸💖</i>"
+                f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon hoặc đồ ngọt cho cậu ấy nhé! 🍫🧸💖</i>"
             )
             notifier.notify_you_secret(secret_msg)
         except Exception as notify_err:
@@ -203,7 +203,7 @@ async def cancel_mood_conversation(update: Update, context: ContextTypes.DEFAULT
     """Hủy bỏ hội thoại ghi nhận cảm xúc."""
     context.user_data.clear()
     if update.message:
-        await update.message.reply_text("Đã hủy cập nhật cảm xúc rồi nhé em! 🌸")
+        await update.message.reply_text("Đã hủy cập nhật cảm xúc rồi nhé cậu! 🌸")
     return ConversationHandler.END
 
 

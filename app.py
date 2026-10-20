@@ -599,7 +599,7 @@ def render_mascot_banner(filename: str, title: str, quote: str, badge: str = Non
     st.markdown(banner_html, unsafe_allow_html=True)
 
 settings = get_cached_settings()
-her_name = settings.get("her_name", "Em Bé 🌸")
+her_name = settings.get("her_name", "Cậu 🌸")
 
 def check_schedule_conflicts(schedules):
     """Kiểm tra trùng lịch."""
@@ -718,7 +718,7 @@ if selected_nav == "🏠 Trang Chủ":
     <div class="hero-section">
         <div>
             <div class="hero-title">💖 Trợ Lý Yêu Thương 🌸</div>
-            <div class="hero-subtitle">Dành riêng cho <b>{her_name}</b> — Hôm nay là <b>{today_day_name}, ngày {today_date.strftime("%d/%m/%Y")}</b>.<br>Đồng hành cùng em mỗi ngày trong học tập và chăm sóc sức khỏe!</div>
+            <div class="hero-subtitle">Dành riêng cho <b>{her_name}</b> — Hôm nay là <b>{today_day_name}, ngày {today_date.strftime("%d/%m/%Y")}</b>.<br>Đồng hành cùng cậu mỗi ngày trong học tập và chăm sóc sức khỏe!</div>
         </div>
         <div class="hero-status-box">
             <div style="font-size:1.4rem;margin-bottom:2px;">🐱</div>
@@ -793,7 +793,7 @@ if selected_nav == "🏠 Trang Chủ":
     render_mascot_banner(
         "smile-cat.png",
         "Trợ Lý Meow 🌸",
-        f"Chúc {her_name} một ngày siêu vui vẻ! Nhớ uống đủ nước, ăn đủ bữa và mỉm cười thật nhiều nha bé iu! ✨💖",
+        f"Chúc {her_name} một ngày siêu vui vẻ! Nhớ uống đủ nước, ăn đủ bữa và mỉm cười thật nhiều nha cậu! ✨💖",
         badge=f"Hôm nay {today_day_name}"
     )
 
@@ -811,7 +811,7 @@ if selected_nav == "🏠 Trang Chủ":
                 )
             sch_body_html = "".join(sch_items)
         else:
-            sch_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">🎉 Hôm nay không có môn học nào! Em thoải mái nghỉ ngơi hoặc ôn bài nhé.</div>'
+            sch_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">🎉 Hôm nay không có môn học nào! Cậu thoải mái nghỉ ngơi hoặc ôn bài nhé.</div>'
 
         sch_card_html = (
             f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
@@ -864,9 +864,9 @@ elif selected_nav == "🎒 Lịch Học":
     st.markdown('<p class="hint-text">Theo dõi lịch học cả tuần, quản lý số buổi vắng và tự động tính chuyên cần.</p>', unsafe_allow_html=True)
     if has_conflict:
         st.warning(f"⚠️ **HUH? Phát hiện trùng lịch:** Môn **{c_s1['subject_name']}** và **{c_s2['subject_name']}** bị đè giờ nhau vào {c_s1['day_name']} ({c_s1['start_time']}-{c_s1['end_time']} & {c_s2['start_time']}-{c_s2['end_time']})!")
-        render_mascot_banner("huh-cat.jpg", "Mèo Giật Mình 🙀", "HUH? Có môn bị đè giờ nhau kìa! Em kiểm tra và điều chỉnh lại lịch nhé!", badge="Cảnh báo trùng lịch")
+        render_mascot_banner("huh-cat.jpg", "Mèo Giật Mình 🙀", "HUH? Có môn bị đè giờ nhau kìa! Cậu kiểm tra và điều chỉnh lại lịch nhé!", badge="Cảnh báo trùng lịch")
     else:
-        render_mascot_banner("study-cat.jpg", "Mèo Chăm Học 📚", "Học chăm chỉ mỗi ngày để tương lai rạng ngời nha bé iu! 🌸✨", badge="Bạn đồng hành")
+        render_mascot_banner("study-cat.jpg", "Mèo Chăm Học 📚", "Học chăm chỉ mỗi ngày để tương lai rạng ngời nha cậu! 🌸✨", badge="Bạn đồng hành")
 
     # ── Sub-tabs ──
     sub_add, sub_att, sub_view = st.tabs(["➕ Thêm Môn Học", "📝 Điểm Danh Hôm Nay", "📊 Toàn Bộ Lịch Học"])
@@ -881,7 +881,7 @@ elif selected_nav == "🎒 Lịch Học":
             st.markdown('<span class="step-label">1</span> <b>Tên môn học (*)</b>', unsafe_allow_html=True)
             subj_name = st.text_input("ten_mon", placeholder="VD: Lập trình Web, Tiếng Anh B2...",
                 label_visibility="collapsed",
-                help="Nhập đúng tên môn học trên thời khóa biểu của em")
+                help="Nhập đúng tên môn học trên thời khóa biểu của cậu")
         with fb:
             day_opts  = ["Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy","Chủ Nhật"]
             day_select = st.selectbox("📅 Ngày học (*)", day_opts,
@@ -970,7 +970,7 @@ elif selected_nav == "🎒 Lịch Học":
             <div style="font-size:.87rem;line-height:1.75;color:#555;">
             🎯 Nhập đúng tên môn sẽ giúp Bot nhắc lịch chính xác hơn!<br>
             ⏰ Số buổi nghỉ = 20% tổng buổi là mức phổ biến tại đa số trường.<br>
-            📱 Sau khi lưu, Bot Telegram sẽ nhắc em <b>30 phút trước</b> giờ học!<br>
+            📱 Sau khi lưu, Bot Telegram sẽ nhắc cậu <b>30 phút trước</b> giờ học!<br>
             🚨 Khi số buổi vắng vượt giới hạn → Hệ thống tự gửi cảnh báo CẤM THI!
             </div>
         </div>""", unsafe_allow_html=True)
@@ -1098,9 +1098,9 @@ elif selected_nav == "📝 Deadline":
     _has_pending_p = any(t["status"] != "Đã hoàn thành" for t in tasks) if tasks else False
 
     if not tasks or not _has_pending_p:
-        render_mascot_banner("smile-cat.png", "Mèo Thảnh Thơi ✨", "Không có deadline nào đang chờ! Em thoải mái tận hưởng ngày mới nhé! 🌸", badge="0 Deadline")
+        render_mascot_banner("smile-cat.png", "Mèo Thảnh Thơi ✨", "Không có deadline nào đang chờ! Cậu thoải mái tận hưởng ngày mới nhé! 🌸", badge="0 Deadline")
     elif _has_overdue_p:
-        render_mascot_banner("cry-cat.jpg", "Mèo Hốt Hoảng 😿", "Huhu có bài tập bị quá hạn rồi! Hoàn thành sớm để nhẹ đầu nha bé!", badge="Có task trễ hạn")
+        render_mascot_banner("cry-cat.jpg", "Mèo Hốt Hoảng 😿", "Huhu có bài tập bị quá hạn rồi! Hoàn thành sớm để nhẹ đầu nha cậu!", badge="Có task trễ hạn")
     else:
         render_mascot_banner("burnOut_cat.jpg", "Mèo Nước Rút 🔥", "Deadline đang dí sát nút rùi! Tập trung hoàn thành từng bài một nha!", badge="Đang có deadline")
 
@@ -1198,7 +1198,7 @@ elif selected_nav == "📝 Deadline":
         if not tasks:
             st.markdown("""<div class="card" style="padding:24px;">
                 <div class="section-title">🎉 Trống deadline!</div>
-                <p style="color:#555;line-height:1.75;">Em không có deadline nào đang chờ. Được nghỉ ngơi rồi! Tận hưởng khoảnh khắc nhé 🌸</p>
+                <p style="color:#555;line-height:1.75;">Cậu không có deadline nào đang chờ. Được nghỉ ngơi rồi! Tận hưởng khoảnh khắc nhé 🌸</p>
             </div>""", unsafe_allow_html=True)
         else:
             has_overdue = any(
@@ -1271,14 +1271,14 @@ elif selected_nav == "🌸 Chu Kỳ":
 
     # ── Mascot Banner Trạng Thái Chu Kỳ ──
     st.subheader("🌸 Theo Dõi & AI Dự Đoán Chu Kỳ Kinh Nguyệt")
-    st.markdown('<p class="hint-text">Hệ thống AI thích ứng học cơ địa riêng của em để dự đoán ngày đèn đỏ, ngày rụng trứng và nhắc nhở 2 chiều.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="hint-text">Hệ thống AI thích ứng học cơ địa riêng của cậu để dự đoán ngày đèn đỏ, ngày rụng trứng và nhắc nhở 2 chiều.</p>', unsafe_allow_html=True)
 
     if pred.get("has_data"):
         days_left = pred["days_left"]
         if days_left <= 0:
-            render_mascot_banner("worry_cat.jpg", "Mèo Bác Sĩ 🩺", f"Hôm nay hoặc đã qua ngày dự kiến ({pred['predicted_next_date']}). Em nhớ giữ ấm bụng, uống nước ấm và cập nhật nhé! 💖", badge="Đến kỳ rồi")
+            render_mascot_banner("worry_cat.jpg", "Mèo Bác Sĩ 🩺", f"Hôm nay hoặc đã qua ngày dự kiến ({pred['predicted_next_date']}). Cậu nhớ giữ ấm bụng, uống nước ấm và cập nhật nhé! 💖", badge="Đến kỳ rồi")
         elif days_left <= 3:
-            render_mascot_banner("worry_cat.jpg", "Mèo Bác Sĩ 🩺", f"Giai đoạn PMS: Còn {days_left} ngày đến kỳ mới ({pred['predicted_next_date']}). Giữ ấm bụng, uống nước ấm nha em! 🍵", badge=f"Còn {days_left} ngày")
+            render_mascot_banner("worry_cat.jpg", "Mèo Bác Sĩ 🩺", f"Giai đoạn PMS: Còn {days_left} ngày đến kỳ mới ({pred['predicted_next_date']}). Giữ ấm bụng, uống nước ấm nha cậu! 🍵", badge=f"Còn {days_left} ngày")
         elif days_left <= 5:
             render_mascot_banner("chating_cat.jpg", "Mèo Chu Đáo 🌸", f"Sắp vào kỳ PMS: Còn {days_left} ngày ({pred['predicted_next_date']}). Chuẩn bị đồ dùng và tâm lý thoải mái nhé!", badge=f"Còn {days_left} ngày")
         else:
@@ -1293,7 +1293,7 @@ elif selected_nav == "🌸 Chu Kỳ":
         st.markdown("""<div class="card">
             <div class="section-title">💖 Ghi Nhận Chu Kỳ Mới</div>
             <p style="font-size:.92rem;color:#555;margin-bottom:12px;">
-            Mỗi lần bắt đầu kỳ mới, em chỉ cần bấm 1 nút. AI sẽ tự học cơ địa riêng của em!
+            Mỗi lần bắt đầu kỳ mới, cậu chỉ cần bấm 1 nút. AI sẽ tự học cơ địa riêng của cậu!
             </p>
         </div>""", unsafe_allow_html=True)
 
@@ -1302,7 +1302,7 @@ elif selected_nav == "🌸 Chu Kỳ":
             menstrual_ml.retrain_model()
             invalidate_cache()
             st.balloons()
-            st.success("Đã ghi nhận! AI đã cập nhật cơ địa của em.")
+            st.success("Đã ghi nhận! AI đã cập nhật cơ địa của cậu.")
             st.rerun()
 
         st.markdown('<p class="hint-text">Hoặc chọn ngày khác nếu quên ghi:</p>', unsafe_allow_html=True)
@@ -1321,7 +1321,7 @@ elif selected_nav == "🌸 Chu Kỳ":
             fertile_val= pred.get("fertile_window",{}).get("text","Chưa rõ") if pred.get("fertile_window") else "Chưa rõ"
             algo_val   = pred.get("algorithm_used","Medical Baseline")
             st.markdown(f"""<div class="preview-box">
-                <b>🔮 AI Dự Đoán Cơ Địa Của Em:</b><br>
+                <b>🔮 AI Dự Đoán Cơ Địa Của Cậu:</b><br>
                 • Chu kỳ: <b>{pred['cycle_length']} ngày</b> (học từ {pred['history_count']} lần)<br>
                 • Thuật toán: <b>{algo_val}</b><br>
                 • Kỳ gần nhất: <b>{pred['latest_start_date']}</b> &nbsp;|&nbsp; Tiếp theo: <b>{pred['predicted_start_date']}</b><br>
@@ -1329,14 +1329,14 @@ elif selected_nav == "🌸 Chu Kỳ":
                 • Cửa sổ thụ thai: <b>{fertile_val}</b><br>
                 • PMS bắt đầu: <b>{pred['pms_start_date']}</b> (còn {pred['days_remaining']} ngày)
             </div>""", unsafe_allow_html=True)
-            with st.expander("💌 Lời Khuyên Sức Khỏe Hôm Nay Cho Em"):
+            with st.expander("💌 Lời Khuyên Sức Khỏe Hôm Nay Cho Cậu"):
                 st.info(pred.get("advice_for_her",""))
 
     with col_b:
         st.markdown("""<div class="card">
             <div class="section-title">🍓 Cơ Chế Thông Báo Kép</div>
             <p style="font-size:.9rem;color:#555;line-height:1.7;">
-            <b>🌸 Nhắn cho Em (Telegram):</b><br>
+            <b>🌸 Nhắn cho Cậu (Telegram):</b><br>
             — Trước 3 ngày: Nhắc giữ ấm bụng, uống nước ấm<br>
             — Đúng ngày dự kiến: Nhắc chuẩn bị đồ dùng<br><br>
             <b>🍓 Nhắn BÍ MẬT cho Bạn:</b><br>
@@ -1388,11 +1388,11 @@ elif selected_nav == "💊 Đơn Thuốc":
     st.markdown('<p class="hint-text">Theo dõi lịch uống thuốc, quét đơn bằng AI và nhận nhắc nhở đúng giờ qua Telegram.</p>', unsafe_allow_html=True)
 
     if not today_meds:
-        render_mascot_banner("doctor-cat.png", "Bác Sĩ Meow 🩺", "Hôm nay em không có lịch thuốc nào. Chúc bé iu luôn dồi dào sức khỏe, luôn vui tươi nhé! 🌸", badge="Khỏe mạnh")
+        render_mascot_banner("doctor-cat.png", "Bác Sĩ Meow 🩺", "Hôm nay cậu không có lịch thuốc nào. Chúc cậu luôn dồi dào sức khỏe, luôn vui tươi nhé! 🌸", badge="Khỏe mạnh")
     elif taken_h == total_h:
-        render_mascot_banner("smile-cat.png", "Bác Sĩ Meow 🩺", f"Tuyệt vời quá! Em đã uống đủ {taken_h}/{total_h} liều hôm nay rồi! Bé ngoan lắm! 💖", badge="Hoàn thành 100%")
+        render_mascot_banner("smile-cat.png", "Bác Sĩ Meow 🩺", f"Tuyệt vời quá! Cậu đã uống đủ {taken_h}/{total_h} liều hôm nay rồi! Cậu giỏi lắm! 💖", badge="Hoàn thành 100%")
     else:
-        render_mascot_banner("doctor-cat.png", "Bác Sĩ Meow 🩺", f"Hôm nay có {total_h} liều thuốc, em đã uống {taken_h}/{total_h} liều. Nhớ uống đúng giờ để mau khỏe nhé! 🍵", badge=f"Còn {total_h - taken_h} liều")
+        render_mascot_banner("doctor-cat.png", "Bác Sĩ Meow 🩺", f"Hôm nay có {total_h} liều thuốc, cậu đã uống {taken_h}/{total_h} liều. Nhớ uống đúng giờ để mau khỏe nhé! 🍵", badge=f"Còn {total_h - taken_h} liều")
 
     med_t1, med_t2, med_t3 = st.tabs(["🔔 Lịch Hôm Nay", "➕ Thêm Lịch Thuốc", "📋 Danh Sách Thuốc"])
 
@@ -1403,8 +1403,8 @@ elif selected_nav == "💊 Đơn Thuốc":
                 <div style="font-size:2rem;margin-bottom:8px;">🌸</div>
                 <div class="section-title" style="justify-content:center;">Hôm nay trống lịch uống thuốc!</div>
                 <p style="font-size:.92rem;color:#666;line-height:1.7;margin:8px 0 16px;">
-                💖 Em không có liều thuốc nào cần uống trong ngày hôm nay.<br>
-                Mong em luôn khỏe mạnh, tràn đầy sức sống và tươi vui! ✨<br>
+                💖 Cậu không có liều thuốc nào cần uống trong ngày hôm nay.<br>
+                Mong cậu luôn khỏe mạnh, tràn đầy sức sống và tươi vui! ✨<br>
                 Nếu cần thêm thuốc mới, bấm tab <b>➕ Thêm Lịch Thuốc</b> hoặc dùng AI quét ảnh đơn thuốc nhé!
                 </p>
             </div>""", unsafe_allow_html=True)
@@ -1413,7 +1413,7 @@ elif selected_nav == "💊 Đơn Thuốc":
             taken_count = sum(1 for m in today_meds if m["taken"])
             st.progress(taken_count/total, text=f"Tiến độ hôm nay: Đã uống {taken_count}/{total} liều ({int(taken_count/total*100)}%)")
             if taken_count == total:
-                st.success("🎉 Tuyệt vời! Em đã uống đủ tất cả các liều thuốc hôm nay rồi! Bé giỏi lắm! 🌸")
+                st.success("🎉 Tuyệt vời! Cậu đã uống đủ tất cả các liều thuốc hôm nay rồi! Cậu giỏi lắm! 🌸")
 
             for item in today_meds:
                 icon       = "✅" if item["taken"] else "⏳"
@@ -1437,7 +1437,7 @@ elif selected_nav == "💊 Đơn Thuốc":
                                          use_container_width=True):
                                 database.log_medicine_taken(item["medicine_id"], today_str_m, item["time_slot"])
                                 invalidate_cache()
-                                st.success("Bé giỏi quá! 🌸")
+                                st.success("Cậu giỏi quá! 🌸")
                                 st.rerun()
                         with c_test:
                             if st.button(f"📲 Test nhắc Telegram",
@@ -1448,7 +1448,7 @@ elif selected_nav == "💊 Đơn Thuốc":
                                     f"🏷️ Tên thuốc: <b>{item['medicine_name']}</b>\n"
                                     f"🥄 Liều lượng: <b>{item['dosage']}</b>\n"
                                     f"🕒 Khung giờ: <b>{item['time_slot']}</b> (Ngày {item['day_number']}/{item['total_days']})\n\n"
-                                    f"<i>Uống đúng giờ để mau khỏe nha cô bé! 🍵</i>"
+                                    f"<i>Uống đúng giờ để mau khỏe nha cậu! 🍵</i>"
                                 )
                                 res = notifier.notify_her(msg, photo_path=item.get("image_path"))
                                 st.success("✅ Đã gửi!") if res else st.error("❌ Gửi thất bại. Kiểm tra Bot Token & Chat ID!")
@@ -1534,7 +1534,7 @@ elif selected_nav == "💊 Đơn Thuốc":
                 💊 <b>{med_name}</b> — {med_dosage}<br>
                 🕒 Giờ uống: <b>{med_times}</b><br>
                 📅 Từ <b>{med_start.strftime('%d/%m/%Y')}</b> trong <b>{med_days} ngày</b> liên tiếp<br>
-                📬 Bot Telegram sẽ nhắc em đúng giờ kèm ảnh thuốc (nếu có)
+                📬 Bot Telegram sẽ nhắc cậu đúng giờ kèm ảnh thuốc (nếu có)
             </div>""", unsafe_allow_html=True)
 
         if st.button("💊 Lưu Lịch Uống Thuốc Này", use_container_width=True, type="primary"):
@@ -1607,12 +1607,12 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
     EMPTY_COLOR  = "#F3F4F6"
 
     AI_RESP_MAP = {
-        "Happy":    "Tuyệt vời quá! Chúc em luôn giữ nụ cười tươi tắn này nhé! Mèo yêu em nhiều 🥰🌸",
-        "Normal":   "Một ngày bình yên trôi qua cũng là điều tuyệt vời! Cứ từ từ tận hưởng nhé em 🌸",
-        "Stressed": "Đừng quá sức nhé em bé! Nghỉ ngơi một chút, uống nước ấm và để Bác sĩ Mèo ôm cái nào 💖",
-        "Sad":      "Thương em lắm! Có anh và Bác sĩ Mèo luôn ở bên cạnh em, mọi chuyện rồi sẽ ổn thôi 💫🧸",
-        "Angry":    "Hít thở sâu một cái nào cô bé! Đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe và nụ cười xinh nhé 🍵💖",
-        "Tired":    "Hôm nay em vất vả nhiều rồi! Mau đi ngủ sớm sạc lại năng lượng nhé, ngoan nào 😴🛌🌙",
+        "Happy":    "Tuyệt vời quá! Chúc cậu luôn giữ nụ cười tươi tắn này nhé! Mèo quý cậu nhiều 🥰🌸",
+        "Normal":   "Một ngày bình yên trôi qua cũng là điều tuyệt vời! Cứ từ từ tận hưởng nhé cậu 🌸",
+        "Stressed": "Đừng quá sức nhé cậu! Nghỉ ngơi một chút, uống nước ấm và để Bác sĩ Mèo ôm cái nào 💖",
+        "Sad":      "Thương cậu lắm! Có tớ và Bác sĩ Mèo luôn ở bên cạnh cậu, mọi chuyện rồi sẽ ổn thôi 💫🧸",
+        "Angry":    "Hít thở sâu một cái nào cậu! Đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe và nụ cười xinh nhé 🍵💖",
+        "Tired":    "Hôm nay cậu vất vả nhiều rồi! Mau đi ngủ sớm sạc lại năng lượng nhé, nghỉ ngơi thôi nào 😴🛌🌙",
     }
 
     # ─── CSS RIÊNG CHO MODULE CẢM XÚC ───
@@ -1751,10 +1751,10 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
     _cur_mood_key = st.session_state["mood_sel_mood"]
     _mood_info    = MOOD_KEY_MAP.get(_cur_mood_key, MOOD_KEY_MAP["Happy"])
     _cat_label, _bg_color, _cat_file, _cat_icon = _mood_info
-    _ai_msg       = AI_RESP_MAP.get(_cur_mood_key, "Thương em nhiều! 💖")
+    _ai_msg       = AI_RESP_MAP.get(_cur_mood_key, "Thương cậu nhiều! 💖")
 
     st.subheader("📖 Nhật Ký & Cảm Xúc Yêu Thương")
-    st.markdown('<p class="hint-text">Ghi lại cảm xúc mỗi ngày trong 3 giây. AI và Anh sẽ luôn lắng nghe, đồng hành cùng em.</p>', unsafe_allow_html=True)
+    st.markdown('<p class="hint-text">Ghi lại cảm xúc mỗi ngày trong 3 giây. AI và Tớ sẽ luôn lắng nghe, đồng hành cùng cậu.</p>', unsafe_allow_html=True)
 
     render_mascot_banner(_cat_file, f"Bác Sĩ Mèo {_cat_icon}", _ai_msg, badge=_cat_label)
 
@@ -1802,8 +1802,8 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
 
     # 3. Ghi chú tâm sự
     mood_note_val = st.text_area(
-        "📝 Sổ nhật ký tâm sự cùng Bác sĩ Mèo & Anh (không bắt buộc):",
-        placeholder="Hôm nay của em thế nào? Có điều gì làm em vui, mệt mỏi hay áp lực không? Hãy viết ra đây để nhẹ lòng nhé, anh luôn lắng nghe em... 🌸",
+        "📝 Sổ nhật ký tâm sự cùng Bác sĩ Mèo & Tớ (không bắt buộc):",
+        placeholder="Hôm nay của cậu thế nào? Có điều gì làm cậu vui, mệt mỏi hay áp lực không? Hãy viết ra đây để nhẹ lòng nhé, tớ luôn lắng nghe cậu... 🌸",
         key="diary_note",
         height=85,
     )
@@ -1819,7 +1819,7 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
         )
 
     if save_clicked:
-        ai_resp_val = AI_RESP_MAP.get(sel_mood_key, "Thương em nhiều! 💖")
+        ai_resp_val = AI_RESP_MAP.get(sel_mood_key, "Thương cậu nhiều! 💖")
         note_clean  = mood_note_val.strip() if mood_note_val.strip() else None
         try:
             database.upsert_mood_log(
@@ -1831,16 +1831,16 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
             st.success(f"✅ Đã ghi nhận cảm xúc **{mood_radio_val}** ngày {chosen_date_str}!")
             invalidate_cache()
 
-            # 🤫 Secret Boy Mode: Nếu bạn gái buồn / stress / bực / mệt mỏi
+            # 🤫 Secret Boy Mode: Nếu cậu ấy buồn / stress / bực / mệt mỏi
             if sel_mood_key in ["Sad", "Stressed", "Angry", "Tired"]:
                 try:
                     _lbl = MOOD_KEY_MAP[sel_mood_key][0]
                     _note_txt = note_clean if note_clean else "Không có ghi chú"
                     notifier.notify_you_secret(
                         f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
-                        f"Bạn gái vừa cập nhật cảm xúc: <b>{_lbl}</b> trên App.\n"
+                        f"Cậu ấy vừa cập nhật cảm xúc: <b>{_lbl}</b> trên App.\n"
                         f"📝 <b>Ghi chú:</b> {_note_txt}\n\n"
-                        f"👉 <i>Hãy nhắn tin hỏi thăm, động viên và chuẩn bị đồ ăn ngon cho cô ấy nhé! 🍫🧸💖</i>"
+                        f"👉 <i>Hãy nhắn tin hỏi thăm, động viên và chuẩn bị đồ ăn ngon cho cậu ấy nhé! 🍫🧸💖</i>"
                     )
                 except Exception:
                     pass
@@ -2104,7 +2104,7 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
 elif selected_nav == "⚙️ Cài Đặt":
     st.subheader("⚙️ Cấu Hình Telegram Bot & Thông Báo")
     st.markdown('<p class="hint-text">Thiết lập kết nối Telegram Cloud 24/7 để Bot tự động gửi lời yêu thương và nhắc nhở đúng giờ.</p>', unsafe_allow_html=True)
-    render_mascot_banner("chating_cat.jpg", "Trợ Lý Meow 🤖", "Thiết lập kết nối Telegram Cloud 24/7 để Bot tự động gửi lời yêu thương và nhắc nhở em đúng giờ!", badge="Cloud 24/7")
+    render_mascot_banner("chating_cat.jpg", "Trợ Lý Meow 🤖", "Thiết lập kết nối Telegram Cloud 24/7 để Bot tự động gửi lời yêu thương và nhắc nhở cậu đúng giờ!", badge="Cloud 24/7")
 
     cur = get_cached_settings()
 
@@ -2112,7 +2112,7 @@ elif selected_nav == "⚙️ Cài Đặt":
         <div class="section-title">📋 Hướng dẫn nhanh lấy Bot Token & Chat ID (chỉ 3 phút)</div>
         <div style="font-size:.91rem;line-height:1.75;">
         <b>Bước 1 — Tạo Bot Token:</b> Mở Telegram → tìm <b>@BotFather</b> → gửi <code>/newbot</code> → đặt tên bot → copy mã <b>HTTP API Token</b><br>
-        <b>Bước 2 — Lấy Chat ID:</b> Tìm <b>@userinfobot</b> → bấm Start → bot trả về ID. Nhờ cô ấy làm tương tự để lấy ID của cô ấy.<br>
+        <b>Bước 2 — Lấy Chat ID:</b> Tìm <b>@userinfobot</b> → bấm Start → bot trả về ID. Nhờ cậu ấy làm tương tự để lấy ID của cậu ấy.<br>
         <b>Bước 3 — Bấm Start với bot của bạn:</b> Cả hai cần vào bot và bấm <b>/start</b> một lần để bot được phép gửi tin.
         </div>
     </div>""", unsafe_allow_html=True)
@@ -2126,19 +2126,19 @@ elif selected_nav == "⚙️ Cài Đặt":
         st.markdown("#### 💌 Chat ID")
         sc1, sc2 = st.columns(2)
         with sc1:
-            her_chat   = st.text_input("Chat ID của Cô Ấy (*)",
+            her_chat   = st.text_input("Chat ID của Cậu Ấy (*)",
                 value=cur.get("telegram_her_chat_id",""), placeholder="VD: 987654321")
-            her_name_v = st.text_input("Tên hiển thị của Cô Ấy",
-                value=cur.get("her_name","Em bé 🌸"))
+            her_name_v = st.text_input("Tên hiển thị của Cậu Ấy",
+                value=cur.get("her_name","Cậu 🌸"))
         with sc2:
-            my_chat   = st.text_input("Chat ID của Bạn (Secret Mode)",
+            my_chat   = st.text_input("Chat ID của Tớ (Secret Mode)",
                 value=cur.get("telegram_my_chat_id",""), placeholder="VD: 123456789")
-            my_name_v = st.text_input("Tên hiển thị của Bạn",
-                value=cur.get("my_name","Anh 💖"))
+            my_name_v = st.text_input("Tên hiển thị của Tớ",
+                value=cur.get("my_name","Tớ 💫"))
 
         secret_on = st.toggle("🍓 Kích hoạt Secret Mode",
             value=cur.get("secret_mode_enabled", True),
-            help="Bot tự nhắn bí mật cho bạn trước 4 ngày chu kỳ của cô ấy")
+            help="Bot tự nhắn bí mật cho bạn trước 4 ngày chu kỳ của cậu ấy")
 
         if st.form_submit_button("💾 Lưu Tất Cả Cài Đặt", use_container_width=True):
             cur.update({
@@ -2158,8 +2158,8 @@ elif selected_nav == "⚙️ Cài Đặt":
     st.markdown("#### 🧪 Kiểm Tra Thông Báo Yêu Thương (Telegram)")
     tt1, tt2, tt3 = st.columns(3)
     with tt1:
-        if st.button("📤 Gửi Test → Cô Ấy", use_container_width=True):
-            res = notifier.notify_her("💖 Xin chào Em Bé! Trợ Lý Yêu Thương đang hoạt động và luôn ở bên em! 🌸")
+        if st.button("📤 Gửi Test → Cậu Ấy", use_container_width=True):
+            res = notifier.notify_her("💖 Xin chào Cậu! Trợ Lý Yêu Thương đang hoạt động và luôn ở bên cậu! 🌸")
             st.success("✅ Gửi thành công!") if res else st.error("❌ Gửi thất bại. Kiểm tra Bot Token & Chat ID, nhớ bấm /start!")
     with tt2:
         if st.button("🍓 Gửi Test Secret Mode", use_container_width=True):
@@ -2172,7 +2172,7 @@ elif selected_nav == "⚙️ Cài Đặt":
             config.save_settings(cur2)
             invalidate_cache()
             scheduler.check_and_send_startup_greeting()
-            st.success("Đã bắn lời chúc ngọt ngào tới Cô Ấy!")
+            st.success("Đã bắn lời chúc ngọt ngào tới Cậu Ấy!")
 
     tb1, tb2 = st.columns(2)
     with tb1:
@@ -2180,7 +2180,7 @@ elif selected_nav == "⚙️ Cài Đặt":
             morning_msg = scheduler.build_good_morning_message()
             res_m = notifier.notify_her(morning_msg)
             if res_m:
-                st.success("✅ Đã gửi tin nhắn Chào Buổi Sáng tới Telegram của cô ấy!")
+                st.success("✅ Đã gửi tin nhắn Chào Buổi Sáng tới Telegram của cậu ấy!")
             else:
                 st.error("❌ Gửi thất bại. Hãy kiểm tra cấu hình Bot Token & Chat ID!")
     with tb2:
@@ -2188,7 +2188,7 @@ elif selected_nav == "⚙️ Cài Đặt":
             night_msg = scheduler.build_good_night_message()
             res_n = notifier.notify_her(night_msg)
             if res_n:
-                st.success("✅ Đã gửi tin nhắn Chúc Ngủ Ngon (cá nhân hóa theo cảm xúc) tới Telegram của cô ấy!")
+                st.success("✅ Đã gửi tin nhắn Chúc Ngủ Ngon (cá nhân hóa theo cảm xúc) tới Telegram của cậu ấy!")
             else:
                 st.error("❌ Gửi thất bại. Hãy kiểm tra cấu hình Bot Token & Chat ID!")
 

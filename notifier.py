@@ -84,7 +84,7 @@ def send_telegram_photo(chat_id: Union[str, int], photo_path: Union[str, Path], 
     return send_telegram_message(chat_id, caption, parse_mode=parse_mode)
 
 def notify_her(message: str, photo_path: Optional[str] = None) -> bool:
-    """Gửi thông báo tới Em Bé."""
+    """Gửi thông báo tới Cậu."""
     her_chat_id = (HER_CHAT_ID or load_settings().get("telegram_her_chat_id", "")).strip()
     if not her_chat_id:
         return False
@@ -122,7 +122,7 @@ def test_telegram_connection(bot_token: str, chat_id: str) -> dict:
 
         # Nếu có chat_id thì thử gửi tin nhắn test
         if chat_id:
-            test_msg = f"💖 Kết nối thành công với Bot @{bot_username}!\nTrợ Lý Yêu Thương đã sẵn sàng phục vụ em rồi nha! 🌸"
+            test_msg = f"💖 Kết nối thành công với Bot @{bot_username}!\nTrợ Lý Yêu Thương đã sẵn sàng phục vụ cậu rồi nha! 🌸"
             send_resp = requests.post(
                 f"https://api.telegram.org/bot{bot_token}/sendMessage",
                 json={"chat_id": chat_id, "text": test_msg},
