@@ -55,8 +55,11 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
 html, body, [class*="css"] { font-family: 'Quicksand', sans-serif; color: #333; }
 
-/* ── Nền tổng thể ── */
-.stApp { background: linear-gradient(135deg, #fff5f7 0%, #fbf5ff 50%, #fff9f5 100%) !important; }
+/* ── Nền tổng thể phong cách Soft Pink Aesthetic ── */
+.stApp {
+    background: radial-gradient(circle at 85% 15%, #ffb6c9 0%, #ffd6e5 35%, #fff0f5 70%, #fff8fa 100%) !important;
+    background-attachment: fixed !important;
+}
 
 /* ── Ẩn sidebar hoàn toàn ── */
 [data-testid="stSidebar"]        { display: none !important; }
@@ -92,63 +95,83 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
 }
 
 /* ══════════════════════════════════════════════════════
-   TOP APP BAR (iOS 18 Minimal Glass Header)
+   TOP APP BAR (iOS Pink Glass Header)
    ══════════════════════════════════════════════════════ */
 .top-nav-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 18px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(255, 209, 220, 0.6);
-    border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(255, 182, 193, 0.08);
+    background: rgba(255, 255, 255, 0.82);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    box-shadow: 0 8px 24px rgba(230, 73, 128, 0.08);
     margin-bottom: 12px;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 .top-nav-brand {
-    font-size: 1.12rem;
-    font-weight: 800;
-    color: #d81159;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
+}
+.brand-heart-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f783ac 0%, #e64980 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(230, 73, 128, 0.28);
+}
+.brand-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #c2255c;
     letter-spacing: -0.2px;
 }
-.top-nav-her {
+.brand-her {
     font-size: 0.88rem;
     font-weight: 600;
-    color: #ff758c;
-    white-space: nowrap;
+    color: #e64980;
+    margin-left: 4px;
 }
-.ios-lock-btn {
+.ios-circle-btn {
     text-decoration: none !important;
     font-size: 0.78rem !important;
-    font-weight: 600 !important;
-    color: #666 !important;
-    background: rgba(248, 249, 250, 0.9) !important;
-    border: 1px solid #e2e8f0 !important;
-    padding: 5px 12px !important;
-    border-radius: 16px !important;
+    font-weight: 700 !important;
+    color: #e64980 !important;
+    background: #ffffff !important;
+    border: 1.5px solid rgba(255, 209, 220, 0.9) !important;
+    padding: 6px 14px !important;
+    border-radius: 20px !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 4px !important;
+    gap: 6px !important;
+    box-shadow: 0 3px 10px rgba(230, 73, 128, 0.08) !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
-.ios-lock-btn:hover {
+.ios-circle-btn:hover {
     background: #fff0f5 !important;
-    color: #d81159 !important;
-    border-color: #ffd6e0 !important;
-    transform: translateY(-1px) !important;
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 6px 16px rgba(230, 73, 128, 0.16) !important;
 }
 
 @media (max-width: 600px) {
     .top-nav-bar {
         padding: 8px 14px;
-        border-radius: 16px;
+        border-radius: 20px;
     }
-    .top-nav-brand {
-        font-size: 0.98rem;
+    .brand-title {
+        font-size: 1rem;
+    }
+    .brand-heart-circle {
+        width: 32px;
+        height: 32px;
+        font-size: 0.95rem;
     }
 }
 
@@ -334,164 +357,174 @@ div[data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar {
 }
 
 /* ══════════════════════════════════════════════════════
-   iOS 18 BENTO HERO BANNER
+   AESTHETIC FROSTED PINK HERO CARD (Inspired by Reference)
    ══════════════════════════════════════════════════════ */
 .ios-hero-banner {
-    background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 50%, #ffa07a 100%);
-    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: 28px;
     padding: 24px 28px;
-    color: white;
-    box-shadow: 0 10px 30px rgba(255, 117, 140, 0.25);
+    color: #2b2b2b;
+    box-shadow: 0 12px 32px rgba(230, 73, 128, 0.1);
     margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     position: relative;
     overflow: hidden;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+/* Glowing Pink Heart Aura in background (like user reference music widget) */
+.ios-hero-banner::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: 10px;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, rgba(255, 117, 140, 0.35) 0%, rgba(255, 182, 193, 0.18) 50%, transparent 70%);
+    filter: blur(20px);
+    border-radius: 50%;
+    pointer-events: none;
 }
 .ios-hero-content {
     flex: 1;
+    position: relative;
+    z-index: 1;
 }
 .ios-hero-title {
-    font-size: 1.65rem;
+    font-size: 1.6rem;
     font-weight: 800;
+    color: #c2255c;
     margin: 0 0 6px 0;
     letter-spacing: -0.3px;
     line-height: 1.25;
 }
 .ios-hero-sub {
-    font-size: 0.93rem;
-    opacity: 0.95;
+    font-size: 0.92rem;
+    color: #495057;
     line-height: 1.55;
     margin: 0 0 12px 0;
     max-width: 620px;
+    font-weight: 500;
 }
 .ios-hero-meta {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.22);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    padding: 4px 12px;
+    background: #ffffff;
+    border: 1.2px solid rgba(255, 209, 220, 0.85);
+    padding: 5px 14px;
     border-radius: 20px;
     font-size: 0.8rem;
-    font-weight: 600;
-    backdrop-filter: blur(6px);
+    font-weight: 700;
+    color: #e64980;
+    box-shadow: 0 2px 8px rgba(230, 73, 128, 0.08);
 }
 .ios-avatar-badge {
-    width: 68px;
-    height: 68px;
-    background: rgba(255, 255, 255, 0.22);
-    border: 2px solid rgba(255, 255, 255, 0.45);
-    border-radius: 22px;
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #f783ac 0%, #e64980 100%);
+    border: 3px solid #ffffff;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2.2rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 20px rgba(230, 73, 128, 0.28);
     flex-shrink: 0;
     margin-left: 16px;
+    position: relative;
+    z-index: 1;
 }
 @media (max-width: 600px) {
     .ios-hero-banner {
-        padding: 20px;
-        border-radius: 20px;
+        padding: 20px 18px;
+        border-radius: 24px;
     }
     .ios-hero-title {
-        font-size: 1.35rem;
+        font-size: 1.3rem;
     }
     .ios-hero-sub {
         font-size: 0.86rem;
     }
     .ios-avatar-badge {
-        width: 54px;
-        height: 54px;
-        font-size: 1.8rem;
+        width: 56px;
+        height: 56px;
+        font-size: 1.7rem;
         margin-left: 10px;
     }
 }
 
 /* ══════════════════════════════════════════════════════
-   iOS 18 BENTO GRID WIDGETS
+   AESTHETIC FROSTED PINK BENTO WIDGETS (Control Center style)
    ══════════════════════════════════════════════════════ */
 .bento-widget {
-    border-radius: 22px;
-    padding: 16px 14px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 142px;
-    backdrop-filter: blur(12px);
-    border: 1.5px solid rgba(255, 255, 255, 0.8);
-    cursor: pointer;
+    background: rgba(255, 255, 255, 0.88) !important;
+    border-radius: 26px !important;
+    padding: 18px 16px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+    box-shadow: 0 6px 20px rgba(230, 73, 128, 0.06), 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    min-height: 152px !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
+    cursor: pointer !important;
 }
 .bento-widget:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-4px) scale(1.02) !important;
+    box-shadow: 0 14px 28px rgba(230, 73, 128, 0.14) !important;
+    border-color: #f783ac !important;
 }
 .bento-icon-badge {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.35rem;
-    margin-bottom: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+/* Style A: Nền hồng đậm icon trắng (Control Center active toggle) */
+.bento-icon-active {
+    background: linear-gradient(135deg, #f783ac 0%, #e64980 100%);
+    color: #ffffff;
+    box-shadow: 0 5px 14px rgba(230, 73, 128, 0.3);
+}
+/* Style B: Nền trắng icon hồng (Control Center white pill) */
+.bento-icon-white {
+    background: #ffffff;
+    color: #e64980;
+    border: 1.5px solid #ffd1df;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
 }
 .bento-title {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.6px;
+    color: #e64980;
     margin-bottom: 4px;
 }
 .bento-value {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #1d1d1f;
+    color: #2b2b2b;
     line-height: 1.2;
     margin-bottom: 4px;
 }
 .bento-desc {
     font-size: 0.76rem;
     font-weight: 600;
-    opacity: 0.75;
+    color: #868e96;
 }
-
-/* Biến thể màu sắc Pastel iOS 18 */
-.bento-purple {
-    background: linear-gradient(145deg, #faf8ff 0%, #f0ebff 100%);
-    border-color: #e5dcff;
-}
-.bento-purple .bento-icon-badge { background: #e5dbff; }
-.bento-purple .bento-title { color: #5f3dc4; }
-
-.bento-orange {
-    background: linear-gradient(145deg, #fff9f6 0%, #ffefe6 100%);
-    border-color: #ffd8c7;
-}
-.bento-orange .bento-icon-badge { background: #ffd3bf; }
-.bento-orange .bento-title { color: #d9480f; }
-
-.bento-pink {
-    background: linear-gradient(145deg, #fff6f9 0%, #ffe6ef 100%);
-    border-color: #ffc9db;
-}
-.bento-pink .bento-icon-badge { background: #ffbfd4; }
-.bento-pink .bento-title { color: #c2255c; }
-
-.bento-green {
-    background: linear-gradient(145deg, #f5fbf7 0%, #e6f7ee 100%);
-    border-color: #c3eed7;
-}
-.bento-green .bento-icon-badge { background: #b8ebd0; }
-.bento-green .bento-title { color: #099268; }
 
 /* ══════════════════════════════════════════════════════
    NAVBAR TABS (st.tabs override — full-width polished)
@@ -848,9 +881,18 @@ cur_idx = NAV_OPTIONS.index(st.session_state["active_nav"]) if st.session_state[
 
 st.markdown(f"""
 <div class="top-nav-bar">
-    <div class="top-nav-brand">🌸 Không Gian Của {her_name}</div>
+    <div class="top-nav-brand">
+        <div class="brand-heart-circle">💖</div>
+        <div>
+            <span class="brand-title">Trợ Lý Yêu Thương</span>
+            <span class="brand-her">• {her_name}</span>
+        </div>
+    </div>
     <div style="display:flex;align-items:center;gap:8px;">
-        <a href="?logout=1" target="_self" class="ios-lock-btn" title="Khóa ứng dụng (Đăng xuất)">🔒 Khóa</a>
+        <a href="?logout=1" target="_self" class="ios-circle-btn" title="Khóa ứng dụng (Đăng xuất)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="3" ry="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Khóa</span>
+        </a>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -909,16 +951,18 @@ if selected_nav == "🏠 Trang Chủ":
     st.markdown(f"""
     <div class="ios-hero-banner">
         <div class="ios-hero-content">
-            <div class="ios-hero-title">{greeting_time}</div>
-            <div class="ios-hero-sub">{sub_time}</div>
+            <div class="ios-hero-title">Trợ Lý Yêu Thương 💖</div>
+            <div class="ios-hero-sub"><b>{greeting_time}</b> — {sub_time}</div>
             <div class="ios-hero-meta">
                 <span>📅 {today_day_name}, {today_date.strftime("%d/%m")}</span>
                 <span>•</span>
-                <span>💖 Luôn có tớ đồng hành cùng cậu</span>
+                <span>💖 Luôn đồng hành cùng {her_name}</span>
             </div>
         </div>
         <div class="ios-hero-side">
-            <div class="ios-avatar-badge">🌸</div>
+            <div class="ios-avatar-badge">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -960,15 +1004,22 @@ if selected_nav == "🏠 Trang Chủ":
                 st.toast("✨ Cậu đã đọc lời nhắn rồi! Chúc cậu một ngày thật vui vẻ! 💖")
                 st.rerun()
 
-    # 1. Bốn Thẻ Bento Widgets iOS 18 (Thiết kế bo tròn hiện đại, click để chuyển tab)
+    # 1. Bốn Thẻ Bento Widgets Monochromatic Pink Aesthetic (Click để chuyển tab)
     bento1, bento2, bento3, bento4 = st.columns(4)
     with bento1:
         sch_val = f"{len(today_scheds)} ca học" if today_scheds else "Hôm nay nghỉ 🎉"
         sch_desc = f"{today_day_name} ({today_date.strftime('%d/%m')})"
         st.markdown(
             f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="bento-widget bento-purple">'
-            f'<div class="bento-icon-badge">🎒</div>'
+            f'<div class="bento-widget">'
+            f'<div class="bento-icon-badge bento-icon-active">'
+            f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+            f'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>'
+            f'<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>'
+            f'<line x1="9" y1="7" x2="15" y2="7"/>'
+            f'<line x1="9" y1="11" x2="13" y2="11"/>'
+            f'</svg>'
+            f'</div>'
             f'<div>'
             f'<div class="bento-title">Lịch Học</div>'
             f'<div class="bento-value">{sch_val}</div>'
@@ -984,8 +1035,13 @@ if selected_nav == "🏠 Trang Chủ":
         task_desc = "Cần hoàn thành" if pending_tasks else "Thảnh thơi nghỉ ngơi nha 🏖️"
         st.markdown(
             f'<a href="?nav=Deadline" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="bento-widget bento-orange">'
-            f'<div class="bento-icon-badge">⏰</div>'
+            f'<div class="bento-widget">'
+            f'<div class="bento-icon-badge bento-icon-white">'
+            f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+            f'<circle cx="12" cy="12" r="10"/>'
+            f'<polyline points="12 6 12 12 16 14"/>'
+            f'</svg>'
+            f'</div>'
             f'<div>'
             f'<div class="bento-title">Deadline</div>'
             f'<div class="bento-value">{task_val}</div>'
@@ -1005,8 +1061,12 @@ if selected_nav == "🏠 Trang Chủ":
             ck_desc = "Theo dõi chu kỳ"
         st.markdown(
             f'<a href="?nav=ChuKy" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="bento-widget bento-pink">'
-            f'<div class="bento-icon-badge">🌸</div>'
+            f'<div class="bento-widget">'
+            f'<div class="bento-icon-badge bento-icon-active">'
+            f'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">'
+            f'<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>'
+            f'</svg>'
+            f'</div>'
             f'<div>'
             f'<div class="bento-title">Chu Kỳ</div>'
             f'<div class="bento-value">{ck_val}</div>'
@@ -1026,8 +1086,13 @@ if selected_nav == "🏠 Trang Chủ":
             med_desc = "Khỏe mạnh mỗi ngày ✨"
         st.markdown(
             f'<a href="?nav=DonThuoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="bento-widget bento-green">'
-            f'<div class="bento-icon-badge">💊</div>'
+            f'<div class="bento-widget">'
+            f'<div class="bento-icon-badge bento-icon-white">'
+            f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+            f'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>'
+            f'<path d="m8.5 8.5 7 7"/>'
+            f'</svg>'
+            f'</div>'
             f'<div>'
             f'<div class="bento-title">Uống Thuốc</div>'
             f'<div class="bento-value">{med_val}</div>'
