@@ -73,199 +73,203 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
     overflow-y: auto !important;
 }
 .block-container {
-    padding-top: 75px !important;
+    padding-top: 14px !important;
     padding-bottom: 3rem !important;
-    padding-left: 2rem !important;
-    padding-right: 2rem !important;
-    max-width: 100% !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    max-width: 900px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
     overflow: visible !important;
 }
 
+@media (max-width: 768px) {
+    .block-container {
+        padding-top: 10px !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+}
+
 /* ══════════════════════════════════════════════════════
-   STICKY NAVBAR TRÀN HẾT MÀN HÌNH (EDGE-TO-EDGE FIXED)
+   TOP APP BAR (Thanh tiêu đề ứng dụng in-flow)
    ══════════════════════════════════════════════════════ */
-.st-key-sticky_nav_container {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    z-index: 999999 !important;
-    background: rgba(255, 255, 255, 0.96) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08) !important;
-    border-bottom: 1.5px solid rgba(255, 182, 193, 0.5) !important;
-    padding: 8px 24px !important;
-    box-sizing: border-box !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
+.top-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1.5px solid rgba(255, 182, 193, 0.45);
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(255, 182, 193, 0.12);
+    margin-bottom: 10px;
+    gap: 8px;
 }
-.st-key-sticky_nav_container div[data-testid="stHorizontalBlock"] {
-    align-items: center !important;
-}
-.navbar-logo {
+.top-nav-brand {
     font-size: 1.15rem;
     font-weight: 700;
     color: #d81159;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
 }
-.nav-status-wrap {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
-.navbar-status {
-    background: linear-gradient(135deg, #e8f8f0, #f0fff6);
-    border: 1px solid #b7ebd0;
-    border-radius: 20px;
-    padding: 5px 14px;
-    font-size: 0.8rem;
+.top-nav-her {
+    font-size: 0.88rem;
     font-weight: 600;
+    color: #ff758c;
+    white-space: nowrap;
+}
+.top-nav-status {
+    background: #e8f8f0;
+    border: 1px solid #b7ebd0;
     color: #0d8a52;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     white-space: nowrap;
 }
 
-/* ── RESPONSIVE BREAKPOINT CHO NAVBAR: DESKTOP (> 768px) vs MOBILE (<= 768px) ── */
-@media (min-width: 769px) {
-    .st-key-desktop_nav_wrap {
-        display: block !important;
+@media (max-width: 600px) {
+    .top-nav-bar {
+        padding: 8px 12px;
     }
-    .st-key-mobile_nav_wrap {
-        display: none !important;
+    .top-nav-brand {
+        font-size: 1rem;
     }
-    .block-container {
-        padding-top: 75px !important;
+    .top-nav-her {
+        display: none;
     }
-}
-
-@media (max-width: 768px) {
-    .st-key-desktop_nav_wrap {
-        display: none !important;
-    }
-    .st-key-mobile_nav_wrap {
-        display: block !important;
-    }
-    .st-key-sticky_nav_container {
-        padding: 6px 12px !important;
-    }
-    .block-container {
-        padding-top: 68px !important;
-        padding-left: 0.8rem !important;
-        padding-right: 0.8rem !important;
-    }
-    .navbar-logo-mobile {
-        font-size: 1.05rem !important;
-        font-weight: 700 !important;
-        color: #d81159 !important;
-        white-space: nowrap !important;
-        display: flex !important;
-        align-items: center !important;
-    }
-    .hero-section {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        padding: 18px 16px !important;
-        gap: 12px !important;
-    }
-    .hero-status-box {
-        width: 100% !important;
-        margin-top: 6px !important;
-    }
-    .hero-title {
-        font-size: 1.45rem !important;
+    .top-nav-status {
+        font-size: 0.74rem;
+        padding: 3px 9px;
     }
 }
 
-/* Style nút Hamburger Popover trên Mobile */
-.st-key-mobile_nav_wrap button[data-testid="stBaseButton-popover"] {
-    background: linear-gradient(135deg, #fff0f3, #ffe6eb) !important;
-    color: #d81159 !important;
-    border: 1.5px solid #ffb6c1 !important;
-    border-radius: 20px !important;
-    font-weight: 700 !important;
-    font-size: 0.88rem !important;
-    padding: 4px 12px !important;
-    box-shadow: 0 2px 6px rgba(216, 17, 89, 0.12) !important;
-    transition: all 0.2s ease !important;
-    width: 100% !important;
+/* ══════════════════════════════════════════════════════
+   MASCOT COMPANION BANNER (Banner Mèo Đồng Hành Tinh Gọn)
+   ══════════════════════════════════════════════════════ */
+.mascot-companion-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: linear-gradient(135deg, #fff7f9 0%, #fff0f3 100%);
+    border: 1.5px solid #ffccd5;
+    border-radius: 16px;
+    padding: 11px 16px;
+    margin-top: 4px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 14px rgba(255, 182, 193, 0.14);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-.st-key-mobile_nav_wrap button[data-testid="stBaseButton-popover"]:hover {
-    background: linear-gradient(135deg, #ffe6eb, #ffd9e2) !important;
-    transform: translateY(-1px) !important;
-    border-color: #d81159 !important;
+.mascot-companion-banner:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(255, 182, 193, 0.22);
+}
+.mascot-img-wrap {
+    flex-shrink: 0;
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #ffffff;
+    border: 1.5px solid #ffb3c6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(255, 117, 140, 0.15);
+}
+.mascot-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.mascot-speech-wrap {
+    flex: 1;
+    min-width: 0;
+}
+.mascot-header-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+.mascot-name {
+    font-size: 0.93rem;
+    font-weight: 700;
+    color: #d81159;
+}
+.mascot-badge {
+    font-size: 0.74rem;
+    font-weight: 600;
+    background: #ffe0e6;
+    color: #d81159;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid #ffccd5;
+    white-space: nowrap;
+}
+.mascot-quote {
+    font-size: 0.86rem;
+    color: #444444;
+    line-height: 1.45;
+}
+@media (max-width: 600px) {
+    .mascot-companion-banner {
+        padding: 9px 12px;
+        gap: 11px;
+    }
+    .mascot-img-wrap {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+    }
+    .mascot-name {
+        font-size: 0.86rem;
+    }
+    .mascot-quote {
+        font-size: 0.8rem;
+    }
 }
 
-/* Chấm tròn xanh 🟢 nhấp nháy cho Mobile Badge Popover */
-.st-key-mobile_cloud_badge button[data-testid="stBaseButton-popover"] {
-    background: #e8f8f0 !important;
-    color: #0d8a52 !important;
-    border: 1.5px solid #a8e6cf !important;
-    border-radius: 50% !important;
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    max-width: 36px !important;
-    padding: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 1.05rem !important;
-    box-shadow: 0 0 8px rgba(0, 184, 148, 0.35) !important;
-    animation: pulse-cloud-badge 2s infinite !important;
-    margin: 0 auto !important;
+/* ══════════════════════════════════════════════════════
+   HORIZONTAL PILL NAVIGATION (Vuốt chạm mượt mà trên Mobile & Desktop)
+   ══════════════════════════════════════════════════════ */
+div[data-testid="stRadio"] {
+    margin-bottom: 14px !important;
 }
-
-@keyframes pulse-cloud-badge {
-    0% {
-        box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.6);
-    }
-    70% {
-        box-shadow: 0 0 0 8px rgba(0, 184, 148, 0);
-    }
-    100% {
-        box-shadow: 0 0 0 0 rgba(0, 184, 148, 0);
-    }
-}
-
-/* ── STICKY NAVBAR RADIO BUTTONS (Horizontal Pill Navigation) ── */
-.st-key-sticky_nav_container div[data-testid="stRadio"] {
-    margin-bottom: 0 !important;
-}
-.st-key-sticky_nav_container div[data-testid="stWidgetLabel"],
-.st-key-sticky_nav_container div[data-testid="stRadio"] > label {
-    display: none !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-.st-key-sticky_nav_container div[data-testid="stRadio"] > div[role="radiogroup"] {
+div[data-testid="stRadio"] > div[role="radiogroup"] {
     display: flex !important;
     flex-direction: row !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     align-items: center !important;
     gap: 6px !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
+    padding: 4px 2px !important;
 }
-.st-key-sticky_nav_container div[data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar {
+div[data-testid="stRadio"] > div[role="radiogroup"]::-webkit-scrollbar {
     display: none !important;
 }
 
 /* Ẩn triệt để hình tròn radio của Streamlit */
-.st-key-sticky_nav_container [data-testid="stRadioOption"] [class*="e1dm8mpf4"],
-.st-key-sticky_nav_container [data-testid="stRadioOption"] [class*="e1dm8mpf5"],
-.st-key-sticky_nav_container [data-testid="stRadioOption"] label > div:first-child,
-.st-key-sticky_nav_container [data-testid="stRadioOption"] > div > div:first-child,
-.st-key-sticky_nav_container [data-testid="stRadioOption"] input[type="radio"],
-.st-key-sticky_nav_container [data-testid="stRadioOption"] svg,
-.st-key-sticky_nav_container [data-testid="stRadioOption"] div[role="radio"],
-.st-key-sticky_nav_container [data-testid="stRadioOption"] div:has(> div[style*="border-radius: 50%"]),
-.st-key-sticky_nav_container [data-testid="stRadioOption"] div[style*="border-radius: 50%"] {
+[data-testid="stRadioOption"] [class*="e1dm8mpf4"],
+[data-testid="stRadioOption"] [class*="e1dm8mpf5"],
+[data-testid="stRadioOption"] label > div:first-child,
+[data-testid="stRadioOption"] > div > div:first-child,
+[data-testid="stRadioOption"] input[type="radio"],
+[data-testid="stRadioOption"] svg,
+[data-testid="stRadioOption"] div[role="radio"],
+[data-testid="stRadioOption"] div:has(> div[style*="border-radius: 50%"]),
+[data-testid="stRadioOption"] div[style*="border-radius: 50%"] {
     display: none !important;
     width: 0 !important;
     height: 0 !important;
@@ -275,17 +279,17 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
 }
 
 /* Định dạng từng Pill button menu */
-.st-key-sticky_nav_container [data-testid="stRadioOption"] {
+[data-testid="stRadioOption"] {
     margin: 0 !important;
     padding: 0 !important;
     flex-shrink: 0 !important;
 }
-.st-key-sticky_nav_container [data-testid="stRadioOption"] > label,
-.st-key-sticky_nav_container [data-testid="stRadioOption"] > div {
-    background: rgba(255, 245, 247, 0.75) !important;
-    border: 1.2px solid rgba(255, 182, 193, 0.5) !important;
+[data-testid="stRadioOption"] > label,
+[data-testid="stRadioOption"] > div {
+    background: rgba(255, 245, 247, 0.85) !important;
+    border: 1.2px solid rgba(255, 182, 193, 0.55) !important;
     border-radius: 20px !important;
-    padding: 5px 11px !important;
+    padding: 6px 13px !important;
     margin: 0 !important;
     cursor: pointer !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -295,15 +299,15 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
     white-space: nowrap !important;
     user-select: none !important;
 }
-.st-key-sticky_nav_container [data-testid="stRadioOption"]:hover > label,
-.st-key-sticky_nav_container [data-testid="stRadioOption"]:hover > div {
+[data-testid="stRadioOption"]:hover > label,
+[data-testid="stRadioOption"]:hover > div {
     background: #fff0f5 !important;
     border-color: #ff758c !important;
     transform: translateY(-1px) !important;
 }
-.st-key-sticky_nav_container [data-testid="stRadioOption"] p,
-.st-key-sticky_nav_container [data-testid="stRadioOption"] span {
-    font-size: 0.83rem !important;
+[data-testid="stRadioOption"] p,
+[data-testid="stRadioOption"] span {
+    font-size: 0.84rem !important;
     font-weight: 600 !important;
     color: #555555 !important;
     margin: 0 !important;
@@ -312,18 +316,18 @@ html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppVie
 }
 
 /* Nút được chọn (Active) */
-.st-key-sticky_nav_container [data-testid="stRadioOption"]:has(input:checked) > label,
-.st-key-sticky_nav_container [data-testid="stRadioOption"]:has(input:checked) > div,
-.st-key-sticky_nav_container [data-testid="stRadioOption"][data-selected="true"] > label,
-.st-key-sticky_nav_container [data-testid="stRadioOption"][data-selected="true"] > div {
+[data-testid="stRadioOption"]:has(input:checked) > label,
+[data-testid="stRadioOption"]:has(input:checked) > div,
+[data-testid="stRadioOption"][data-selected="true"] > label,
+[data-testid="stRadioOption"][data-selected="true"] > div {
     background: linear-gradient(135deg, #ff758c, #ff7eb3) !important;
     border-color: transparent !important;
     box-shadow: 0 4px 12px rgba(255, 117, 140, 0.35) !important;
 }
-.st-key-sticky_nav_container [data-testid="stRadioOption"]:has(input:checked) p,
-.st-key-sticky_nav_container [data-testid="stRadioOption"]:has(input:checked) span,
-.st-key-sticky_nav_container [data-testid="stRadioOption"][data-selected="true"] p,
-.st-key-sticky_nav_container [data-testid="stRadioOption"][data-selected="true"] span {
+[data-testid="stRadioOption"]:has(input:checked) p,
+[data-testid="stRadioOption"]:has(input:checked) span,
+[data-testid="stRadioOption"][data-selected="true"] p,
+[data-testid="stRadioOption"][data-selected="true"] span {
     color: #ffffff !important;
     font-weight: 700 !important;
 }
@@ -572,6 +576,28 @@ def render_cat(filename: str, caption: str, width: int = 150):
     if data:
         st.image(data, caption=caption, width=width)
 
+def render_mascot_banner(filename: str, title: str, quote: str, badge: str = None):
+    """Hiển thị Mascot Companion Banner tinh gọn, cân đối, không khoảng trống thừa."""
+    b64 = get_cat_image_base64(filename)
+    if not b64:
+        return
+    badge_html = f'<span class="mascot-badge">{badge}</span>' if badge else ''
+    banner_html = (
+        f'<div class="mascot-companion-banner">'
+        f'<div class="mascot-img-wrap">'
+        f'<img src="data:image/png;base64,{b64}" class="mascot-img" alt="{title}" />'
+        f'</div>'
+        f'<div class="mascot-speech-wrap">'
+        f'<div class="mascot-header-line">'
+        f'<span class="mascot-name">{title}</span>'
+        f'{badge_html}'
+        f'</div>'
+        f'<div class="mascot-quote">"{quote}"</div>'
+        f'</div>'
+        f'</div>'
+    )
+    st.markdown(banner_html, unsafe_allow_html=True)
+
 settings = get_cached_settings()
 her_name = settings.get("her_name", "Em Bé 🌸")
 
@@ -648,86 +674,25 @@ def goto_nav(target):
 
 cur_idx = NAV_OPTIONS.index(st.session_state["active_nav"]) if st.session_state["active_nav"] in NAV_OPTIONS else 0
 
-with st.container(key="sticky_nav_container"):
-    # ── 1. GIAO DIỆN DESKTOP (width > 768px): Thanh ngang đầy đủ ──
-    with st.container(key="desktop_nav_wrap"):
-        c_logo, c_menu, c_status = st.columns([1.1, 5.8, 1.1], vertical_alignment="center")
-        with c_logo:
-            st.markdown('<div class="navbar-logo">💖 Trợ Lý Yêu Thương</div>', unsafe_allow_html=True)
-        with c_menu:
-            st.radio(
-                "",
-                options=NAV_OPTIONS,
-                index=cur_idx,
-                horizontal=True,
-                label_visibility="collapsed",
-                key="nav_desktop",
-                on_change=sync_nav_from_desktop,
-            )
-        with c_status:
-            st.markdown('<div class="nav-status-wrap"><span class="navbar-status">🟢 Cloud 24/7 &amp; Turso DB</span></div>', unsafe_allow_html=True)
-
-    # ── 2. GIAO DIỆN MOBILE / TABLET (width <= 768px): Hamburger ☰ Popover & Chấm Xanh 🟢 ──
-    with st.container(key="mobile_nav_wrap"):
-        m_logo, m_menu, m_badge = st.columns([1.6, 3.4, 0.8], vertical_alignment="center")
-        with m_logo:
-            st.markdown('<div class="navbar-logo-mobile">💖 Trợ Lý</div>', unsafe_allow_html=True)
-        with m_menu:
-            with st.popover(f"☰ {st.session_state['active_nav']}", use_container_width=True):
-                st.markdown("<div style='font-weight:700;color:#d81159;font-size:0.95rem;margin-bottom:8px;'>🌸 Chọn chuyên mục:</div>", unsafe_allow_html=True)
-                st.radio(
-                    "Mobile Nav",
-                    options=NAV_OPTIONS,
-                    index=cur_idx,
-                    key="nav_mobile",
-                    label_visibility="collapsed",
-                    on_change=sync_nav_from_mobile,
-                )
-        with m_badge:
-            with st.container(key="mobile_cloud_badge"):
-                with st.popover("🟢", use_container_width=True):
-                    st.markdown("""
-                    <div style="font-size:0.86rem;line-height:1.65;min-width:210px;padding:4px 2px;">
-                        <div style="font-weight:700;color:#0d8a52;font-size:0.95rem;margin-bottom:6px;border-bottom:1px solid #e0f2e9;padding-bottom:4px;">
-                            🟢 Cloud 24/7 &amp; Turso DB
-                        </div>
-                        ☁️ <b>Server:</b> Online (Render Singapore)<br>
-                        🗄️ <b>Database:</b> Turso Cloud (Tokyo)<br>
-                        🤖 <b>Bot Telegram:</b> Polling 24/7 Active<br>
-                        🔄 <b>Đồng bộ:</b> Thời gian thực 0đ
-                    </div>
-                    """, unsafe_allow_html=True)
-
-selected_nav = st.session_state["active_nav"]
-
-# ──────────────────────────────────────────────────────────────────────────────
-# HERO SECTION
-# ──────────────────────────────────────────────────────────────────────────────
 st.markdown(f"""
-<div class="hero-section">
-    <div>
-        <div class="hero-title">💖 Trợ Lý Yêu Thương 🌸</div>
-        <div class="hero-subtitle">Dành riêng cho <b>{her_name}</b> — Đồng hành mỗi ngày<br>trong học tập và chăm sóc sức khỏe!</div>
-        <div style="margin-top:14px;">
-            <a href="?nav=LichHoc" target="_self" class="hero-btn" style="color:#ffffff !important;text-decoration:none !important;">📅 Xem Lịch Hôm Nay</a>
-            <a href="?nav=DonThuoc" target="_self" class="hero-btn" style="color:#ffffff !important;text-decoration:none !important;">💊 Nhắc Uống Thuốc</a>
-            <a href="?nav=CamXuc" target="_self" class="hero-btn" style="color:#ffffff !important;text-decoration:none !important;">📖 Ghi Cảm Xúc</a>
-        </div>
-    </div>
-    <div class="hero-status-box">
-        <div style="font-size:1.6rem;margin-bottom:4px;">🐱</div>
-        <div class="hero-status-row">🟢 <b>Cloud 24/7</b></div>
-        <div class="hero-status-row">Turso DB: Đã kết nối</div>
-        <div class="hero-status-row">🤖 Telegram: Đang bật</div>
-        <div class="hero-status-row" style="margin-top:6px;opacity:.8;">
-            🕐 {config.get_now().strftime('%H:%M, %d/%m/%Y')}
-        </div>
-    </div>
+<div class="top-nav-bar">
+    <div class="top-nav-brand">💖 Trợ Lý Yêu Thương <span class="top-nav-her">• {her_name}</span></div>
+    <div class="top-nav-status">🟢 <b>Cloud 24/7 &amp; Turso DB</b></div>
 </div>
 """, unsafe_allow_html=True)
 
+selected_nav = st.radio(
+    "",
+    options=NAV_OPTIONS,
+    index=cur_idx,
+    horizontal=True,
+    label_visibility="collapsed",
+    key="nav_radio_pills",
+)
+st.session_state["active_nav"] = selected_nav
+
 # ══════════════════════════════════════════════════════════════════════════════
-# ROUTING NỘI DUNG THEO STICKY NAVBAR
+# ROUTING NỘI DUNG THEO NAVBAR
 # ══════════════════════════════════════════════════════════════════════════════
 if selected_nav == "🏠 Trang Chủ":
     # ── Trang Chủ Dashboard ──
@@ -748,6 +713,20 @@ if selected_nav == "🏠 Trang Chủ":
     today_meds_home = get_cached_today_meds(today_str_home)
     total_meds_home = len(today_meds_home)
     taken_meds_home = sum(1 for m in today_meds_home if m["taken"]) if today_meds_home else 0
+
+    st.markdown(f"""
+    <div class="hero-section">
+        <div>
+            <div class="hero-title">💖 Trợ Lý Yêu Thương 🌸</div>
+            <div class="hero-subtitle">Dành riêng cho <b>{her_name}</b> — Hôm nay là <b>{today_day_name}, ngày {today_date.strftime("%d/%m/%Y")}</b>.<br>Đồng hành cùng em mỗi ngày trong học tập và chăm sóc sức khỏe!</div>
+        </div>
+        <div class="hero-status-box">
+            <div style="font-size:1.4rem;margin-bottom:2px;">🐱</div>
+            <div class="hero-status-row">🟢 <b>Cloud 24/7</b></div>
+            <div class="hero-status-row" style="font-size:0.75rem;opacity:0.85;">Turso Cloud &amp; Telegram</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 1. Bốn Thẻ KPI Tổng Quan Nhanh (Click trực tiếp vào thẻ để chuyển tab Navbar tương ứng)
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
@@ -810,235 +789,191 @@ if selected_nav == "🏠 Trang Chủ":
             unsafe_allow_html=True,
         )
 
-    # 2. Bố cục 2.5 : 1 — Chi tiết ngày hôm nay & Meme Mèo
-    c_home_main, c_home_cat = st.columns([2.5, 1])
-    with c_home_main:
-        st.markdown(
-            f'<div class="card">'
-            f'<div class="section-title">✨ Chào ngày mới, {her_name}! 🌸</div>'
-            f'<div style="font-size:0.93rem;color:#555;line-height:1.75;margin-bottom:14px;">'
-            f'Hôm nay là <b>{today_day_name}, ngày {today_date.strftime("%d/%m/%Y")}</b>. Chúc em một ngày học tập thật hiệu quả, luôn rạng rỡ và nhớ chăm sóc sức khỏe nhé! Anh và Trợ Lý Yêu Thương luôn đồng hành cùng em 💖'
-            f'</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+    # 2. Banner Mèo Đồng Hành Trang Chủ (Cân đối, không khoảng trống thừa)
+    render_mascot_banner(
+        "smile-cat.png",
+        "Trợ Lý Meow 🌸",
+        f"Chúc {her_name} một ngày siêu vui vẻ! Nhớ uống đủ nước, ăn đủ bữa và mỉm cười thật nhiều nha bé iu! ✨💖",
+        badge=f"Hôm nay {today_day_name}"
+    )
 
-        col_sch_d, col_task_d = st.columns(2)
-        with col_sch_d:
-            if today_scheds:
-                sch_items = []
-                for sc in today_scheds:
-                    sch_items.append(
-                        f'<div style="border-left:3px solid #ff758c;padding-left:12px;margin-bottom:10px;text-align:left;">'
-                        f'<div style="font-weight:700;color:#333;font-size:0.92rem;">{sc["subject_name"]}</div>'
-                        f'<div style="font-size:0.83rem;color:#666;margin-top:2px;">🕒 {sc["start_time"]} - {sc["end_time"]} | 📍 {sc.get("room") or "Chưa có phòng"}</div>'
-                        f'</div>'
-                    )
-                sch_body_html = "".join(sch_items)
-            else:
-                sch_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">🎉 Hôm nay không có môn học nào! Em thoải mái nghỉ ngơi hoặc ôn bài nhé.</div>'
-
-            sch_card_html = (
-                f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-                f'<div class="card card-hover-click" style="min-height:190px;cursor:pointer;">'
-                f'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">'
-                f'<div class="section-title" style="margin:0;display:inline-flex;align-items:center;">🎒 Chi tiết lịch học hôm nay</div>'
-                f'<div style="font-size:0.8rem;color:#d81159;font-weight:700;white-space:nowrap;margin-left:auto;">Mở lịch ➔</div>'
-                f'</div>'
-                f'{sch_body_html}'
-                f'</div>'
-                f'</a>'
-            )
-            st.markdown(sch_card_html, unsafe_allow_html=True)
-
-        with col_task_d:
-            if pending_tasks:
-                task_items = []
-                for tk in pending_tasks[:3]:
-                    _task_title = tk.get('task_name') or tk.get('title') or 'Nhiệm vụ'
-                    _subject    = tk.get('subject_name') or 'Môn học'
-                    _dl         = tk.get('deadline') or 'Chưa có hạn'
-                    task_items.append(
-                        f'<div style="border-left:3px solid #e67e22;padding-left:12px;margin-bottom:10px;text-align:left;">'
-                        f'<div style="font-weight:700;color:#333;font-size:0.92rem;">{_task_title}</div>'
-                        f'<div style="font-size:0.83rem;color:#666;margin-top:2px;">⏳ Hạn: {_dl} | Môn: {_subject}</div>'
-                        f'</div>'
-                    )
-                task_body_html = "".join(task_items)
-            else:
-                task_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">✨ Không có deadline nào đang dồn ập! Cứ từ từ thưởng thức ngày mới nha.</div>'
-
-            task_card_html = (
-                f'<a href="?nav=Deadline" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-                f'<div class="card card-hover-click" style="min-height:190px;cursor:pointer;">'
-                f'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">'
-                f'<div class="section-title" style="margin:0;display:inline-flex;align-items:center;">⏰ Deadline gần nhất</div>'
-                f'<div style="font-size:0.8rem;color:#e67e22;font-weight:700;white-space:nowrap;margin-left:auto;">Quản lý ➔</div>'
-                f'</div>'
-                f'{task_body_html}'
-                f'</div>'
-                f'</a>'
-            )
-            st.markdown(task_card_html, unsafe_allow_html=True)
-
-    with c_home_cat:
-        cat_b64 = get_cat_image_base64("smile-cat.png")
-        if cat_b64:
-            cat_card_html = (
-                f'<div class="cat-card">'
-                f'<img src="data:image/png;base64,{cat_b64}" style="width:100%;max-width:180px;border-radius:12px;margin:0 auto 8px auto;display:block;">'
-                f'<div style="font-size:0.84rem;color:#777;font-weight:600;">Chúc {her_name} một ngày siêu vui vẻ! 😸🌸</div>'
-                f'</div>'
-            )
-            st.markdown(cat_card_html, unsafe_allow_html=True)
+    # 3. Lịch học & Deadline chi tiết (Bố cục 2 cột cân đối 50/50 tràn viền hoàn hảo)
+    col_sch_d, col_task_d = st.columns(2)
+    with col_sch_d:
+        if today_scheds:
+            sch_items = []
+            for sc in today_scheds:
+                sch_items.append(
+                    f'<div style="border-left:3px solid #ff758c;padding-left:12px;margin-bottom:10px;text-align:left;">'
+                    f'<div style="font-weight:700;color:#333;font-size:0.92rem;">{sc["subject_name"]}</div>'
+                    f'<div style="font-size:0.83rem;color:#666;margin-top:2px;">🕒 {sc["start_time"]} - {sc["end_time"]} | 📍 {sc.get("room") or "Chưa có phòng"}</div>'
+                    f'</div>'
+                )
+            sch_body_html = "".join(sch_items)
         else:
-            st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-            render_cat("smile-cat.png", f"Chúc {her_name} một ngày siêu vui vẻ! 😸🌸", width=170)
-            st.markdown('</div>', unsafe_allow_html=True)
+            sch_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">🎉 Hôm nay không có môn học nào! Em thoải mái nghỉ ngơi hoặc ôn bài nhé.</div>'
 
-        remind_card_html = (
-            f'<div class="card" style="margin-top:14px;text-align:center;">'
-            f'<div style="font-weight:700;color:#d81159;font-size:0.9rem;">💌 Lời nhắc hôm nay</div>'
-            f'<div style="font-size:0.84rem;color:#666;margin-top:6px;line-height:1.6;">'
-            f'Uống đủ 2 lít nước, không bỏ bữa sáng và nhớ mỉm cười thật nhiều nha bé iu! 🍵✨'
+        sch_card_html = (
+            f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+            f'<div class="card card-hover-click" style="min-height:190px;cursor:pointer;">'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">'
+            f'<div class="section-title" style="margin:0;display:inline-flex;align-items:center;">🎒 Chi tiết lịch học hôm nay</div>'
+            f'<div style="font-size:0.8rem;color:#d81159;font-weight:700;white-space:nowrap;margin-left:auto;">Mở lịch ➔</div>'
             f'</div>'
+            f'{sch_body_html}'
             f'</div>'
+            f'</a>'
         )
-        st.markdown(remind_card_html, unsafe_allow_html=True)
+        st.markdown(sch_card_html, unsafe_allow_html=True)
+
+    with col_task_d:
+        if pending_tasks:
+            task_items = []
+            for tk in pending_tasks[:3]:
+                _task_title = tk.get('task_name') or tk.get('title') or 'Nhiệm vụ'
+                _subject    = tk.get('subject_name') or 'Môn học'
+                _dl         = tk.get('deadline') or 'Chưa có hạn'
+                task_items.append(
+                    f'<div style="border-left:3px solid #e67e22;padding-left:12px;margin-bottom:10px;text-align:left;">'
+                    f'<div style="font-weight:700;color:#333;font-size:0.92rem;">{_task_title}</div>'
+                    f'<div style="font-size:0.83rem;color:#666;margin-top:2px;">⏳ Hạn: {_dl} | Môn: {_subject}</div>'
+                    f'</div>'
+                )
+            task_body_html = "".join(task_items)
+        else:
+            task_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">✨ Không có deadline nào đang dồn ập! Cứ từ từ thưởng thức ngày mới nha.</div>'
+
+        task_card_html = (
+            f'<a href="?nav=Deadline" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+            f'<div class="card card-hover-click" style="min-height:190px;cursor:pointer;">'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">'
+            f'<div class="section-title" style="margin:0;display:inline-flex;align-items:center;">⏰ Deadline gần nhất</div>'
+            f'<div style="font-size:0.8rem;color:#e67e22;font-weight:700;white-space:nowrap;margin-left:auto;">Quản lý ➔</div>'
+            f'</div>'
+            f'{task_body_html}'
+            f'</div>'
+            f'</a>'
+        )
+        st.markdown(task_card_html, unsafe_allow_html=True)
 
 elif selected_nav == "🎒 Lịch Học":
     all_scheds = get_cached_schedules()
     has_conflict, c_s1, c_s2 = check_schedule_conflicts(all_scheds)
 
-    # ── Header row ──
-    col_lh_main, col_lh_cat = st.columns([2.5, 1])
-    with col_lh_main:
-        st.subheader("🎒 Lịch Học & Điểm Danh Chuyên Cần")
-        st.markdown('<p class="hint-text">Theo dõi lịch học cả tuần, quản lý số buổi vắng và tự động tính chuyên cần.</p>', unsafe_allow_html=True)
-        if has_conflict:
-            st.warning(f"⚠️ **HUH? Phát hiện trùng lịch:** Môn **{c_s1['subject_name']}** và **{c_s2['subject_name']}** bị đè giờ nhau vào {c_s1['day_name']} ({c_s1['start_time']}-{c_s1['end_time']} & {c_s2['start_time']}-{c_s2['end_time']})!")
-    with col_lh_cat:
-        st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        if has_conflict:
-            render_cat("huh-cat.jpg", "HUH? Trùng lịch rồi?! 🙀❓", width=150)
-        else:
-            render_cat("study-cat.jpg", "Học bài thuiii, không là thành người tối cổ đó! 🐱📚", width=150)
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.subheader("🎒 Lịch Học & Điểm Danh Chuyên Cần")
+    st.markdown('<p class="hint-text">Theo dõi lịch học cả tuần, quản lý số buổi vắng và tự động tính chuyên cần.</p>', unsafe_allow_html=True)
+    if has_conflict:
+        st.warning(f"⚠️ **HUH? Phát hiện trùng lịch:** Môn **{c_s1['subject_name']}** và **{c_s2['subject_name']}** bị đè giờ nhau vào {c_s1['day_name']} ({c_s1['start_time']}-{c_s1['end_time']} & {c_s2['start_time']}-{c_s2['end_time']})!")
+        render_mascot_banner("huh-cat.jpg", "Mèo Giật Mình 🙀", "HUH? Có môn bị đè giờ nhau kìa! Em kiểm tra và điều chỉnh lại lịch nhé!", badge="Cảnh báo trùng lịch")
+    else:
+        render_mascot_banner("study-cat.jpg", "Mèo Chăm Học 📚", "Học chăm chỉ mỗi ngày để tương lai rạng ngời nha bé iu! 🌸✨", badge="Bạn đồng hành")
 
     # ── Sub-tabs ──
     sub_add, sub_att, sub_view = st.tabs(["➕ Thêm Môn Học", "📝 Điểm Danh Hôm Nay", "📊 Toàn Bộ Lịch Học"])
 
     # ────────────────────── THÊM MÔN HỌC ──────────────────────
     with sub_add:
-        form_col, tips_col = st.columns([2.2, 1])
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<p class="hint-text">Điền thông tin bên dưới để lưu một môn học vào lịch tuần. (*) là bắt buộc.</p>', unsafe_allow_html=True)
 
-        with form_col:
-            st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown('<p class="hint-text">Điền thông tin bên dưới để lưu một môn học vào lịch tuần. (*) là bắt buộc.</p>', unsafe_allow_html=True)
+        fa, fb = st.columns([1.8, 1])
+        with fa:
+            st.markdown('<span class="step-label">1</span> <b>Tên môn học (*)</b>', unsafe_allow_html=True)
+            subj_name = st.text_input("ten_mon", placeholder="VD: Lập trình Web, Tiếng Anh B2...",
+                label_visibility="collapsed",
+                help="Nhập đúng tên môn học trên thời khóa biểu của em")
+        with fb:
+            day_opts  = ["Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy","Chủ Nhật"]
+            day_select = st.selectbox("📅 Ngày học (*)", day_opts,
+                help="Chọn thứ mà môn này được dạy mỗi tuần")
 
-            fa, fb = st.columns([1.8, 1])
-            with fa:
-                st.markdown('<span class="step-label">1</span> <b>Tên môn học (*)</b>', unsafe_allow_html=True)
-                subj_name = st.text_input("ten_mon", placeholder="VD: Lập trình Web, Tiếng Anh B2...",
-                    label_visibility="collapsed",
-                    help="Nhập đúng tên môn học trên thời khóa biểu của em")
-            with fb:
-                day_opts  = ["Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy","Chủ Nhật"]
-                day_select = st.selectbox("📅 Ngày học (*)", day_opts,
-                    help="Chọn thứ mà môn này được dạy mỗi tuần")
+        # Khởi tạo trạng thái giờ học linh hoạt (cho phép chọn bất kỳ giờ phút nào)
+        if "sch_start_val" not in st.session_state:
+            st.session_state["sch_start_val"] = time(7, 30)
+        if "sch_end_val" not in st.session_state:
+            st.session_state["sch_end_val"] = time(11, 0)
 
-            # Khởi tạo trạng thái giờ học linh hoạt (cho phép chọn bất kỳ giờ phút nào)
-            if "sch_start_val" not in st.session_state:
-                st.session_state["sch_start_val"] = time(7, 30)
-            if "sch_end_val" not in st.session_state:
-                st.session_state["sch_end_val"] = time(11, 0)
+        # Lối tắt chọn ca học nhanh (tùy chọn bấm nhanh, không giới hạn)
+        st.markdown('<p class="hint-text">⚡ <b>Lối tắt ca học nhanh</b> (hoặc tự do chỉnh giờ:phút bất kỳ bên dưới):</p>', unsafe_allow_html=True)
+        qc1, qc2, qc3, qc4, qc5 = st.columns(5)
+        if qc1.button("Ca 1\n07:30-11:00", use_container_width=True, key="btn_sch_ca1"):
+            st.session_state["sch_start_val"] = time(7, 30); st.session_state["sch_end_val"] = time(11, 0); st.rerun()
+        if qc2.button("Ca 2\n11:30-15:00", use_container_width=True, key="btn_sch_ca2"):
+            st.session_state["sch_start_val"] = time(11, 30); st.session_state["sch_end_val"] = time(15, 0); st.rerun()
+        if qc3.button("Ca 3\n13:00-16:30", use_container_width=True, key="btn_sch_ca3"):
+            st.session_state["sch_start_val"] = time(13, 0); st.session_state["sch_end_val"] = time(16, 30); st.rerun()
+        if qc4.button("Ca 4\n15:30-19:00", use_container_width=True, key="btn_sch_ca4"):
+            st.session_state["sch_start_val"] = time(15, 30); st.session_state["sch_end_val"] = time(19, 0); st.rerun()
+        if qc5.button("Ca Tối\n18:00-21:00", use_container_width=True, key="btn_sch_cat"):
+            st.session_state["sch_start_val"] = time(18, 0); st.session_state["sch_end_val"] = time(21, 0); st.rerun()
 
-            # Lối tắt chọn ca học nhanh (tùy chọn bấm nhanh, không giới hạn)
-            st.markdown('<p class="hint-text">⚡ <b>Lối tắt ca học nhanh</b> (hoặc tự do chỉnh giờ:phút bất kỳ bên dưới):</p>', unsafe_allow_html=True)
-            qc1, qc2, qc3, qc4, qc5 = st.columns(5)
-            if qc1.button("Ca 1\n07:30-11:00", use_container_width=True, key="btn_sch_ca1"):
-                st.session_state["sch_start_val"] = time(7, 30); st.session_state["sch_end_val"] = time(11, 0); st.rerun()
-            if qc2.button("Ca 2\n11:30-15:00", use_container_width=True, key="btn_sch_ca2"):
-                st.session_state["sch_start_val"] = time(11, 30); st.session_state["sch_end_val"] = time(15, 0); st.rerun()
-            if qc3.button("Ca 3\n13:00-16:30", use_container_width=True, key="btn_sch_ca3"):
-                st.session_state["sch_start_val"] = time(13, 0); st.session_state["sch_end_val"] = time(16, 30); st.rerun()
-            if qc4.button("Ca 4\n15:30-19:00", use_container_width=True, key="btn_sch_ca4"):
-                st.session_state["sch_start_val"] = time(15, 30); st.session_state["sch_end_val"] = time(19, 0); st.rerun()
-            if qc5.button("Ca Tối\n18:00-21:00", use_container_width=True, key="btn_sch_cat"):
-                st.session_state["sch_start_val"] = time(18, 0); st.session_state["sch_end_val"] = time(21, 0); st.rerun()
+        fc, fd, fe = st.columns(3)
+        with fc:
+            category = st.selectbox("🏷️ Loại môn",
+                ["Môn lý thuyết","Môn đồ án/bài tập lớn","Môn ngoại ngữ"])
+        with fd:
+            cur_start = st.time_input("🕗 Giờ bắt đầu (*mọi giờ:phút*)", value=st.session_state["sch_start_val"], key="sch_start_input")
+            st.session_state["sch_start_val"] = cur_start
+            start_str = cur_start.strftime("%H:%M")
+        with fe:
+            cur_end = st.time_input("🕙 Giờ kết thúc (*mọi giờ:phút*)", value=st.session_state["sch_end_val"], key="sch_end_input")
+            st.session_state["sch_end_val"] = cur_end
+            end_str = cur_end.strftime("%H:%M")
 
-            fc, fd, fe = st.columns(3)
-            with fc:
-                category = st.selectbox("🏷️ Loại môn",
-                    ["Môn lý thuyết","Môn đồ án/bài tập lớn","Môn ngoại ngữ"])
-            with fd:
-                cur_start = st.time_input("🕗 Giờ bắt đầu (*mọi giờ:phút*)", value=st.session_state["sch_start_val"], key="sch_start_input")
-                st.session_state["sch_start_val"] = cur_start
-                start_str = cur_start.strftime("%H:%M")
-            with fe:
-                cur_end = st.time_input("🕙 Giờ kết thúc (*mọi giờ:phút*)", value=st.session_state["sch_end_val"], key="sch_end_input")
-                st.session_state["sch_end_val"] = cur_end
-                end_str = cur_end.strftime("%H:%M")
+        fg, fh, fi = st.columns(3)
+        with fg:
+            room = st.text_input("📍 Phòng học", placeholder="VD: A2-301, Zoom...",
+                help="Có thể bỏ trống")
+        with fh:
+            total_sess = st.number_input("📋 Tổng số buổi (*)", min_value=1, max_value=100, value=10, step=1)
+        with fi:
+            max_allowed_limit = max(0, int(total_sess)-1)
+            default_calc = min(max(1, int(round(total_sess * 0.2))), max_allowed_limit)
+            max_abs = st.number_input(f"🚨 Buổi được nghỉ (Gợi ý 20% = {default_calc}) (*)",
+                min_value=0, max_value=max_allowed_limit, value=default_calc, step=1,
+                help=f"Tự động tính mức 20%: {default_calc} buổi. Bạn có thể tăng giảm tùy quy chế trường.")
 
-            fg, fh, fi = st.columns(3)
-            with fg:
-                room = st.text_input("📍 Phòng học", placeholder="VD: A2-301, Zoom...",
-                    help="Có thể bỏ trống")
-            with fh:
-                total_sess = st.number_input("📋 Tổng số buổi (*)", min_value=1, max_value=100, value=10, step=1)
-            with fi:
-                max_allowed_limit = max(0, int(total_sess)-1)
-                default_calc = min(max(1, int(round(total_sess * 0.2))), max_allowed_limit)
-                max_abs = st.number_input(f"🚨 Buổi được nghỉ (Gợi ý 20% = {default_calc}) (*)",
-                    min_value=0, max_value=max_allowed_limit, value=default_calc, step=1,
-                    help=f"Tự động tính mức 20%: {default_calc} buổi. Bạn có thể tăng giảm tùy quy chế trường.")
+        notes = ""
+        with st.expander("📝 Ghi chú dặn dò (không bắt buộc)"):
+            notes = st.text_area("Ghi chú", placeholder="VD: Nhớ sạc laptop, chuẩn bị slide thuyết trình...", height=70, label_visibility="collapsed")
 
-            notes = ""
-            with st.expander("📝 Ghi chú dặn dò (không bắt buộc)"):
-                notes = st.text_area("Ghi chú", placeholder="VD: Nhớ sạc laptop, chuẩn bị slide thuyết trình...", height=70, label_visibility="collapsed")
-
-            if subj_name.strip():
-                pct = round((max_abs/total_sess)*100, 1) if total_sess else 0
-                st.markdown(f"""<div class="preview-box">
-                    <b>👁️ Xem trước thẻ môn học:</b><br>
-                    📚 <b>{subj_name}</b> &nbsp;|&nbsp; 🏷️ {category}<br>
-                    📅 <b>{day_select}</b> &nbsp;|&nbsp; 🕒 <b>{start_str} → {end_str}</b> &nbsp;|&nbsp; 📍 {room or "(Chưa điền)"}<br>
-                    📋 Tổng <b>{int(total_sess)} buổi</b> &nbsp;|&nbsp; 🚨 Cho phép nghỉ: <b>{int(max_abs)} buổi</b> ({pct}%)
-                </div>""", unsafe_allow_html=True)
-
-            if st.button("💖 Lưu Môn Học Này Vào Lịch", use_container_width=True, type="primary"):
-                err = []
-                if not subj_name.strip(): err.append("Chưa nhập tên môn học")
-                if max_abs >= total_sess:
-                    err.append(f"Số buổi nghỉ ({int(max_abs)}) phải nhỏ hơn tổng buổi ({int(total_sess)})!")
-                if err:
-                    for e in err: st.error(f"⚠️ {e}")
-                    render_cat("huh-cat.jpg","HUH? Thiếu thông tin rồi! 🙀❓", width=120)
-                else:
-                    day_idx = day_opts.index(day_select)
-                    database.add_schedule(subj_name.strip(), day_idx, day_select, start_str, end_str,
-                                          room.strip(), category, notes.strip() if notes else "",
-                                          int(total_sess), int(max_abs))
-                    invalidate_cache()
-                    st.success(f"✅ Đã lưu môn '{subj_name}' ({start_str} - {end_str})!")
-                    st.balloons()
-                    st.rerun()
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with tips_col:
-            st.markdown("""<div class="card">
-                <div class="section-title">💡 Mẹo nhỏ</div>
-                <div style="font-size:.87rem;line-height:1.75;color:#555;">
-                🎯 Nhập đúng tên môn sẽ giúp Bot nhắc lịch chính xác hơn!<br><br>
-                ⏰ Số buổi nghỉ = 20% tổng buổi là mức phổ biến tại đa số trường.<br><br>
-                📱 Sau khi lưu, Bot Telegram sẽ nhắc em <b>30 phút trước</b> giờ học!<br><br>
-                🚨 Khi số buổi vắng vượt giới hạn → Hệ thống tự gửi cảnh báo CẤM THI!
-                </div>
+        if subj_name.strip():
+            pct = round((max_abs/total_sess)*100, 1) if total_sess else 0
+            st.markdown(f"""<div class="preview-box">
+                <b>👁️ Xem trước thẻ môn học:</b><br>
+                📚 <b>{subj_name}</b> &nbsp;|&nbsp; 🏷️ {category}<br>
+                📅 <b>{day_select}</b> &nbsp;|&nbsp; 🕒 <b>{start_str} → {end_str}</b> &nbsp;|&nbsp; 📍 {room or "(Chưa điền)"}<br>
+                📋 Tổng <b>{int(total_sess)} buổi</b> &nbsp;|&nbsp; 🚨 Cho phép nghỉ: <b>{int(max_abs)} buổi</b> ({pct}%)
             </div>""", unsafe_allow_html=True)
-            st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-            render_cat("study-cat.jpg", "Học chăm vào nha bé! 📚😸", width=160)
-            st.markdown('</div>', unsafe_allow_html=True)
+
+        if st.button("💖 Lưu Môn Học Này Vào Lịch", use_container_width=True, type="primary"):
+            err = []
+            if not subj_name.strip(): err.append("Chưa nhập tên môn học")
+            if max_abs >= total_sess:
+                err.append(f"Số buổi nghỉ ({int(max_abs)}) phải nhỏ hơn tổng buổi ({int(total_sess)})!")
+            if err:
+                for e in err: st.error(f"⚠️ {e}")
+            else:
+                day_idx = day_opts.index(day_select)
+                database.add_schedule(subj_name.strip(), day_idx, day_select, start_str, end_str,
+                                      room.strip(), category, notes.strip() if notes else "",
+                                      int(total_sess), int(max_abs))
+                invalidate_cache()
+                st.success(f"✅ Đã lưu môn '{subj_name}' ({start_str} - {end_str})!")
+                st.balloons()
+                st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown("""<div class="card" style="margin-top:14px;">
+            <div class="section-title">💡 Mẹo nhỏ & Lưu ý chuyên cần</div>
+            <div style="font-size:.87rem;line-height:1.75;color:#555;">
+            🎯 Nhập đúng tên môn sẽ giúp Bot nhắc lịch chính xác hơn!<br>
+            ⏰ Số buổi nghỉ = 20% tổng buổi là mức phổ biến tại đa số trường.<br>
+            📱 Sau khi lưu, Bot Telegram sẽ nhắc em <b>30 phút trước</b> giờ học!<br>
+            🚨 Khi số buổi vắng vượt giới hạn → Hệ thống tự gửi cảnh báo CẤM THI!
+            </div>
+        </div>""", unsafe_allow_html=True)
 
     # ────────────────────── ĐIỂM DANH ──────────────────────
     with sub_att:
@@ -1147,10 +1082,8 @@ elif selected_nav == "🎒 Lịch Học":
 # ══════════════════════════════════════════════════════════════════════════════
 elif selected_nav == "📝 Deadline":
     # ── Header row ──
-    col_dl_main, col_dl_cat = st.columns([2.5, 1])
-    with col_dl_main:
-        st.subheader("⏰ Quản Lý Deadline & AI Dự Đoán Rủi Ro")
-        st.markdown('<p class="hint-text">Thêm bài tập, AI tự tính xác suất trễ hạn và Bot nhắc nhở đúng các mốc thời gian.</p>', unsafe_allow_html=True)
+    st.subheader("⏰ Quản Lý Deadline & AI Dự Đoán Rủi Ro")
+    st.markdown('<p class="hint-text">Thêm bài tập, AI tự tính xác suất trễ hạn và Bot nhắc nhở đúng các mốc thời gian.</p>', unsafe_allow_html=True)
 
     tasks = get_cached_tasks()
     all_scheds = get_cached_schedules()
@@ -1158,128 +1091,115 @@ elif selected_nav == "📝 Deadline":
     today_wd = now_dt.weekday()
     classes_today = len([s for s in all_scheds if s.get("day_of_week") == today_wd])
 
-    with col_dl_cat:
-        # Kiểm tra có bài tập nào đang trễ không để hiển thị meme phù hợp
-        _has_overdue_p = any(
-            t["status"] != "Đã hoàn thành" and datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M") < now_dt
-            for t in tasks
-        ) if tasks else False
-        _has_pending_p = any(t["status"] != "Đã hoàn thành" for t in tasks) if tasks else False
+    _has_overdue_p = any(
+        t["status"] != "Đã hoàn thành" and datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M") < now_dt
+        for t in tasks
+    ) if tasks else False
+    _has_pending_p = any(t["status"] != "Đã hoàn thành" for t in tasks) if tasks else False
 
-        st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        if not tasks or not _has_pending_p:
-            render_cat("smile-cat.png", "Không có deadline! Tận hưởng thôi 😸✨", width=150)
-        elif _has_overdue_p:
-            render_cat("cry-cat.jpg", "Huhu, deadline trễ rồi cứu tuiii 😿", width=150)
-        else:
-            render_cat("burnOut_cat.jpg", "Deadline dí sát nút rùi! Áaaaa 🙀🔥", width=150)
-        st.markdown('</div>', unsafe_allow_html=True)
+    if not tasks or not _has_pending_p:
+        render_mascot_banner("smile-cat.png", "Mèo Thảnh Thơi ✨", "Không có deadline nào đang chờ! Em thoải mái tận hưởng ngày mới nhé! 🌸", badge="0 Deadline")
+    elif _has_overdue_p:
+        render_mascot_banner("cry-cat.jpg", "Mèo Hốt Hoảng 😿", "Huhu có bài tập bị quá hạn rồi! Hoàn thành sớm để nhẹ đầu nha bé!", badge="Có task trễ hạn")
+    else:
+        render_mascot_banner("burnOut_cat.jpg", "Mèo Nước Rút 🔥", "Deadline đang dí sát nút rùi! Tập trung hoàn thành từng bài một nha!", badge="Đang có deadline")
 
     sub_add_t, sub_list_t, sub_ai_t = st.tabs(["➕ Thêm Deadline", "📋 Danh Sách Task", "🤖 Kiểm Tra AI Nhanh"])
 
     # ── Thêm deadline ──
     with sub_add_t:
-        form_dl, tip_dl = st.columns([2.2, 1])
-        with form_dl:
-            st.markdown('<div class="card">', unsafe_allow_html=True)
-            subj_list  = list(set([s["subject_name"] for s in all_scheds])) if all_scheds else []
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        subj_list  = list(set([s["subject_name"] for s in all_scheds])) if all_scheds else []
 
-            st.markdown('<span class="step-label">1</span> <b>Thông tin bài tập</b>', unsafe_allow_html=True)
-            ta1, ta2 = st.columns([2, 1])
-            with ta1:
-                task_name = st.text_input("Tên bài tập / đồ án (*)",
-                    placeholder="VD: Báo cáo đồ án SE2033, Bài tập nhóm chương 4...",
-                    help="Đặt tên rõ ràng để dễ nhận biết trong danh sách và tin nhắn nhắc nhở")
-            with ta2:
-                if subj_list:
-                    subj_task = st.selectbox("Thuộc môn học:", subj_list)
-                else:
-                    subj_task = st.text_input("Thuộc môn học:", placeholder="VD: Công nghệ phần mềm")
+        st.markdown('<span class="step-label">1</span> <b>Thông tin bài tập</b>', unsafe_allow_html=True)
+        ta1, ta2 = st.columns([2, 1])
+        with ta1:
+            task_name = st.text_input("Tên bài tập / đồ án (*)",
+                placeholder="VD: Báo cáo đồ án SE2033, Bài tập nhóm chương 4...",
+                help="Đặt tên rõ ràng để dễ nhận biết trong danh sách và tin nhắn nhắc nhở")
+        with ta2:
+            if subj_list:
+                subj_task = st.selectbox("Thuộc môn học:", subj_list)
+            else:
+                subj_task = st.text_input("Thuộc môn học:", placeholder="VD: Công nghệ phần mềm")
 
-            st.markdown('<span class="step-label">2</span> <b>Thời hạn nộp bài (Deadline)</b>', unsafe_allow_html=True)
-            if "dl_time_val" not in st.session_state:
-                st.session_state["dl_time_val"] = time(23, 59)
+        st.markdown('<span class="step-label">2</span> <b>Thời hạn nộp bài (Deadline)</b>', unsafe_allow_html=True)
+        if "dl_time_val" not in st.session_state:
+            st.session_state["dl_time_val"] = time(23, 59)
 
-            st.markdown('<p class="hint-text">⚡ <b>Lối tắt mốc giờ phổ biến</b> (hoặc tự do chỉnh mọi giờ:phút bên dưới):</p>', unsafe_allow_html=True)
-            dq1, dq2, dq3, dq4 = st.columns(4)
-            if dq1.button("🌙 23:59\n(Cuối ngày)", use_container_width=True, key="btn_dl_night"):
-                st.session_state["dl_time_val"] = time(23, 59); st.rerun()
-            if dq2.button("🕛 12:00\n(Nghỉ trưa)", use_container_width=True, key="btn_dl_noon"):
-                st.session_state["dl_time_val"] = time(12, 0); st.rerun()
-            if dq3.button("🕔 17:00\n(Cuối chiều)", use_container_width=True, key="btn_dl_eve"):
-                st.session_state["dl_time_val"] = time(17, 0); st.rerun()
-            if dq4.button("🕗 08:00\n(Đầu sáng)", use_container_width=True, key="btn_dl_morn"):
-                st.session_state["dl_time_val"] = time(8, 0); st.rerun()
+        st.markdown('<p class="hint-text">⚡ <b>Lối tắt mốc giờ phổ biến</b> (hoặc tự do chỉnh mọi giờ:phút bên dưới):</p>', unsafe_allow_html=True)
+        dq1, dq2, dq3, dq4 = st.columns(4)
+        if dq1.button("🌙 23:59\n(Cuối ngày)", use_container_width=True, key="btn_dl_night"):
+            st.session_state["dl_time_val"] = time(23, 59); st.rerun()
+        if dq2.button("🕛 12:00\n(Nghỉ trưa)", use_container_width=True, key="btn_dl_noon"):
+            st.session_state["dl_time_val"] = time(12, 0); st.rerun()
+        if dq3.button("🕔 17:00\n(Cuối chiều)", use_container_width=True, key="btn_dl_eve"):
+            st.session_state["dl_time_val"] = time(17, 0); st.rerun()
+        if dq4.button("🕗 08:00\n(Đầu sáng)", use_container_width=True, key="btn_dl_morn"):
+            st.session_state["dl_time_val"] = time(8, 0); st.rerun()
 
-            tb1, tb2 = st.columns(2)
-            with tb1:
-                due_date = st.date_input("Ngày hết hạn (*bất kỳ ngày nào*)", value=date.today() + timedelta(days=3))
-            with tb2:
-                due_time_pick = st.time_input("Giờ hết hạn (*mọi giờ:phút*)", value=st.session_state["dl_time_val"], key="dl_time_input")
-                st.session_state["dl_time_val"] = due_time_pick
-                due_hour = due_time_pick.strftime("%H:%M")
+        tb1, tb2 = st.columns(2)
+        with tb1:
+            due_date = st.date_input("Ngày hết hạn (*bất kỳ ngày nào*)", value=date.today() + timedelta(days=3))
+        with tb2:
+            due_time_pick = st.time_input("Giờ hết hạn (*mọi giờ:phút*)", value=st.session_state["dl_time_val"], key="dl_time_input")
+            st.session_state["dl_time_val"] = due_time_pick
+            due_hour = due_time_pick.strftime("%H:%M")
 
-            st.markdown('<span class="step-label">3</span> <b>Khối lượng công việc dự kiến</b>', unsafe_allow_html=True)
-            est_hours = st.number_input("⏱️ Cần khoảng bao nhiêu giờ để hoàn thành? (*mọi số giờ*)",
-                min_value=0.5, max_value=120.0, value=3.0, step=0.5,
-                help="Gợi ý: Bài tập nhỏ 1-2h, Tiểu luận 3-5h, Đồ án lớn 8-20h...")
+        st.markdown('<span class="step-label">3</span> <b>Khối lượng công việc dự kiến</b>', unsafe_allow_html=True)
+        est_hours = st.number_input("⏱️ Cần khoảng bao nhiêu giờ để hoàn thành? (*mọi số giờ*)",
+            min_value=0.5, max_value=120.0, value=3.0, step=0.5,
+            help="Gợi ý: Bài tập nhỏ 1-2h, Tiểu luận 3-5h, Đồ án lớn 8-20h...")
 
-            if task_name.strip():
+        if task_name.strip():
+            deadline_str = f"{due_date.strftime('%Y-%m-%d')} {due_hour}"
+            deadline_dt  = datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
+            diff_h       = (deadline_dt - config.get_now()).total_seconds() / 3600.0
+            if diff_h > 0:
+                quick_ai   = deadline_ml.predict_deadline_risk(task_name, classes_today, diff_h, est_hours)
+                risk_color = "#d81159" if quick_ai["risk_percentage"] >= 70 else ("#d97706" if quick_ai["risk_percentage"] >= 40 else "#0d8a52")
+                st.markdown(f"""<div class="preview-box">
+                    <b>👁️ Xem trước:</b><br>
+                    📌 <b>{task_name}</b> &nbsp;|&nbsp; 📖 {subj_task}<br>
+                    ⏳ Deadline: <b>{due_date.strftime('%d/%m/%Y')} lúc {due_hour}</b> (còn <b>{diff_h:.1f} giờ</b>)<br>
+                    ⏱️ Ước tính: <b>{est_hours}h</b><br>
+                    🤖 AI rủi ro hôm nay: <b style="color:{risk_color};">{quick_ai['risk_percentage']}% — {quick_ai['warning_level']}</b>
+                </div>""", unsafe_allow_html=True)
+            else:
+                st.warning("⚠️ Ngày deadline đã qua rồi! Hãy chọn lại ngày đúng nhé.")
+
+        if st.button("🚀 Lưu Task & Bắt Đầu Theo Dõi", use_container_width=True, type="primary"):
+            if not task_name.strip():
+                st.error("Chưa nhập tên bài tập!")
+            elif not subj_task or not str(subj_task).strip():
+                st.error("Chưa chọn môn học!")
+            else:
                 deadline_str = f"{due_date.strftime('%Y-%m-%d')} {due_hour}"
-                deadline_dt  = datetime.strptime(deadline_str, "%Y-%m-%d %H:%M")
-                diff_h       = (deadline_dt - config.get_now()).total_seconds() / 3600.0
-                if diff_h > 0:
-                    quick_ai   = deadline_ml.predict_deadline_risk(task_name, classes_today, diff_h, est_hours)
-                    risk_color = "#d81159" if quick_ai["risk_percentage"] >= 70 else ("#d97706" if quick_ai["risk_percentage"] >= 40 else "#0d8a52")
-                    st.markdown(f"""<div class="preview-box">
-                        <b>👁️ Xem trước:</b><br>
-                        📌 <b>{task_name}</b> &nbsp;|&nbsp; 📖 {subj_task}<br>
-                        ⏳ Deadline: <b>{due_date.strftime('%d/%m/%Y')} lúc {due_hour}</b> (còn <b>{diff_h:.1f} giờ</b>)<br>
-                        ⏱️ Ước tính: <b>{est_hours}h</b><br>
-                        🤖 AI rủi ro hôm nay: <b style="color:{risk_color};">{quick_ai['risk_percentage']}% — {quick_ai['warning_level']}</b>
-                    </div>""", unsafe_allow_html=True)
-                else:
-                    st.warning("⚠️ Ngày deadline đã qua rồi! Hãy chọn lại ngày đúng nhé.")
+                database.add_task(task_name.strip(), str(subj_task), deadline_str, float(est_hours), "Chưa làm")
+                invalidate_cache()
+                st.success(f"✅ Đã lưu task '{task_name}'! Bot Telegram sẽ nhắc đúng các mốc thời gian.")
+                st.rerun()
 
-            if st.button("🚀 Lưu Task & Bắt Đầu Theo Dõi", use_container_width=True, type="primary"):
-                if not task_name.strip():
-                    st.error("Chưa nhập tên bài tập!")
-                elif not subj_task or not str(subj_task).strip():
-                    st.error("Chưa chọn môn học!")
-                else:
-                    deadline_str = f"{due_date.strftime('%Y-%m-%d')} {due_hour}"
-                    database.add_task(task_name.strip(), str(subj_task), deadline_str, float(est_hours), "Chưa làm")
-                    invalidate_cache()
-                    st.success(f"✅ Đã lưu task '{task_name}'! Bot Telegram sẽ nhắc đúng các mốc thời gian.")
-                    st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with tip_dl:
-            st.markdown("""<div class="card">
-                <div class="section-title">⚡ Mẹo Deadline</div>
-                <div style="font-size:.87rem;line-height:1.8;color:#555;">
-                🤖 AI phân tích dựa trên số ca học hôm đó & giờ rảnh thực tế.<br><br>
-                🔴 Rủi ro ≥70%: Nên làm ngay hôm nay!<br>
-                🟡 Rủi ro 40–70%: Ưu tiên làm sớm.<br>
-                🟢 Rủi ro &lt;40%: Còn thời gian thoải mái.<br><br>
-                📱 Bot tự nhắc trước <b>24h, 6h và 1h</b> deadline!
-                </div>
-            </div>""", unsafe_allow_html=True)
+        st.markdown("""<div class="card" style="margin-top:14px;">
+            <div class="section-title">⚡ Mẹo Deadline & Nhắc Nhở Tự Động</div>
+            <div style="font-size:.87rem;line-height:1.8;color:#555;">
+            🤖 AI phân tích dựa trên số ca học hôm đó & giờ rảnh thực tế.<br>
+            🔴 <b>Rủi ro ≥70%:</b> Nên làm ngay hôm nay!<br>
+            🟡 <b>Rủi ro 40–70%:</b> Ưu tiên làm sớm.<br>
+            🟢 <b>Rủi ro &lt;40%:</b> Còn thời gian thoải mái.<br>
+            📱 Bot tự nhắc trước <b>24h, 6h và 1h</b> deadline!
+            </div>
+        </div>""", unsafe_allow_html=True)
 
     # ── Danh sách task ──
     with sub_list_t:
         if not tasks:
-            col_notask, col_cat_dl = st.columns([2.2, 1])
-            with col_notask:
-                st.markdown("""<div class="card" style="padding:24px;">
-                    <div class="section-title">🎉 Trống deadline!</div>
-                    <p style="color:#555;line-height:1.75;">Em không có deadline nào đang chờ. Được nghỉ ngơi rồi! Tận hưởng khoảnh khắc nhé 🌸</p>
-                </div>""", unsafe_allow_html=True)
-            with col_cat_dl:
-                st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-                render_cat("smile-cat.png", "Sạch deadline! Tận hưởng thôi! 😸✨", width=160)
-                st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("""<div class="card" style="padding:24px;">
+                <div class="section-title">🎉 Trống deadline!</div>
+                <p style="color:#555;line-height:1.75;">Em không có deadline nào đang chờ. Được nghỉ ngơi rồi! Tận hưởng khoảnh khắc nhé 🌸</p>
+            </div>""", unsafe_allow_html=True)
         else:
             has_overdue = any(
                 t["status"] != "Đã hoàn thành" and datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M") < now_dt
@@ -1287,54 +1207,42 @@ elif selected_nav == "📝 Deadline":
             )
             has_pending = any(t["status"] != "Đã hoàn thành" for t in tasks)
 
-            col_tasks_main, col_tasks_cat = st.columns([2.2, 1])
-            with col_tasks_cat:
-                st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-                if not has_pending:
-                    render_cat("smile-cat.png", "Em giỏi lắm! Dọn sạch deadline rồi! 😸✨", width=160)
-                elif has_overdue:
-                    render_cat("cry-cat.jpg", "Huhu, deadline trễ rồi cứu tuiii 😿💔", width=160)
-                else:
-                    render_cat("burnOut_cat.jpg", "Áaaaa! Sắp trễ deadline rồi cứu tuiii! 🔥🙀", width=160)
-                st.markdown('</div>', unsafe_allow_html=True)
+            filter_status = st.selectbox("Lọc trạng thái:", ["Tất cả","Chưa làm","Đang làm","Đã hoàn thành"])
 
-            with col_tasks_main:
-                filter_status = st.selectbox("Lọc:", ["Tất cả","Chưa làm","Đang làm","Đã hoàn thành"])
-
-                for t in tasks:
-                    if filter_status and filter_status != "Tất cả" and t["status"] != filter_status:
-                        continue
-                    d_dt   = datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M")
-                    diff_h = (d_dt - now_dt).total_seconds() / 3600.0
-                    pred   = deadline_ml.predict_deadline_risk(t["task_name"], classes_today, max(0.1,diff_h), t["estimated_hours"])
-                    badge_cls = "badge-safe" if t["status"]=="Đã hoàn thành" else ("badge-warn" if t["status"]=="Đang làm" else "badge-danger")
-                    risk_icon = "🔴" if pred["risk_percentage"]>=70 else ("🟡" if pred["risk_percentage"]>=40 else "🟢")
-                    with st.container():
-                        st.markdown(f"""<div class="card">
-                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                              <span style="font-weight:700;font-size:1rem;">📌 {t['task_name']}</span>
-                              <span class="{badge_cls}">{t['status']}</span>
-                            </div>
-                            📖 {t['subject_name']} &nbsp;|&nbsp; ⏳ Hạn: <b>{t['deadline']}</b> (còn <b>{max(0,diff_h):.1f}h</b>) &nbsp;|&nbsp; ⏱️ {t['estimated_hours']}h<br>
-                            {risk_icon} <b>AI Rủi ro:</b> {pred['risk_percentage']}% — {pred['warning_message']}
-                        </div>""", unsafe_allow_html=True)
-                        b1,b2,b3,b4 = st.columns(4)
-                        if b1.button("⏳ Chưa làm", key=f"td_{t['id']}"):
-                            database.update_task_status(t["id"],"Chưa làm")
-                            invalidate_cache()
-                            st.rerun()
-                        if b2.button("🔨 Đang làm",  key=f"tp_{t['id']}"):
-                            database.update_task_status(t["id"],"Đang làm")
-                            invalidate_cache()
-                            st.rerun()
-                        if b3.button("🎉 Đã xong",   key=f"td2_{t['id']}"):
-                            database.update_task_status(t["id"],"Đã hoàn thành")
-                            invalidate_cache()
-                            st.rerun()
-                        if b4.button("🗑️ Xóa",        key=f"del_{t['id']}", type="secondary"):
-                            database.delete_task(t["id"])
-                            invalidate_cache()
-                            st.rerun()
+            for t in tasks:
+                if filter_status and filter_status != "Tất cả" and t["status"] != filter_status:
+                    continue
+                d_dt   = datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M")
+                diff_h = (d_dt - now_dt).total_seconds() / 3600.0
+                pred   = deadline_ml.predict_deadline_risk(t["task_name"], classes_today, max(0.1,diff_h), t["estimated_hours"])
+                badge_cls = "badge-safe" if t["status"]=="Đã hoàn thành" else ("badge-warn" if t["status"]=="Đang làm" else "badge-danger")
+                risk_icon = "🔴" if pred["risk_percentage"]>=70 else ("🟡" if pred["risk_percentage"]>=40 else "🟢")
+                with st.container():
+                    st.markdown(f"""<div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                          <span style="font-weight:700;font-size:1rem;">📌 {t['task_name']}</span>
+                          <span class="{badge_cls}">{t['status']}</span>
+                        </div>
+                        📖 {t['subject_name']} &nbsp;|&nbsp; ⏳ Hạn: <b>{t['deadline']}</b> (còn <b>{max(0,diff_h):.1f}h</b>) &nbsp;|&nbsp; ⏱️ {t['estimated_hours']}h<br>
+                        {risk_icon} <b>AI Rủi ro:</b> {pred['risk_percentage']}% — {pred['warning_message']}
+                    </div>""", unsafe_allow_html=True)
+                    b1,b2,b3,b4 = st.columns(4)
+                    if b1.button("⏳ Chưa làm", key=f"td_{t['id']}"):
+                        database.update_task_status(t["id"],"Chưa làm")
+                        invalidate_cache()
+                        st.rerun()
+                    if b2.button("🔨 Đang làm",  key=f"tp_{t['id']}"):
+                        database.update_task_status(t["id"],"Đang làm")
+                        invalidate_cache()
+                        st.rerun()
+                    if b3.button("🎉 Đã xong",   key=f"td2_{t['id']}"):
+                        database.update_task_status(t["id"],"Đã hoàn thành")
+                        invalidate_cache()
+                        st.rerun()
+                    if b4.button("🗑️ Xóa",        key=f"del_{t['id']}", type="secondary"):
+                        database.delete_task(t["id"])
+                        invalidate_cache()
+                        st.rerun()
 
     # ── AI nhanh ──
     with sub_ai_t:
@@ -1361,33 +1269,22 @@ elif selected_nav == "📝 Deadline":
 elif selected_nav == "🌸 Chu Kỳ":
     pred = get_cached_cycle_prediction()
 
-    # ── Header row ──
-    col_ck_main, col_ck_cat = st.columns([2.5, 1])
-    with col_ck_main:
-        st.subheader("🌸 Theo Dõi & AI Dự Đoán Chu Kỳ Kinh Nguyệt")
-        st.markdown('<p class="hint-text">Hệ thống AI thích ứng học cơ địa riêng của em để dự đoán ngày đèn đỏ, ngày rụng trứng và nhắc nhở 2 chiều.</p>', unsafe_allow_html=True)
+    # ── Mascot Banner Trạng Thái Chu Kỳ ──
+    st.subheader("🌸 Theo Dõi & AI Dự Đoán Chu Kỳ Kinh Nguyệt")
+    st.markdown('<p class="hint-text">Hệ thống AI thích ứng học cơ địa riêng của em để dự đoán ngày đèn đỏ, ngày rụng trứng và nhắc nhở 2 chiều.</p>', unsafe_allow_html=True)
 
-        # Banner trạng thái trong cột chính
-        if pred.get("has_data"):
-            days_left = pred["days_left"]
-            if days_left <= 0:
-                st.error(f"💖 Hôm nay hoặc đã qua ngày dự kiến kỳ mới ({pred['predicted_next_date']}). Em nhớ cập nhật nhé!")
-            elif days_left <= 3:
-                st.warning(f"🌸 **PMS!** Còn **{days_left} ngày** đến kỳ mới ({pred['predicted_next_date']}). Giữ ấm bụng, uống nước ấm nhé! 🍵")
-            elif days_left <= 4:
-                st.warning(f"🌸 Sắp vào PMS! Còn **{days_left} ngày** đến kỳ mới ({pred['predicted_next_date']}). Chuẩn bị đồ dùng trước nhé!")
-            else:
-                st.success(f"✨ Bình thường — Còn **{days_left} ngày** đến chu kỳ tiếp theo ({pred['predicted_next_date']})")
+    if pred.get("has_data"):
+        days_left = pred["days_left"]
+        if days_left <= 0:
+            render_mascot_banner("worry_cat.jpg", "Mèo Bác Sĩ 🩺", f"Hôm nay hoặc đã qua ngày dự kiến ({pred['predicted_next_date']}). Em nhớ giữ ấm bụng, uống nước ấm và cập nhật nhé! 💖", badge="Đến kỳ rồi")
+        elif days_left <= 3:
+            render_mascot_banner("worry_cat.jpg", "Mèo Bác Sĩ 🩺", f"Giai đoạn PMS: Còn {days_left} ngày đến kỳ mới ({pred['predicted_next_date']}). Giữ ấm bụng, uống nước ấm nha em! 🍵", badge=f"Còn {days_left} ngày")
+        elif days_left <= 5:
+            render_mascot_banner("chating_cat.jpg", "Mèo Chu Đáo 🌸", f"Sắp vào kỳ PMS: Còn {days_left} ngày ({pred['predicted_next_date']}). Chuẩn bị đồ dùng và tâm lý thoải mái nhé!", badge=f"Còn {days_left} ngày")
         else:
-            st.info("👋 Chưa có dữ liệu. Hãy bấm nút bên dưới để bắt đầu theo dõi!")
-
-    with col_ck_cat:
-        st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        if pred.get("has_data") and pred.get("days_left", 99) <= 3:
-            render_cat("worry_cat.jpg", "Ổn không bé iu? 🙀💕", width=160)
-        else:
-            render_cat("chating_cat.jpg", "Quan tâm bé iu từng chút một 🌸🐱", width=160)
-        st.markdown('</div>', unsafe_allow_html=True)
+            render_mascot_banner("smile-cat.png", "Mèo Vui Vẻ ✨", f"Cơ địa bình thường — Còn {days_left} ngày đến chu kỳ tiếp theo ({pred['predicted_next_date']}). Cứ yên tâm học tập vui chơi nha!", badge="An tâm")
+    else:
+        render_mascot_banner("chating_cat.jpg", "Mèo Hướng Dẫn 🌸", "Chưa có dữ liệu chu kỳ. Hãy bấm nút 'HÔM NAY BẮT ĐẦU KỲ MỚI' bên dưới để bắt đầu theo dõi nhé!", badge="Bắt đầu")
 
     st.divider()
     col_a, col_b = st.columns([1.3, 1])
@@ -1420,24 +1317,18 @@ elif selected_nav == "🌸 Chu Kỳ":
                 st.rerun()
 
         if pred.get("has_data"):
-            col_pi, col_pc = st.columns([2.5, 1.1])
-            with col_pi:
-                ovul_val   = pred.get("ovulation_date","Chưa rõ")
-                fertile_val= pred.get("fertile_window",{}).get("text","Chưa rõ") if pred.get("fertile_window") else "Chưa rõ"
-                algo_val   = pred.get("algorithm_used","Medical Baseline")
-                st.markdown(f"""<div class="preview-box">
-                    <b>🔮 AI Dự Đoán Cơ Địa Của Em:</b><br>
-                    • Chu kỳ: <b>{pred['cycle_length']} ngày</b> (học từ {pred['history_count']} lần)<br>
-                    • Thuật toán: <b>{algo_val}</b><br>
-                    • Kỳ gần nhất: <b>{pred['latest_start_date']}</b> &nbsp;|&nbsp; Tiếp theo: <b>{pred['predicted_start_date']}</b><br>
-                    • Ngày rụng trứng: <b>{ovul_val}</b><br>
-                    • Cửa sổ thụ thai: <b>{fertile_val}</b><br>
-                    • PMS bắt đầu: <b>{pred['pms_start_date']}</b> (còn {pred['days_remaining']} ngày)
-                </div>""", unsafe_allow_html=True)
-            with col_pc:
-                st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-                render_cat("chating_cat.jpg","Đang tính... 👀", width=130)
-                st.markdown('</div>', unsafe_allow_html=True)
+            ovul_val   = pred.get("ovulation_date","Chưa rõ")
+            fertile_val= pred.get("fertile_window",{}).get("text","Chưa rõ") if pred.get("fertile_window") else "Chưa rõ"
+            algo_val   = pred.get("algorithm_used","Medical Baseline")
+            st.markdown(f"""<div class="preview-box">
+                <b>🔮 AI Dự Đoán Cơ Địa Của Em:</b><br>
+                • Chu kỳ: <b>{pred['cycle_length']} ngày</b> (học từ {pred['history_count']} lần)<br>
+                • Thuật toán: <b>{algo_val}</b><br>
+                • Kỳ gần nhất: <b>{pred['latest_start_date']}</b> &nbsp;|&nbsp; Tiếp theo: <b>{pred['predicted_start_date']}</b><br>
+                • Ngày rụng trứng: <b>{ovul_val}</b><br>
+                • Cửa sổ thụ thai: <b>{fertile_val}</b><br>
+                • PMS bắt đầu: <b>{pred['pms_start_date']}</b> (còn {pred['days_remaining']} ngày)
+            </div>""", unsafe_allow_html=True)
             with st.expander("💌 Lời Khuyên Sức Khỏe Hôm Nay Cho Em"):
                 st.info(pred.get("advice_for_her",""))
 
@@ -1492,52 +1383,37 @@ elif selected_nav == "💊 Đơn Thuốc":
     total_h      = len(today_meds)
     taken_h      = sum(1 for m in today_meds if m["taken"]) if today_meds else 0
 
-    col_med_main, col_med_cat = st.columns([2.5, 1])
-    with col_med_main:
-        st.subheader("💊 Nhắc Lịch Uống Thuốc & Đọc Đơn Thuốc Bằng Ảnh")
-        st.markdown('<p class="hint-text">Theo dõi lịch uống thuốc, quét đơn bằng AI và nhận nhắc nhở đúng giờ qua Telegram.</p>', unsafe_allow_html=True)
-    with col_med_cat:
-        st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        if today_meds and taken_h == total_h:
-            render_cat("smile-cat.png", "Uống đủ thuốc rồi! Bé ngoan! 😸💊", width=160)
-        else:
-            render_cat("doctor-cat.png", "Bác sĩ Meow nhắc nhớ uống thuốc! 🩺💊", width=160)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # ── Mascot Banner Bác Sĩ Meow ──
+    st.subheader("💊 Nhắc Lịch Uống Thuốc & Đọc Đơn Bằng AI")
+    st.markdown('<p class="hint-text">Theo dõi lịch uống thuốc, quét đơn bằng AI và nhận nhắc nhở đúng giờ qua Telegram.</p>', unsafe_allow_html=True)
+
+    if not today_meds:
+        render_mascot_banner("doctor-cat.png", "Bác Sĩ Meow 🩺", "Hôm nay em không có lịch thuốc nào. Chúc bé iu luôn dồi dào sức khỏe, luôn vui tươi nhé! 🌸", badge="Khỏe mạnh")
+    elif taken_h == total_h:
+        render_mascot_banner("smile-cat.png", "Bác Sĩ Meow 🩺", f"Tuyệt vời quá! Em đã uống đủ {taken_h}/{total_h} liều hôm nay rồi! Bé ngoan lắm! 💖", badge="Hoàn thành 100%")
+    else:
+        render_mascot_banner("doctor-cat.png", "Bác Sĩ Meow 🩺", f"Hôm nay có {total_h} liều thuốc, em đã uống {taken_h}/{total_h} liều. Nhớ uống đúng giờ để mau khỏe nhé! 🍵", badge=f"Còn {total_h - taken_h} liều")
 
     med_t1, med_t2, med_t3 = st.tabs(["🔔 Lịch Hôm Nay", "➕ Thêm Lịch Thuốc", "📋 Danh Sách Thuốc"])
 
     # ── Lịch hôm nay ──
     with med_t1:
         if not today_meds:
-            c_info, c_dc = st.columns([2.2, 1])
-            with c_info:
-                st.markdown("""<div class="card" style="padding:24px;">
-                    <div class="section-title">😊 Hôm nay trống lịch thuốc!</div>
-                    <p style="font-size:.93rem;color:#555;line-height:1.75;">
-                    💖 Hôm nay em không có lịch uống thuốc nào.<br>
-                    Mong em luôn khỏe mạnh và tràn đầy năng lượng! 🌸<br><br>
-                    Nếu cần thêm thuốc mới, bấm tab <b>➕ Thêm Lịch Thuốc</b> hoặc dùng OCR đọc đơn thuốc bằng ảnh nhé!
-                    </p>
-                </div>""", unsafe_allow_html=True)
-            with c_dc:
-                st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-                render_cat("doctor-cat.png","Không có thuốc hôm nay, em khỏe rồi! 🩺😺", width=160)
-                st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown("""<div class="card" style="padding:22px;text-align:center;">
+                <div style="font-size:2rem;margin-bottom:8px;">🌸</div>
+                <div class="section-title" style="justify-content:center;">Hôm nay trống lịch uống thuốc!</div>
+                <p style="font-size:.92rem;color:#666;line-height:1.7;margin:8px 0 16px;">
+                💖 Em không có liều thuốc nào cần uống trong ngày hôm nay.<br>
+                Mong em luôn khỏe mạnh, tràn đầy sức sống và tươi vui! ✨<br>
+                Nếu cần thêm thuốc mới, bấm tab <b>➕ Thêm Lịch Thuốc</b> hoặc dùng AI quét ảnh đơn thuốc nhé!
+                </p>
+            </div>""", unsafe_allow_html=True)
         else:
             total       = len(today_meds)
             taken_count = sum(1 for m in today_meds if m["taken"])
-            prog_col, mc_col = st.columns([2.2, 1])
-            with prog_col:
-                st.progress(taken_count/total, text=f"Đã uống {taken_count}/{total} liều hôm nay")
-                if taken_count == total:
-                    st.success("🎉 Tuyệt vời! Em đã uống đủ thuốc hôm nay rồi! Bé giỏi lắm! 🌸")
-            with mc_col:
-                st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-                if taken_count == total:
-                    render_cat("smile-cat.png","Uống đủ rồi! Bé ngoan! 😸💊", width=130)
-                else:
-                    render_cat("doctor-cat.png",f"Còn {total-taken_count} liều nữa nha! 🩺", width=130)
-                st.markdown('</div>', unsafe_allow_html=True)
+            st.progress(taken_count/total, text=f"Tiến độ hôm nay: Đã uống {taken_count}/{total} liều ({int(taken_count/total*100)}%)")
+            if taken_count == total:
+                st.success("🎉 Tuyệt vời! Em đã uống đủ tất cả các liều thuốc hôm nay rồi! Bé giỏi lắm! 🌸")
 
             for item in today_meds:
                 icon       = "✅" if item["taken"] else "⏳"
@@ -1579,115 +1455,109 @@ elif selected_nav == "💊 Đơn Thuốc":
 
     # ── Thêm lịch thuốc ──
     with med_t2:
-        form_med, tip_med = st.columns([2.2, 1])
-        with form_med:
-            st.markdown('<div class="card">', unsafe_allow_html=True)
-            st.markdown('<p class="hint-text">Nhập thông tin đơn thuốc. Tải ảnh lên để AI đọc tự động!</p>', unsafe_allow_html=True)
-            ocr_data      = {"name":"","dosage":"1 viên (sau ăn)","times":"08:00, 19:30","days_count":5}
-            saved_img_path= ""
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.markdown('<p class="hint-text">Nhập thông tin đơn thuốc. Tải ảnh lên để AI đọc tự động!</p>', unsafe_allow_html=True)
+        ocr_data      = {"name":"","dosage":"1 viên (sau ăn)","times":"08:00, 19:30","days_count":5}
+        saved_img_path= ""
 
-            with st.expander("📷 Tải Ảnh Đơn Thuốc / Vỏ Thuốc (AI đọc tự động)"):
-                uploaded = st.file_uploader("Chọn ảnh:", type=["jpg","jpeg","png"])
-                if uploaded:
-                    ci, cr = st.columns(2)
-                    with ci:
-                        st.image(uploaded, caption="Ảnh đã tải lên", use_container_width=True)
-                    fname  = f"med_{int(config.get_now().timestamp())}_{uploaded.name}"
-                    fpath  = config.UPLOADS_DIR / fname
-                    with open(fpath,"wb") as f: f.write(uploaded.getbuffer())
-                    saved_img_path = str(fpath)
-                    with cr:
-                        if st.button("🔍 AI đọc ảnh & điền tự động", use_container_width=True):
-                            with st.spinner("AI đang nhận diện..."):
-                                ocr_data = medicine_ocr.process_medicine_image(saved_img_path)
-                            st.success("Đã nhận diện! Kiểm tra lại thông tin bên dưới.")
-                            if ocr_data.get("raw_text"):
-                                with st.expander("Xem văn bản thô"):
-                                     st.text(ocr_data["raw_text"])
+        with st.expander("📷 Tải Ảnh Đơn Thuốc / Vỏ Thuốc (AI đọc tự động)"):
+            uploaded = st.file_uploader("Chọn ảnh:", type=["jpg","jpeg","png"])
+            if uploaded:
+                ci, cr = st.columns(2)
+                with ci:
+                    st.image(uploaded, caption="Ảnh đã tải lên", use_container_width=True)
+                fname  = f"med_{int(config.get_now().timestamp())}_{uploaded.name}"
+                fpath  = config.UPLOADS_DIR / fname
+                with open(fpath,"wb") as f: f.write(uploaded.getbuffer())
+                saved_img_path = str(fpath)
+                with cr:
+                    if st.button("🔍 AI đọc ảnh & điền tự động", use_container_width=True):
+                        with st.spinner("AI đang nhận diện..."):
+                            ocr_data = medicine_ocr.process_medicine_image(saved_img_path)
+                        st.success("Đã nhận diện! Kiểm tra lại thông tin bên dưới.")
+                        if ocr_data.get("raw_text"):
+                            with st.expander("Xem văn bản thô"):
+                                 st.text(ocr_data["raw_text"])
 
-            if "med_dosage_val" not in st.session_state:
-                st.session_state["med_dosage_val"] = ocr_data.get("dosage", "1 viên (sau ăn)")
-            if "med_times_val" not in st.session_state:
-                st.session_state["med_times_val"] = ocr_data.get("times", "08:00, 19:30")
+        if "med_dosage_val" not in st.session_state:
+            st.session_state["med_dosage_val"] = ocr_data.get("dosage", "1 viên (sau ăn)")
+        if "med_times_val" not in st.session_state:
+            st.session_state["med_times_val"] = ocr_data.get("times", "08:00, 19:30")
 
-            st.markdown('<span class="step-label">1</span> <b>Thông tin thuốc</b>', unsafe_allow_html=True)
-            st.markdown('<p class="hint-text">Gợi ý liều dùng phổ biến (bấm nhanh hoặc tự nhập tùy ý):</p>', unsafe_allow_html=True)
-            d_col1, d_col2, d_col3, d_col4 = st.columns(4)
-            if d_col1.button("1 viên (sau ăn)", use_container_width=True, key="btn_dose_1"):
-                st.session_state["med_dosage_val"] = "1 viên (sau ăn)"; st.rerun()
-            if d_col2.button("2 viên (sau ăn)", use_container_width=True, key="btn_dose_2"):
-                st.session_state["med_dosage_val"] = "2 viên (sau ăn)"; st.rerun()
-            if d_col3.button("1 gói (trước ăn)", use_container_width=True, key="btn_dose_3"):
-                st.session_state["med_dosage_val"] = "1 gói (trước ăn)"; st.rerun()
-            if d_col4.button("1 viên (khi đau/sốt)", use_container_width=True, key="btn_dose_4"):
-                st.session_state["med_dosage_val"] = "1 viên (khi đau/sốt)"; st.rerun()
+        st.markdown('<span class="step-label">1</span> <b>Thông tin thuốc</b>', unsafe_allow_html=True)
+        st.markdown('<p class="hint-text">Gợi ý liều dùng phổ biến (bấm nhanh hoặc tự nhập tùy ý):</p>', unsafe_allow_html=True)
+        d_col1, d_col2, d_col3, d_col4 = st.columns(4)
+        if d_col1.button("1 viên (sau ăn)", use_container_width=True, key="btn_dose_1"):
+            st.session_state["med_dosage_val"] = "1 viên (sau ăn)"; st.rerun()
+        if d_col2.button("2 viên (sau ăn)", use_container_width=True, key="btn_dose_2"):
+            st.session_state["med_dosage_val"] = "2 viên (sau ăn)"; st.rerun()
+        if d_col3.button("1 gói (trước ăn)", use_container_width=True, key="btn_dose_3"):
+            st.session_state["med_dosage_val"] = "1 gói (trước ăn)"; st.rerun()
+        if d_col4.button("1 viên (khi đau/sốt)", use_container_width=True, key="btn_dose_4"):
+            st.session_state["med_dosage_val"] = "1 viên (khi đau/sốt)"; st.rerun()
 
-            m1, m2 = st.columns(2)
-            with m1:
-                med_name   = st.text_input("Tên thuốc (*)", value=ocr_data.get("name",""),
-                    placeholder="VD: Panadol Extra 500mg, Vitamin C...")
-            with m2:
-                med_dosage = st.text_input("Liều lượng (*tùy ý chỉnh sửa mọi dạng liều*)", value=st.session_state["med_dosage_val"],
-                    placeholder="VD: 1 viên sau ăn, 5ml pha nước ấm...", key="med_dosage_text_input")
-                st.session_state["med_dosage_val"] = med_dosage
+        m1, m2 = st.columns(2)
+        with m1:
+            med_name   = st.text_input("Tên thuốc (*)", value=ocr_data.get("name",""),
+                placeholder="VD: Panadol Extra 500mg, Vitamin C...")
+        with m2:
+            med_dosage = st.text_input("Liều lượng (*tùy ý chỉnh sửa mọi dạng liều*)", value=st.session_state["med_dosage_val"],
+                placeholder="VD: 1 viên sau ăn, 5ml pha nước ấm...", key="med_dosage_text_input")
+            st.session_state["med_dosage_val"] = med_dosage
 
-            st.markdown('<span class="step-label">2</span> <b>Lịch uống trong ngày</b>', unsafe_allow_html=True)
-            st.markdown('<p class="hint-text">⚡ <b>Lối tắt tần suất uống</b> (hoặc tự do gõ mọi khung giờ bất kỳ bên dưới):</p>', unsafe_allow_html=True)
-            preset_col = st.columns(4)
-            if preset_col[0].button("🌅 1 lần/ngày\n(08:00)", use_container_width=True, key="pmed_1"):
-                st.session_state["med_times_val"] = "08:00"; st.rerun()
-            if preset_col[1].button("☀️🌙 2 lần/ngày\n(08:00, 19:30)", use_container_width=True, key="pmed_2"):
-                st.session_state["med_times_val"] = "08:00, 19:30"; st.rerun()
-            if preset_col[2].button("☀️🌤️🌙 3 lần\n(8:00, 12:30, 19:30)", use_container_width=True, key="pmed_3"):
-                st.session_state["med_times_val"] = "08:00, 12:30, 19:30"; st.rerun()
-            if preset_col[3].button("💊 4 lần/ngày\n(7:30,12:00,17:00,21:00)", use_container_width=True, key="pmed_4"):
-                st.session_state["med_times_val"] = "07:30, 12:00, 17:00, 21:00"; st.rerun()
+        st.markdown('<span class="step-label">2</span> <b>Lịch uống trong ngày</b>', unsafe_allow_html=True)
+        st.markdown('<p class="hint-text">⚡ <b>Lối tắt tần suất uống</b> (hoặc tự do gõ mọi khung giờ bất kỳ bên dưới):</p>', unsafe_allow_html=True)
+        preset_col = st.columns(4)
+        if preset_col[0].button("🌅 1 lần/ngày\n(08:00)", use_container_width=True, key="pmed_1"):
+            st.session_state["med_times_val"] = "08:00"; st.rerun()
+        if preset_col[1].button("☀️🌙 2 lần/ngày\n(08:00, 19:30)", use_container_width=True, key="pmed_2"):
+            st.session_state["med_times_val"] = "08:00, 19:30"; st.rerun()
+        if preset_col[2].button("☀️🌤️🌙 3 lần\n(8:00, 12:30, 19:30)", use_container_width=True, key="pmed_3"):
+            st.session_state["med_times_val"] = "08:00, 12:30, 19:30"; st.rerun()
+        if preset_col[3].button("💊 4 lần/ngày\n(7:30,12:00,17:00,21:00)", use_container_width=True, key="pmed_4"):
+            st.session_state["med_times_val"] = "07:30, 12:00, 17:00, 21:00"; st.rerun()
 
-            med_times = st.text_input("Các khung giờ uống (*nhập mọi giờ tùy thích, cách nhau bởi dấu phẩy*)", 
-                                      value=st.session_state["med_times_val"], key="med_times_text_input")
-            st.session_state["med_times_val"] = med_times
+        med_times = st.text_input("Các khung giờ uống (*nhập mọi giờ tùy thích, cách nhau bởi dấu phẩy*)", 
+                                  value=st.session_state["med_times_val"], key="med_times_text_input")
+        st.session_state["med_times_val"] = med_times
 
-            st.markdown('<span class="step-label">3</span> <b>Thời gian điều trị</b>', unsafe_allow_html=True)
-            m3, m4 = st.columns(2)
-            with m3:
-                med_days  = st.number_input("Uống trong bao nhiêu ngày (*)", 1, 60, int(ocr_data.get("days_count",5)))
-            with m4:
-                med_start = st.date_input("Ngày bắt đầu uống (*)", value=date.today())
+        st.markdown('<span class="step-label">3</span> <b>Thời gian điều trị</b>', unsafe_allow_html=True)
+        m3, m4 = st.columns(2)
+        with m3:
+            med_days  = st.number_input("Uống trong bao nhiêu ngày (*)", 1, 60, int(ocr_data.get("days_count",5)))
+        with m4:
+            med_start = st.date_input("Ngày bắt đầu uống (*)", value=date.today())
 
-            if med_name.strip():
-                st.markdown(f"""<div class="preview-box">
-                    <b>👁️ Xem trước lịch uống thuốc:</b><br>
-                    💊 <b>{med_name}</b> — {med_dosage}<br>
-                    🕒 Giờ uống: <b>{med_times}</b><br>
-                    📅 Từ <b>{med_start.strftime('%d/%m/%Y')}</b> trong <b>{med_days} ngày</b> liên tiếp<br>
-                    📬 Bot Telegram sẽ nhắc em đúng giờ kèm ảnh thuốc (nếu có)
-                </div>""", unsafe_allow_html=True)
-
-            if st.button("💊 Lưu Lịch Uống Thuốc Này", use_container_width=True, type="primary"):
-                if not med_name.strip():
-                    st.error("Chưa nhập tên thuốc!")
-                else:
-                    database.add_medicine(med_name.strip(), med_dosage.strip(), med_times.strip(),
-                                          int(med_days), med_start.strftime("%Y-%m-%d"), saved_img_path)
-                    invalidate_cache()
-                    st.success(f"✅ Đã lưu lịch uống '{med_name}'! Bot sẽ nhắc đúng giờ.")
-                    st.rerun()
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with tip_med:
-            st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-            render_cat("doctor-cat.png", "Bác sĩ Meow luôn nhắc uống đúng giờ! 🩺💖", width=160)
-            st.markdown('</div>', unsafe_allow_html=True)
-            st.markdown("""<div class="card" style="margin-top:12px;">
-                <div class="section-title">💊 Lưu ý khi dùng thuốc</div>
-                <div style="font-size:.85rem;line-height:1.75;color:#555;">
-                🕒 Uống đúng giờ để đảm bảo hiệu quả điều trị.<br><br>
-                🍽️ Thuốc sau ăn: Uống sau khi ăn no 30 phút.<br><br>
-                💧 Uống với đủ nước, không nằm ngay sau uống.<br><br>
-                📸 Tải ảnh đơn thuốc để AI đọc tự động và điền tên thuốc!
-                </div>
+        if med_name.strip():
+            st.markdown(f"""<div class="preview-box">
+                <b>👁️ Xem trước lịch uống thuốc:</b><br>
+                💊 <b>{med_name}</b> — {med_dosage}<br>
+                🕒 Giờ uống: <b>{med_times}</b><br>
+                📅 Từ <b>{med_start.strftime('%d/%m/%Y')}</b> trong <b>{med_days} ngày</b> liên tiếp<br>
+                📬 Bot Telegram sẽ nhắc em đúng giờ kèm ảnh thuốc (nếu có)
             </div>""", unsafe_allow_html=True)
+
+        if st.button("💊 Lưu Lịch Uống Thuốc Này", use_container_width=True, type="primary"):
+            if not med_name.strip():
+                st.error("Chưa nhập tên thuốc!")
+            else:
+                database.add_medicine(med_name.strip(), med_dosage.strip(), med_times.strip(),
+                                      int(med_days), med_start.strftime("%Y-%m-%d"), saved_img_path)
+                invalidate_cache()
+                st.success(f"✅ Đã lưu lịch uống '{med_name}'! Bot sẽ nhắc đúng giờ.")
+                st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown("""<div class="card" style="margin-top:14px;">
+            <div class="section-title">💡 Lưu ý quan trọng khi dùng thuốc</div>
+            <div style="font-size:.88rem;line-height:1.75;color:#555;">
+            🕒 <b>Đúng giờ:</b> Uống đúng khung giờ đã đặt để thuốc phát huy hiệu quả tốt nhất.<br>
+            🍽️ <b>Bữa ăn:</b> Thuốc sau ăn nên uống sau bữa ăn no 15-30 phút.<br>
+            💧 <b>Nước uống:</b> Uống cùng 1 ly nước lọc ấm đầy đủ, tránh nằm ngay sau khi vừa uống thuốc.<br>
+            📸 <b>AI Quét Đơn:</b> Dùng ảnh chụp đơn thuốc hoặc vỏ thuốc để AI tự động điền tên và liều lượng.
+            </div>
+        </div>""", unsafe_allow_html=True)
 
     # ── Danh sách thuốc ──
     with med_t3:
@@ -1876,117 +1746,109 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
         st.session_state["mood_view_mode"] = "single"  # 'single' hoặc 'full_year'
 
     # ══════════════════════════════════════════════════════
-    # ZONE 1: FORM CẬP NHẬT CẢM XÚC SIÊU TỐC  [2.5 : 1]
+    # ZONE 1: MASCOT BANNER & FORM CẬP NHẬT CẢM XÚC
     # ══════════════════════════════════════════════════════
-    col_form, col_cat_display = st.columns([2.5, 1], gap="medium")
+    _cur_mood_key = st.session_state["mood_sel_mood"]
+    _mood_info    = MOOD_KEY_MAP.get(_cur_mood_key, MOOD_KEY_MAP["Happy"])
+    _cat_label, _bg_color, _cat_file, _cat_icon = _mood_info
+    _ai_msg       = AI_RESP_MAP.get(_cur_mood_key, "Thương em nhiều! 💖")
 
-    with col_form:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="section-title">🌸 Cập Nhật Cảm Xúc Nhanh (3s)</div>', unsafe_allow_html=True)
+    st.subheader("📖 Nhật Ký & Cảm Xúc Yêu Thương")
+    st.markdown('<p class="hint-text">Ghi lại cảm xúc mỗi ngày trong 3 giây. AI và Anh sẽ luôn lắng nghe, đồng hành cùng em.</p>', unsafe_allow_html=True)
 
-        # 1. Chọn ngày (Mặc định hôm nay, có thể chọn quá khứ để điền bù)
-        c_date, c_quick_mood = st.columns([1.2, 2.8])
-        with c_date:
-            chosen_date = st.date_input(
-                "📅 Ngày ghi nhận",
-                value=today_diary,
-                max_value=today_diary,
-                key="diary_date_pick",
-                help="Mặc định là hôm nay; có thể chọn ngày quá khứ để điền bù",
-            )
-            chosen_date_str = chosen_date.strftime("%Y-%m-%d")
+    render_mascot_banner(_cat_file, f"Bác Sĩ Mèo {_cat_icon}", _ai_msg, badge=_cat_label)
 
-        # 2. Chọn cảm xúc (1-Chạm Sinh Động)
-        st.markdown('<p class="hint-text">⚡ <b>Chạm nhanh cảm xúc hôm nay</b>:</p>', unsafe_allow_html=True)
-        mb1, mb2, mb3, mb4, mb5 = st.columns(5)
-        if mb1.button("😄\nVui vẻ", use_container_width=True, key="mbtn_happy"):
-            st.session_state["mood_sel_mood"] = "Happy"; st.rerun()
-        if mb2.button("🌸\nBình yên", use_container_width=True, key="mbtn_normal"):
-            st.session_state["mood_sel_mood"] = "Normal"; st.rerun()
-        if mb3.button("😫\nStress", use_container_width=True, key="mbtn_stress"):
-            st.session_state["mood_sel_mood"] = "Stressed"; st.rerun()
-        if mb4.button("🥺\nBuồn", use_container_width=True, key="mbtn_sad"):
-            st.session_state["mood_sel_mood"] = "Sad"; st.rerun()
-        if mb5.button("😴\nMệt mỏi", use_container_width=True, key="mbtn_tired"):
-            st.session_state["mood_sel_mood"] = "Tired"; st.rerun()
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">🌸 Cập Nhật Cảm Xúc Nhanh (3s)</div>', unsafe_allow_html=True)
 
-        # Radio hỗ trợ chọn chính xác
-        mood_radio_val = st.radio(
-            "Tâm trạng đang chọn:",
-            options=MOOD_LABELS,
-            index=MOOD_KEYS.index(st.session_state.get("mood_sel_mood", "Happy")),
-            horizontal=True,
-            key="diary_mood_radio",
-            label_visibility="collapsed",
+    # 1. Chọn ngày (Mặc định hôm nay, có thể chọn quá khứ để điền bù)
+    c_date, c_quick_mood = st.columns([1.2, 2.8])
+    with c_date:
+        chosen_date = st.date_input(
+            "📅 Ngày ghi nhận",
+            value=today_diary,
+            max_value=today_diary,
+            key="diary_date_pick",
+            help="Mặc định là hôm nay; có thể chọn ngày quá khứ để điền bù",
         )
-        sel_idx = MOOD_LABELS.index(mood_radio_val)
-        sel_mood_key = MOOD_KEYS[sel_idx]
-        st.session_state["mood_sel_mood"] = sel_mood_key
+        chosen_date_str = chosen_date.strftime("%Y-%m-%d")
 
-        # 3. Ghi chú tâm sự
-        mood_note_val = st.text_area(
-            "📝 Sổ nhật ký tâm sự cùng Bác sĩ Mèo & Anh (không bắt buộc):",
-            placeholder="Hôm nay của em thế nào? Có điều gì làm em vui, mệt mỏi hay áp lực không? Hãy viết ra đây để nhẹ lòng nhé, anh luôn lắng nghe em... 🌸",
-            key="diary_note",
-            height=85,
+    # 2. Chọn cảm xúc (1-Chạm Sinh Động)
+    st.markdown('<p class="hint-text">⚡ <b>Chạm nhanh cảm xúc hôm nay</b>:</p>', unsafe_allow_html=True)
+    mb1, mb2, mb3, mb4, mb5 = st.columns(5)
+    if mb1.button("😄\nVui vẻ", use_container_width=True, key="mbtn_happy"):
+        st.session_state["mood_sel_mood"] = "Happy"; st.rerun()
+    if mb2.button("🌸\nBình yên", use_container_width=True, key="mbtn_normal"):
+        st.session_state["mood_sel_mood"] = "Normal"; st.rerun()
+    if mb3.button("😫\nStress", use_container_width=True, key="mbtn_stress"):
+        st.session_state["mood_sel_mood"] = "Stressed"; st.rerun()
+    if mb4.button("🥺\nBuồn", use_container_width=True, key="mbtn_sad"):
+        st.session_state["mood_sel_mood"] = "Sad"; st.rerun()
+    if mb5.button("😴\nMệt mỏi", use_container_width=True, key="mbtn_tired"):
+        st.session_state["mood_sel_mood"] = "Tired"; st.rerun()
+
+    # Radio hỗ trợ chọn chính xác
+    mood_radio_val = st.radio(
+        "Tâm trạng đang chọn:",
+        options=MOOD_LABELS,
+        index=MOOD_KEYS.index(st.session_state.get("mood_sel_mood", "Happy")),
+        horizontal=True,
+        key="diary_mood_radio",
+        label_visibility="collapsed",
+    )
+    sel_idx = MOOD_LABELS.index(mood_radio_val)
+    sel_mood_key = MOOD_KEYS[sel_idx]
+    st.session_state["mood_sel_mood"] = sel_mood_key
+
+    # 3. Ghi chú tâm sự
+    mood_note_val = st.text_area(
+        "📝 Sổ nhật ký tâm sự cùng Bác sĩ Mèo & Anh (không bắt buộc):",
+        placeholder="Hôm nay của em thế nào? Có điều gì làm em vui, mệt mỏi hay áp lực không? Hãy viết ra đây để nhẹ lòng nhé, anh luôn lắng nghe em... 🌸",
+        key="diary_note",
+        height=85,
+    )
+
+    # 4. Nút lưu
+    save_btn_col, _ = st.columns([1.3, 2])
+    with save_btn_col:
+        save_clicked = st.button(
+            "💖 Lưu Cảm Xúc",
+            use_container_width=True,
+            type="primary",
+            key="diary_save_btn",
         )
 
-        # 4. Nút lưu
-        save_btn_col, _ = st.columns([1.3, 2])
-        with save_btn_col:
-            save_clicked = st.button(
-                "💖 Lưu Cảm Xúc",
-                use_container_width=True,
-                type="primary",
-                key="diary_save_btn",
+    if save_clicked:
+        ai_resp_val = AI_RESP_MAP.get(sel_mood_key, "Thương em nhiều! 💖")
+        note_clean  = mood_note_val.strip() if mood_note_val.strip() else None
+        try:
+            database.upsert_mood_log(
+                date_str    = chosen_date_str,
+                mood_type   = sel_mood_key,
+                note        = note_clean,
+                ai_response = ai_resp_val,
             )
+            st.success(f"✅ Đã ghi nhận cảm xúc **{mood_radio_val}** ngày {chosen_date_str}!")
+            invalidate_cache()
 
-        if save_clicked:
-            ai_resp_val = AI_RESP_MAP.get(sel_mood_key, "Thương em nhiều! 💖")
-            note_clean  = mood_note_val.strip() if mood_note_val.strip() else None
-            try:
-                database.upsert_mood_log(
-                    date_str    = chosen_date_str,
-                    mood_type   = sel_mood_key,
-                    note        = note_clean,
-                    ai_response = ai_resp_val,
-                )
-                st.success(f"✅ Đã ghi nhận cảm xúc **{mood_radio_val}** ngày {chosen_date_str}!")
-                invalidate_cache()
+            # 🤫 Secret Boy Mode: Nếu bạn gái buồn / stress / bực / mệt mỏi
+            if sel_mood_key in ["Sad", "Stressed", "Angry", "Tired"]:
+                try:
+                    _lbl = MOOD_KEY_MAP[sel_mood_key][0]
+                    _note_txt = note_clean if note_clean else "Không có ghi chú"
+                    notifier.notify_you_secret(
+                        f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
+                        f"Bạn gái vừa cập nhật cảm xúc: <b>{_lbl}</b> trên App.\n"
+                        f"📝 <b>Ghi chú:</b> {_note_txt}\n\n"
+                        f"👉 <i>Hãy nhắn tin hỏi thăm, động viên và chuẩn bị đồ ăn ngon cho cô ấy nhé! 🍫🧸💖</i>"
+                    )
+                except Exception:
+                    pass
+            st.rerun()
+        except Exception as e_save:
+            st.error(f"❌ Lỗi khi lưu: {e_save}")
 
-                # 🤫 Secret Boy Mode: Nếu bạn gái buồn / stress / bực / mệt mỏi
-                if sel_mood_key in ["Sad", "Stressed", "Angry", "Tired"]:
-                    try:
-                        _lbl = MOOD_KEY_MAP[sel_mood_key][0]
-                        _note_txt = note_clean if note_clean else "Không có ghi chú"
-                        notifier.notify_you_secret(
-                            f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
-                            f"Bạn gái vừa cập nhật cảm xúc: <b>{_lbl}</b> trên App.\n"
-                            f"📝 <b>Ghi chú:</b> {_note_txt}\n\n"
-                            f"👉 <i>Hãy nhắn tin hỏi thăm, động viên và chuẩn bị đồ ăn ngon cho cô ấy nhé! 🍫🧸💖</i>"
-                        )
-                    except Exception:
-                        pass
-                st.rerun()
-            except Exception as e_save:
-                st.error(f"❌ Lỗi khi lưu: {e_save}")
-
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    with col_cat_display:
-        _cur_mood_key = st.session_state["mood_sel_mood"]
-        _mood_info    = MOOD_KEY_MAP.get(_cur_mood_key, MOOD_KEY_MAP["Happy"])
-        _cat_label, _bg_color, _cat_file, _cat_icon = _mood_info
-        _ai_msg       = AI_RESP_MAP.get(_cur_mood_key, "💖")
-
-        st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        render_cat(_cat_file, f"Bác sĩ Mèo đang lắng nghe {_cat_icon}", width=160)
-        st.markdown(f"""
-        <div class="cat-speech-bubble">
-            🐱 {_ai_msg}
-        </div>
-        """, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # ══════════════════════════════════════════════════════
     # ZONE 2: MA TRẬN LỊCH CẢM XÚC (MOOD CALENDAR MATRIX)
@@ -2240,14 +2102,9 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 elif selected_nav == "⚙️ Cài Đặt":
-    col_cfg_main, col_cfg_cat = st.columns([2.5, 1])
-    with col_cfg_main:
-        st.subheader("⚙️ Cấu Hình Telegram Bot & Thông Báo")
-        st.markdown('<p class="hint-text">Thiết lập kết nối Telegram Cloud 24/7 để Bot tự động gửi lời yêu thương và nhắc nhở đúng giờ.</p>', unsafe_allow_html=True)
-    with col_cfg_cat:
-        st.markdown('<div class="cat-card">', unsafe_allow_html=True)
-        render_cat("chating_cat.jpg", "Bot luôn sẵn sàng trò chuyện! 🐱💬", width=160)
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.subheader("⚙️ Cấu Hình Telegram Bot & Thông Báo")
+    st.markdown('<p class="hint-text">Thiết lập kết nối Telegram Cloud 24/7 để Bot tự động gửi lời yêu thương và nhắc nhở đúng giờ.</p>', unsafe_allow_html=True)
+    render_mascot_banner("chating_cat.jpg", "Trợ Lý Meow 🤖", "Thiết lập kết nối Telegram Cloud 24/7 để Bot tự động gửi lời yêu thương và nhắc nhở em đúng giờ!", badge="Cloud 24/7")
 
     cur = get_cached_settings()
 
