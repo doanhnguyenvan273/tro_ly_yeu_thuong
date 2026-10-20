@@ -510,7 +510,6 @@ div.stButton > button:hover { transform: scale(1.025) translateY(-1px) !importan
 # ──────────────────────────────────────────────────────────────────────────────
 # HIGH-PERFORMANCE DATA LAYER (Tăng tốc độ phản hồi, loại bỏ lag khi thao tác)
 # ──────────────────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_settings():
     return config.load_settings()
 

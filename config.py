@@ -66,28 +66,56 @@ DEFAULT_SETTINGS = {
 }
 
 def load_settings() -> dict:
-    """Tải cấu hình từ file settings.json hoặc khởi tạo mặc định."""
-    if not SETTINGS_FILE.exists():
-        save_settings(DEFAULT_SETTINGS)
-        return DEFAULT_SETTINGS.copy()
+    """Tải cấu hình từ file settings.json và đồng bộ với CSDL Cloud Turso (0MB lưu trữ)."""
+    res = DEFAULT_SETTINGS.copy()
+    if SETTINGS_FILE.exists():
+        try:
+            with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    res.update(data)
+        except Exception:
+            pass
+    else:
+        try:
+            with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
+                json.dump(DEFAULT_SETTINGS, f, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
+    # Đồng bộ thêm từ CSDL Cloud (Turso / SQLite app_kv) để luôn đồng nhất tức thì giữa Telegram Bot & Web
     try:
-        with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            merged = DEFAULT_SETTINGS.copy()
-            merged.update(data)
-            return merged
+        import database
+        db_kv = database.get_all_app_kv()
+        if db_kv:
+            for k in ["pinned_note", "pinned_note_time", "app_passcode", "web_app_url", "weather_city"]:
+                if k in db_kv:
+                    res[k] = db_kv[k]
     except Exception:
-        return DEFAULT_SETTINGS.copy()
+        pass
+
+    return res
 
 def save_settings(settings: dict) -> bool:
-    """Lưu cấu hình vào file settings.json."""
+    """Lưu cấu hình vào file settings.json và CSDL Cloud Turso."""
+    success = False
     try:
         with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
             json.dump(settings, f, ensure_ascii=False, indent=2)
-        return True
+        success = True
     except Exception as e:
-        print(f"Lỗi khi lưu cài đặt: {e}")
-        return False
+        print(f"Lỗi khi lưu cài đặt vào file: {e}")
+
+    # Ghi nhận lên Cloud CSDL để Web App Render cập nhật tức thì
+    try:
+        import database
+        for k in ["pinned_note", "pinned_note_time", "app_passcode", "web_app_url", "weather_city"]:
+            if k in settings:
+                database.set_app_kv(k, settings[k])
+    except Exception:
+        pass
+
+    return success
 
 # Nạp settings từ file (nếu có) để dự phòng
 _settings = load_settings()

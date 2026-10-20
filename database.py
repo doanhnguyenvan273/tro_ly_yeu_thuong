@@ -322,6 +322,15 @@ def init_db():
             cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_mood_logs_date ON mood_logs(date)")
         except Exception:
             pass
+
+        # Bảng Đồng bộ Cấu hình & Mảnh Giấy Nhớ (0MB lưu trữ, đồng bộ tức thì Cloud Turso & Web)
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS app_kv (
+            key TEXT PRIMARY KEY,
+            value TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
         
         conn.commit()
 
@@ -745,6 +754,51 @@ def get_mood_log_by_date(date_str: str) -> Optional[Dict[str, Any]]:
         cursor.execute("SELECT * FROM mood_logs WHERE date = ?", (date_str,))
         row = cursor.fetchone()
         return dict(row) if row else None
+
+def get_app_kv(key: str, default: str = "") -> str:
+    """Lấy giá trị cấu hình/dữ liệu dạng key-value từ CSDL Cloud/Local."""
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT value FROM app_kv WHERE key = ?", (key,))
+            row = cursor.fetchone()
+            if row:
+                return row.get("value") if isinstance(row, dict) else row[0]
+    except Exception:
+        pass
+    return default
+
+def set_app_kv(key: str, value: str) -> bool:
+    """Lưu hoặc cập nhật giá trị key-value vào CSDL Cloud/Local."""
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT OR REPLACE INTO app_kv (key, value, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+                (key, str(value) if value is not None else "")
+            )
+            conn.commit()
+            return True
+    except Exception as e:
+        print(f"[Database] Lỗi set_app_kv ({key}): {e}")
+        return False
+
+def get_all_app_kv() -> Dict[str, str]:
+    """Lấy toàn bộ các cặp key-value từ CSDL."""
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT key, value FROM app_kv")
+            rows = cursor.fetchall()
+            res = {}
+            for r in rows:
+                k = r.get("key") if isinstance(r, dict) else r[0]
+                v = r.get("value") if isinstance(r, dict) else r[1]
+                if k:
+                    res[k] = v if v is not None else ""
+            return res
+    except Exception:
+        return {}
 
 # Khởi tạo CSDL khi import
 init_db()

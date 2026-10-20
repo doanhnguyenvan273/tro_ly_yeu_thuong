@@ -5,6 +5,7 @@ import threading
 import requests
 from datetime import datetime, date, timedelta
 from typing import Dict, Any, List, Union, Optional
+import re
 
 if hasattr(sys.stdout, 'reconfigure'):
     try:
@@ -580,18 +581,35 @@ def handle_incoming_message(msg: Dict[str, Any]):
         notifier.send_telegram_message(chat_id, prompt, reply_markup=MOOD_KEYBOARD)
         return
 
-    # 0.55 Ghim mẩu giấy nhớ lên Web App (cú pháp: nhắn: ..., note: ..., ghim: ...)
-    pin_prefixes = ["nhắn:", "nhan:", "note:", "ghim:"]
-    matched_prefix = next((p for p in pin_prefixes if text_lower.startswith(p)), None)
-    if matched_prefix:
-        note_body = text[len(matched_prefix):].strip()
-        if not note_body:
-            notifier.send_telegram_message(
-                chat_id,
-                "💡 Cậu hãy nhập nội dung cần ghim sau dấu hai chấm nhé!\nVí dụ: <code>nhắn: Tối nay tớ qua đón cậu nhé!</code>"
-            )
-            return
+    # 0.55 Ghim mẩu giấy nhớ lên Web App (không phân biệt hoa/thường, hỗ trợ cả dấu hai chấm hoặc dấu cách)
+    # Cú pháp: note: ..., note ..., nhắn: ..., nhắn ..., ghim: ..., ghim ..., lời nhắn: ..., /note ...
+    is_note_prompt_only = text_lower in [
+        "note", "/note", "nhắn", "/nhan", "nhan", "ghim", "/ghim",
+        "lời nhắn", "loi nhan", "giấy nhớ", "giay nho"
+    ]
+    if is_note_prompt_only:
+        notifier.send_telegram_message(
+            chat_id,
+            "💡 <b>HƯỚNG DẪN GHIM GIẤY NHỚ LÊN WEB APP</b> 📌\n\n"
+            "Cậu hãy nhập nội dung cần ghim sau chữ <b>note</b> hoặc <b>nhắn</b> nhé (không phân biệt HOA / thường, có hoặc không có dấu hai chấm):\n\n"
+            "• <code>note: Tối nay tớ qua đón cậu nhé!</code>\n"
+            "• <code>Note Tối nay tớ qua đón cậu nhé!</code>\n"
+            "• <code>nhắn Tối nay tớ qua đón cậu nhé!</code>\n"
+            "• <code>ghim Chúc cậu một ngày thật nhiều niềm vui! 🌸</code>"
+        )
+        return
 
+    # Khớp nội dung ghim (hỗ trợ cả dấu hai chấm, dấu cách, có hoặc không có dấu gạch chéo '/')
+    note_body = None
+    pin_match = re.match(
+        r'^(?:/)?(?:note|nhắn|nhan|ghim|lời nhắn|loi nhan)(?:\s*:\s*|\s+)(.+)$',
+        text,
+        re.IGNORECASE | re.DOTALL
+    )
+    if pin_match:
+        note_body = pin_match.group(1).strip()
+
+    if note_body:
         cur_settings = config.load_settings()
         cur_settings["pinned_note"] = note_body
         cur_settings["pinned_note_time"] = config.get_now().strftime("%d/%m %H:%M")
