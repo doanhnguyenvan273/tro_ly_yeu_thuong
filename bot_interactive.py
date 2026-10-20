@@ -432,6 +432,7 @@ def build_help_response(name: str = "Bạn") -> str:
         f"📋 <b>Điểm danh:</b> <code>điểm danh</code> / <code>vắng mặt</code>\n"
         f"📊 <b>Trạng thái:</b> <code>status</code> / <code>tình trạng</code>\n"
         f"🌤️ <b>Thời tiết:</b> <code>thời tiết</code> / <code>mưa không</code>\n"
+        f"📌 <b>Ghim giấy nhớ:</b> <code>nhắn: [nội dung]</code> (Ghim lên đầu trang chủ Web)\n"
         f"📱 <b>Mở Web App:</b> <code>app</code> / <code>link</code> (Lấy Magic Link 1-chạm)\n\n"
         f"<i>Chúc {name} một ngày luôn rạng ngời và ngập tràn hạnh phúc! ✨</i>"
     )
@@ -577,6 +578,40 @@ def handle_incoming_message(msg: Dict[str, Any]):
             "<i>Bấm vào một nút bên dưới để chia sẻ nhé:</i>"
         )
         notifier.send_telegram_message(chat_id, prompt, reply_markup=MOOD_KEYBOARD)
+        return
+
+    # 0.55 Ghim mẩu giấy nhớ lên Web App (cú pháp: nhắn: ..., note: ..., ghim: ...)
+    pin_prefixes = ["nhắn:", "nhan:", "note:", "ghim:"]
+    matched_prefix = next((p for p in pin_prefixes if text_lower.startswith(p)), None)
+    if matched_prefix:
+        note_body = text[len(matched_prefix):].strip()
+        if not note_body:
+            notifier.send_telegram_message(
+                chat_id,
+                "💡 Cậu hãy nhập nội dung cần ghim sau dấu hai chấm nhé!\nVí dụ: <code>nhắn: Tối nay tớ qua đón cậu nhé!</code>"
+            )
+            return
+
+        cur_settings = config.load_settings()
+        cur_settings["pinned_note"] = note_body
+        cur_settings["pinned_note_time"] = config.get_now().strftime("%d/%m %H:%M")
+        config.save_settings(cur_settings)
+
+        reply_sender = (
+            f"📌 <b>ĐÃ GHIM MẢNH GIẤY NHỚ LÊN WEB APP!</b> 🌸\n\n"
+            f"<i>\"{note_body}\"</i>\n\n"
+            f"Lời nhắn này sẽ hiển thị ở đầu trang chủ cho đến khi người ấy bấm nút <b>'Đã đọc'</b> để xóa nhé! 💖"
+        )
+        notifier.send_telegram_message(chat_id, reply_sender)
+
+        # Nếu người gửi là bạn trai -> Bắn tin nhắn báo nhẹ cho cô ấy trên Telegram
+        if sender_id_str == my_id and her_id:
+            magic_url = config.get_magic_link()
+            open_btn_text = f"\n👉 <a href='{magic_url}'>Mở App Đọc Ngay ➔</a>" if magic_url else ""
+            notifier.notify_her(
+                f"💌 <b>{user_display} vừa để lại một mẩu giấy nhớ cho cậu trên Web App!</b> 🌸\n\n"
+                f"<i>\"{note_body}\"</i>{open_btn_text}"
+            )
         return
 
     # 0.6 Lời chúc ngủ ngon (Cá nhân hóa theo cảm xúc hôm nay)

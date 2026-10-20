@@ -802,6 +802,43 @@ if selected_nav == "🏠 Trang Chủ":
     </div>
     """, unsafe_allow_html=True)
 
+    # 0. Mảnh Giấy Nhớ Ghim Yêu Thương (Nếu có và chưa bấm đã đọc)
+    pinned_note_txt = settings.get("pinned_note", "").strip()
+    pinned_note_time = settings.get("pinned_note_time", "").strip()
+    my_display_name = settings.get("my_name", "Tớ 💫")
+
+    if pinned_note_txt:
+        time_tag = f" — <span style='font-size:0.75rem;opacity:0.8;'>{pinned_note_time}</span>" if pinned_note_time else ""
+        col_note_box, col_note_ack = st.columns([3.8, 1.2])
+        with col_note_box:
+            st.markdown(f"""
+            <div style="background:#fffcf0;border:1.5px solid #ffe58f;border-left:5px solid #faad14;border-radius:14px;padding:12px 16px;box-shadow:0 3px 12px rgba(250,173,20,0.12);margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:6px;font-weight:700;color:#d46b08;font-size:0.92rem;margin-bottom:4px;">
+                    📌 Mảnh giấy nhớ từ {my_display_name}{time_tag}
+                </div>
+                <div style="font-size:0.93rem;color:#333;line-height:1.6;font-style:italic;">
+                    "{pinned_note_txt}"
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col_note_ack:
+            if st.button("💌 Đã đọc 🌸", key="btn_ack_pinned_note", help="Bấm để xóa lời nhắn và giải phóng bộ nhớ", use_container_width=True):
+                cur_st = config.load_settings()
+                cur_st["pinned_note"] = ""
+                cur_st["pinned_note_time"] = ""
+                config.save_settings(cur_st)
+                invalidate_cache()
+                try:
+                    notifier.notify_you_secret(
+                        f"💌 <b>[CẬU ẤY ĐÃ ĐỌC LỜI NHẮN]</b> 🌸\n\n"
+                        f"Cậu ấy vừa đọc và xóa lời nhắn ghim:\n"
+                        f"<i>\"{pinned_note_txt}\"</i>"
+                    )
+                except Exception:
+                    pass
+                st.toast("✨ Cậu đã đọc lời nhắn rồi! Chúc cậu một ngày thật vui vẻ! 💖")
+                st.rerun()
+
     # 1. Bốn Thẻ KPI Tổng Quan Nhanh (Click trực tiếp vào thẻ để chuyển tab Navbar tương ứng)
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
     with kpi1:
@@ -2246,7 +2283,24 @@ elif selected_nav == "⚙️ Cài Đặt":
         with wt_col2:
             st.markdown(f'<div style="font-size:0.85rem;color:#666;margin-top:28px;">📍 Tọa độ: <b>{CITY_COORDS[sel_city][0]}, {CITY_COORDS[sel_city][1]}</b> (0MB ổ cứng, 0% CPU)</div>', unsafe_allow_html=True)
 
+        st.markdown("#### 📌 Ghim Mảnh Giấy Nhớ Cho Cậu Ấy (Sticky Note)")
+        pinned_input_val = st.text_area(
+            "Nội dung lời nhắn ghim lên đầu trang chủ của cậu ấy:",
+            value=cur.get("pinned_note", ""),
+            placeholder="VD: Chiều nay đi học về tớ qua đón cậu đi ăn kem nhé!...",
+            help="Lời nhắn này sẽ hiện nổi bật ở đầu trang chủ cho đến khi cậu ấy bấm 'Đã đọc' mới biến mất và giải phóng bộ nhớ.",
+            height=70
+        )
+
         if st.form_submit_button("💾 Lưu Tất Cả Cài Đặt", use_container_width=True):
+            _old_pinned = cur.get("pinned_note", "").strip()
+            _new_pinned = pinned_input_val.strip()
+            _pin_time = cur.get("pinned_note_time", "")
+            if _new_pinned and _new_pinned != _old_pinned:
+                _pin_time = config.get_now().strftime("%d/%m %H:%M")
+            elif not _new_pinned:
+                _pin_time = ""
+
             cur.update({
                 "telegram_bot_token":    bot_token.strip(),
                 "telegram_her_chat_id":  her_chat.strip(),
@@ -2259,6 +2313,8 @@ elif selected_nav == "⚙️ Cài Đặt":
                 "weather_city":          sel_city,
                 "weather_latitude":      CITY_COORDS[sel_city][0],
                 "weather_longitude":     CITY_COORDS[sel_city][1],
+                "pinned_note":           _new_pinned,
+                "pinned_note_time":      _pin_time,
             })
             if config.save_settings(cur):
                 invalidate_cache()

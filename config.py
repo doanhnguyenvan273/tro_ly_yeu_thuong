@@ -60,7 +60,9 @@ DEFAULT_SETTINGS = {
     "web_app_url": "",
     "weather_city": "Hà Nội",
     "weather_latitude": 21.0285,
-    "weather_longitude": 105.8542
+    "weather_longitude": 105.8542,
+    "pinned_note": "",
+    "pinned_note_time": ""
 }
 
 def load_settings() -> dict:
