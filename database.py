@@ -1,5 +1,6 @@
 import sqlite3
 import requests
+import json
 from datetime import datetime, date, timedelta
 from typing import List, Dict, Any, Optional
 from config import DB_PATH, TURSO_DATABASE_URL, TURSO_AUTH_TOKEN

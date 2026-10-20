@@ -5,7 +5,7 @@ services:
     region: singapore
     plan: free
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "python server.py"
+    startCommand: "python -m streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
     autoDeploy: true
     envVars:
       - key: TELEGRAM_BOT_TOKEN
