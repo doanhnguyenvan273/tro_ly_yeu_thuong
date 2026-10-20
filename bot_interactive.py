@@ -23,6 +23,7 @@ import database
 import notifier
 import menstrual_ml
 import deadline_ml
+import scheduler
 
 _LISTENER_RUNNING = False
 _LISTENER_THREAD = None
@@ -497,9 +498,16 @@ def handle_incoming_message(msg: Dict[str, Any]):
     # BẢO MẬT: Chỉ cho phép ID hợp lệ (nếu đã cấu hình)
     if allowed and sender_id_str not in allowed:
         try:
-            print(f"[Bảo Mật] Bỏ qua tin nhắn từ Chat ID lạ: {sender_id_str} (Hợp lệ: {allowed})")
-        except Exception:
-            pass
+            print(f"[Bảo Mật] Nhận tin nhắn từ Chat ID chưa khai báo: {sender_id_str} (Được phép: {allowed})")
+            notifier.send_telegram_message(
+                chat_id,
+                f"🔒 <b>TRỢ LÝ YÊU THƯƠNG</b> 🌸\n\n"
+                f"Tài khoản của bạn có Telegram Chat ID là: <code>{sender_id_str}</code>\n\n"
+                f"⚠️ ID này chưa nằm trong danh sách được phép truy cập ({', '.join(allowed)}).\n\n"
+                f"👉 Hãy cập nhật Chat ID này vào file <code>.env</code> hoặc mục <b>⚙️ Cài Đặt</b> trên Web App để bot nhận diện và phản hồi bạn nhé! 💖"
+            )
+        except Exception as auth_err:
+            print(f"[Bảo Mật] Lỗi gửi thông báo từ chối: {auth_err}")
         return
 
     if sender_id_str == her_id:
@@ -639,7 +647,6 @@ def handle_incoming_message(msg: Dict[str, Any]):
         "good night", "g9", "/chucngon", "ngủ đây", "ngu day"
     ]
     if any(k in text_lower for k in night_keywords):
-        import scheduler
         if sender_id_str == her_id:
             # Gửi tin chúc ngủ ngon cá nhân hóa cho cậu ấy
             reply = scheduler.build_good_night_message()
@@ -655,7 +662,6 @@ def handle_incoming_message(msg: Dict[str, Any]):
         "buoi sang tot lanh", "good morning", "/buoisang", "/morning"
     ]
     if any(k in text_lower for k in morning_keywords):
-        import scheduler
         if sender_id_str == her_id:
             # Gửi tin chào sáng cá nhân hóa cho cậu ấy
             reply = scheduler.build_good_morning_message()
@@ -712,7 +718,6 @@ def handle_incoming_message(msg: Dict[str, Any]):
         return
 
     # 7. Đánh dấu hoàn thành deadline (hỗ trợ: xong task 1, done task 1, hoàn thành task 1, 3, done 1, 3, v.v.)
-    import re
     complete_deadline_prefixes = [
         "xong task", "done task", "hoàn thành task", "hoan thanh task",
         "xong deadline", "done deadline", "hoàn thành deadline", "hoan thanh deadline",
@@ -774,7 +779,6 @@ def handle_incoming_message(msg: Dict[str, Any]):
     # 9.6 Tra cứu thời tiết hôm nay
     weather_keywords = ["thời tiết", "thoi tiet", "weather", "mưa không", "mua khong", "nhiệt độ", "nhiet do", "/weather"]
     if any(k in text_lower for k in weather_keywords):
-        import scheduler
         w_advice = scheduler.get_today_weather_advice()
         if w_advice:
             reply = f"🌤️ <b>TÌNH HÌNH THỜI TIẾT HÔM NAY</b> 🌸\n\n{w_advice}\n\n<i>Chúc {user_display} một ngày thật an lành và ấm áp nhé! 💖</i>"
