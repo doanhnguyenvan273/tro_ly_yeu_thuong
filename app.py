@@ -642,82 +642,67 @@ div.stButton > button:hover { transform: scale(1.025) translateY(-1px) !importan
 }
 
 /* Thanh 4 nút thao tác nằm gọn bên trong thẻ, luôn 1 hàng ngang trên cả Mobile & Desktop */
-.task-action-row {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 6px !important;
-    width: 100% !important;
-    margin-top: 10px !important;
-}
-
-.task-action-btn {
-    flex: 1 1 25% !important;
-    text-align: center !important;
-    text-decoration: none !important;
-    padding: 8px 4px !important;
-    border-radius: 20px !important;
-    font-size: 0.78rem !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.2px !important;
-    white-space: nowrap !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+/* Thẻ task card item bo góc trên */
+.task-card-item {
+    background: #ffffff !important;
+    border: 1.5px solid #ffe4e8 !important;
+    border-top-left-radius: 18px !important;
+    border-top-right-radius: 18px !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-bottom: 1px dashed #ffd6e0 !important;
+    padding: 14px 16px 12px 16px !important;
+    box-shadow: 0 4px 14px rgba(255, 182, 193, 0.08) !important;
+    margin-bottom: 0 !important;
     box-sizing: border-box !important;
 }
-.task-action-btn:hover {
+
+/* Khung 4 nút hành động Native Streamlit gắn liền dưới chân thẻ Task */
+div[data-testid="stHorizontalBlock"]:has(button[key*="btn_p_"]) {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    margin-top: -1px !important;
+    margin-bottom: 0 !important;
+    background: #ffffff !important;
+    border: 1.5px solid #ffe4e8 !important;
+    border-top: none !important;
+    border-bottom-left-radius: 18px !important;
+    border-bottom-right-radius: 18px !important;
+    padding: 6px 10px 10px 10px !important;
+    box-shadow: 0 4px 14px rgba(255, 182, 193, 0.08) !important;
+}
+
+div[data-testid="stHorizontalBlock"]:has(button[key*="btn_p_"]) > div {
+    min-width: 0 !important;
+    flex: 1 1 0 !important;
+}
+
+div[data-testid="stHorizontalBlock"]:has(button[key*="btn_p_"]) button {
+    border-radius: 20px !important;
+    font-size: 0.74rem !important;
+    font-weight: 700 !important;
+    padding: 2px 4px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    white-space: nowrap !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Nút xóa đỏ nhẹ nổi bật */
+div[data-testid="stHorizontalBlock"]:has(button[key*="btn_p_"]) button[key*="btn_del_"] {
+    background: #fff5f5 !important;
+    border: 1.2px solid #ffc9c9 !important;
+    color: #e03131 !important;
+}
+div[data-testid="stHorizontalBlock"]:has(button[key*="btn_p_"]) button[key*="btn_del_"]:hover {
+    background: #ffe3e3 !important;
+    border-color: #ffa8a8 !important;
+    color: #c92a2a !important;
     transform: translateY(-1px) scale(1.02) !important;
 }
 
-/* Nút thông thường (kính mờ viền hồng nhẹ) */
-.task-btn-default {
-    background: #ffffff !important;
-    border: 1.2px solid #ffd1df !important;
-    color: #495057 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
-}
-.task-btn-default:hover {
-    background: #fff0f5 !important;
-    color: #e64980 !important;
-}
-
-/* Trạng thái đang kích hoạt: Chưa làm */
-.task-btn-active-pending {
-    background: #f1f3f5 !important;
-    border: 1.5px solid #ced4da !important;
-    color: #495057 !important;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06) !important;
-}
-
-/* Trạng thái đang kích hoạt: Đang làm */
-.task-btn-active-progress {
-    background: #fff0f6 !important;
-    border: 1.5px solid #faa2c1 !important;
-    color: #d6336c !important;
-}
-
-/* Trạng thái đang kích hoạt: Hoàn thành (Active Pink Gradient) */
-.task-btn-active-done {
-    background: linear-gradient(135deg, #f783ac 0%, #e64980 100%) !important;
-    border: 1.5px solid #e64980 !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(230, 73, 128, 0.28) !important;
-}
-
-/* Nút xóa tinh tế */
-.task-btn-del {
-    background: rgba(255, 255, 255, 0.85) !important;
-    border: 1.2px solid #ffe3ec !important;
-    color: #adb5bd !important;
-}
-.task-btn-del:hover {
-    background: #ffe3ec !important;
-    color: #e03131 !important;
-    border-color: #ffc9c9 !important;
-}
 
 /* ══════════════════════════════════════════════════════
    BENTO WIDGETS GRID (4 cột trên Desktop, 2x2 cân xứng trên Mobile)
@@ -1599,9 +1584,112 @@ elif "Deadline" in selected_nav:
     else:
         render_mascot_banner("burnOut_cat.jpg", "Mèo Nước Rút", "Deadline đang dí sát nút rùi! Tập trung hoàn thành từng bài một nha!", badge="Đang có deadline")
 
-    sub_add_t, sub_list_t, sub_ai_t = st.tabs(["Thêm Deadline", "Danh Sách Task", "Kiểm Tra AI Nhanh"])
+    sub_list_t, sub_add_t, sub_ai_t = st.tabs(["📋 Danh Sách Task", "➕ Thêm Deadline", "🤖 Kiểm Tra AI Nhanh"])
 
-    # ── Thêm deadline ──
+    # ── 1. Danh sách task (Tab chính mặc định) ──
+    with sub_list_t:
+        if not tasks:
+            st.markdown("""<div class="card" style="padding:24px;">
+                <div class="section-title">Trống deadline</div>
+                <p style="color:#555;line-height:1.75;">Cậu không có deadline nào đang chờ. Được nghỉ ngơi rồi, an tâm thư giãn nhé.</p>
+            </div>""", unsafe_allow_html=True)
+        else:
+            filter_status = st.selectbox("Lọc trạng thái:", ["Tất cả","Chưa làm","Đang làm","Đã hoàn thành"], key="filter_deadline_status")
+
+            for t in tasks:
+                if filter_status and filter_status != "Tất cả" and t["status"] != filter_status:
+                    continue
+                d_dt   = datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M")
+                diff_h = (d_dt - now_dt).total_seconds() / 3600.0
+                pred   = deadline_ml.predict_deadline_risk(t["task_name"], classes_today, max(0.1,diff_h), t["estimated_hours"])
+                
+                # Làm sạch dữ liệu, triệt tiêu hoàn toàn emoji
+                clean_name = strip_emojis(t['task_name'])
+                clean_subj = strip_emojis(t['subject_name'])
+                clean_msg  = strip_emojis(pred['warning_message'])
+
+                # Style huy hiệu trạng thái theo chuẩn Monochromatic Pink (iOS Control Center)
+                if t["status"] == "Đã hoàn thành":
+                    badge_html = """<span style="background:rgba(255,227,236,0.95);color:#c2255c;border:1px solid #fcc2d7;font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c2255c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Hoàn thành
+                    </span>"""
+                elif t["status"] == "Đang làm":
+                    badge_html = """<span style="background:rgba(255,240,246,0.95);color:#d6336c;border:1px solid #faa2c1;font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#d6336c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Đang làm
+                    </span>"""
+                else:
+                    badge_html = """<span style="background:rgba(248,249,250,0.95);color:#868e96;border:1px solid #e9ecef;font-size:0.75rem;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#868e96" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+                        Chưa làm
+                    </span>"""
+
+                st.markdown(f"""
+                <div class="task-card-item">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg, #f783ac, #e64980);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(230,73,128,0.25);flex-shrink:0;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            </div>
+                            <span style="font-weight:700;font-size:0.98rem;color:#2b2b2b;">{clean_name}</span>
+                        </div>
+                        {badge_html}
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:0.83rem;color:#495057;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,228,232,0.6);">
+                        <span style="display:inline-flex;align-items:center;gap:5px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                            <b>{clean_subj}</b>
+                        </span>
+                        <span style="display:inline-flex;align-items:center;gap:5px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            Hạn: <b>{t['deadline']}</b> (còn <b>{max(0,diff_h):.1f}h</b>)
+                        </span>
+                        <span style="display:inline-flex;align-items:center;gap:5px;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35l-.85-.85"/><path d="M9 5h6"/><path d="M12 2v3"/></svg>
+                            Dự kiến: <b>{t['estimated_hours']}h</b>
+                        </span>
+                    </div>
+                    <div style="background:rgba(255,240,243,0.7);border:1px solid rgba(255,209,220,0.85);border-radius:14px;padding:8px 12px;font-size:0.82rem;line-height:1.5;color:#495057;">
+                        <div style="display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;font-weight:700;color:#c2255c;background:#ffffff;border:1px solid #ffd1df;border-radius:12px;padding:1px 8px;margin-bottom:4px;">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                            AI Rủi ro: {pred['risk_percentage']}%
+                        </div>
+                        <div>{clean_msg}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Nút hành động Native của Streamlit gắn liền dưới thẻ
+                c_p, c_w, c_d, c_del = st.columns([1, 1, 1.25, 0.75])
+                with c_p:
+                    is_p = (t["status"] == "Chưa làm")
+                    if st.button("○ Chưa làm", key=f"btn_p_{t['id']}", use_container_width=True, type="primary" if is_p else "secondary"):
+                        database.update_task_status(t['id'], "Chưa làm")
+                        invalidate_cache()
+                        st.rerun()
+                with c_w:
+                    is_w = (t["status"] == "Đang làm")
+                    if st.button("◐ Đang làm", key=f"btn_w_{t['id']}", use_container_width=True, type="primary" if is_w else "secondary"):
+                        database.update_task_status(t['id'], "Đang làm")
+                        invalidate_cache()
+                        st.rerun()
+                with c_d:
+                    is_d = (t["status"] == "Đã hoàn thành")
+                    if st.button("✓ Hoàn thành", key=f"btn_d_{t['id']}", use_container_width=True, type="primary" if is_d else "secondary"):
+                        database.update_task_status(t['id'], "Đã hoàn thành")
+                        invalidate_cache()
+                        st.rerun()
+                with c_del:
+                    if st.button("🗑️ Xóa", key=f"btn_del_{t['id']}", use_container_width=True):
+                        database.delete_task(t['id'])
+                        invalidate_cache()
+                        st.toast(f"Đã xóa vĩnh viễn bài tập '{clean_name}'!")
+                        st.rerun()
+
+                st.markdown('<div style="margin-bottom:14px;"></div>', unsafe_allow_html=True)
+
+    # ── 2. Thêm deadline ──
     with sub_add_t:
         subj_list  = list(set([s["subject_name"] for s in all_scheds])) if all_scheds else []
 
@@ -1687,95 +1775,6 @@ elif "Deadline" in selected_nav:
             </div>
         </div>""", unsafe_allow_html=True)
 
-    # ── Danh sách task ──
-    with sub_list_t:
-        if not tasks:
-            st.markdown("""<div class="card" style="padding:24px;">
-                <div class="section-title">Trống deadline</div>
-                <p style="color:#555;line-height:1.75;">Cậu không có deadline nào đang chờ. Được nghỉ ngơi rồi, an tâm thư giãn nhé.</p>
-            </div>""", unsafe_allow_html=True)
-        else:
-            has_overdue = any(
-                t["status"] != "Đã hoàn thành" and datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M") < now_dt
-                for t in tasks
-            )
-            has_pending = any(t["status"] != "Đã hoàn thành" for t in tasks)
-
-            filter_status = st.selectbox("Lọc trạng thái:", ["Tất cả","Chưa làm","Đang làm","Đã hoàn thành"])
-
-            for t in tasks:
-                if filter_status and filter_status != "Tất cả" and t["status"] != filter_status:
-                    continue
-                d_dt   = datetime.strptime(t["deadline"], "%Y-%m-%d %H:%M")
-                diff_h = (d_dt - now_dt).total_seconds() / 3600.0
-                pred   = deadline_ml.predict_deadline_risk(t["task_name"], classes_today, max(0.1,diff_h), t["estimated_hours"])
-                
-                # Làm sạch dữ liệu, triệt tiêu hoàn toàn emoji
-                clean_name = strip_emojis(t['task_name'])
-                clean_subj = strip_emojis(t['subject_name'])
-                clean_msg  = strip_emojis(pred['warning_message'])
-
-                # Style huy hiệu trạng thái theo chuẩn Monochromatic Pink (iOS Control Center)
-                if t["status"] == "Đã hoàn thành":
-                    badge_html = """<span style="background:rgba(255,227,236,0.95);color:#c2255c;border:1px solid #fcc2d7;font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#c2255c" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        Hoàn thành
-                    </span>"""
-                elif t["status"] == "Đang làm":
-                    badge_html = """<span style="background:rgba(255,240,246,0.95);color:#d6336c;border:1px solid #faa2c1;font-size:0.75rem;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#d6336c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                        Đang làm
-                    </span>"""
-                else:
-                    badge_html = """<span style="background:rgba(248,249,250,0.95);color:#868e96;border:1px solid #e9ecef;font-size:0.75rem;font-weight:600;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px;">
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#868e96" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
-                        Chưa làm
-                    </span>"""
-
-                btn_p_cls = "task-btn-active-pending" if t["status"] == "Chưa làm" else "task-btn-default"
-                btn_w_cls = "task-btn-active-progress" if t["status"] == "Đang làm" else "task-btn-default"
-                btn_d_cls = "task-btn-active-done" if t["status"] == "Đã hoàn thành" else "task-btn-default"
-
-                st.markdown(f"""
-                <div class="task-card-item">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg, #f783ac, #e64980);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(230,73,128,0.25);flex-shrink:0;">
-                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                            </div>
-                            <span style="font-weight:700;font-size:0.98rem;color:#2b2b2b;">{clean_name}</span>
-                        </div>
-                        {badge_html}
-                    </div>
-                    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:0.83rem;color:#495057;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,228,232,0.6);">
-                        <span style="display:inline-flex;align-items:center;gap:5px;">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                            <b>{clean_subj}</b>
-                        </span>
-                        <span style="display:inline-flex;align-items:center;gap:5px;">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                            Hạn: <b>{t['deadline']}</b> (còn <b>{max(0,diff_h):.1f}h</b>)
-                        </span>
-                        <span style="display:inline-flex;align-items:center;gap:5px;">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="M16.51 17.35l-.85-.85"/><path d="M9 5h6"/><path d="M12 2v3"/></svg>
-                            Dự kiến: <b>{t['estimated_hours']}h</b>
-                        </span>
-                    </div>
-                    <div style="background:rgba(255,240,243,0.7);border:1px solid rgba(255,209,220,0.85);border-radius:14px;padding:8px 12px;font-size:0.82rem;line-height:1.5;color:#495057;margin-bottom:12px;">
-                        <div style="display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;font-weight:700;color:#c2255c;background:#ffffff;border:1px solid #ffd1df;border-radius:12px;padding:1px 8px;margin-bottom:4px;">
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e64980" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                            AI Rủi ro: {pred['risk_percentage']}%
-                        </div>
-                        <div>{clean_msg}</div>
-                    </div>
-                    <div class="task-action-row">
-                        <a href="?task_act=pending&tid={t['id']}&key={app_passcode}" target="_self" class="task-action-btn {btn_p_cls}">Chưa làm</a>
-                        <a href="?task_act=progress&tid={t['id']}&key={app_passcode}" target="_self" class="task-action-btn {btn_w_cls}">Đang làm</a>
-                        <a href="?task_act=done&tid={t['id']}&key={app_passcode}" target="_self" class="task-action-btn {btn_d_cls}">Hoàn thành</a>
-                        <a href="?task_act=del&tid={t['id']}&key={app_passcode}" target="_self" class="task-action-btn task-btn-del">Xóa</a>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
 
     # ── AI nhanh ──
     with sub_ai_t:
