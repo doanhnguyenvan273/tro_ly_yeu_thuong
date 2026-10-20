@@ -4,10 +4,8 @@ import pandas as pd
 import os
 import base64
 
-import importlib
 import config
 import database
-importlib.reload(database)
 import deadline_ml
 import menstrual_ml
 import medicine_ocr
@@ -508,45 +506,45 @@ div.stButton > button:hover { transform: scale(1.025) translateY(-1px) !importan
 # ──────────────────────────────────────────────────────────────────────────────
 # HIGH-PERFORMANCE DATA LAYER (Tăng tốc độ phản hồi, loại bỏ lag khi thao tác)
 # ──────────────────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_settings():
     return config.load_settings()
 
-@st.cache_data(ttl=45, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_schedules():
     return database.get_all_schedules()
 
-@st.cache_data(ttl=45, show_spinner=False)
+@st.cache_data(ttl=180, show_spinner=False)
 def get_cached_tasks():
     return database.get_all_tasks()
 
-@st.cache_data(ttl=45, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_medicines():
     return database.get_all_medicines()
 
-@st.cache_data(ttl=45, show_spinner=False)
+@st.cache_data(ttl=120, show_spinner=False)
 def get_cached_today_meds(today_str: str):
     return database.get_today_medicine_status(today_str)
 
-@st.cache_data(ttl=45, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_attendance_stats():
     return database.get_all_attendance_stats()
 
-@st.cache_data(ttl=45, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_single_attendance_stats(schedule_id: int):
     return database.get_attendance_stats(schedule_id)
 
-@st.cache_data(ttl=45, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_menstrual_records():
     return database.get_all_menstrual_records()
 
-@st.cache_data(ttl=45, show_spinner=False)
+@st.cache_data(ttl=300, show_spinner=False)
 def get_cached_cycle_prediction():
     return menstrual_ml.predict_next_cycle()
 
-@st.cache_data(ttl=60, show_spinner=False)
+@st.cache_data(ttl=180, show_spinner=False)
 def get_cached_mood_range(start_date: str, end_date: str):
-    """Cache mood logs theo khoảng ngày — TTL 60s để matrix luôn fresh."""
+    """Cache mood logs theo khoảng ngày — TTL 180s để matrix luôn fresh."""
     return database.get_mood_logs_range(start_date, end_date)
 
 def invalidate_cache():
@@ -561,6 +559,7 @@ def get_cat_image_bytes(filename: str):
             return f.read()
     return None
 
+@st.cache_data(show_spinner=False)
 def get_cat_image_base64(filename: str):
     raw = get_cat_image_bytes(filename)
     if raw:

@@ -1,7 +1,12 @@
 [server]
 headless = true
 enableStaticServing = true
-port = 8501
+enableCORS = false
+enableXsrfProtection = false
+maxUploadSize = 10
+
+[runner]
+fastReruns = true
 
 [theme]
 primaryColor = "#ff758c"
