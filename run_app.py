@@ -30,7 +30,8 @@ def main():
     deadline_ml.train_or_load_deadline_model()
     menstrual_ml.train_or_load_menstrual_model()
     
-    print("[3/4] Môi trường & Backend sẵn sàng...")
+    print("[3/4] Khởi động Daemon Scheduler & Telegram Bot...")
+    scheduler.start_scheduler()
     
     print("[4/4] Khởi chạy giao diện Desktop Streamlit App...")
     # Lấy đường dẫn python hiện tại
