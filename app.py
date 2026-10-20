@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 import pandas as pd
 import os
 import base64
@@ -947,23 +947,38 @@ elif selected_nav == "🎒 Lịch Học":
                 day_select = st.selectbox("📅 Ngày học (*)", day_opts,
                     help="Chọn thứ mà môn này được dạy mỗi tuần")
 
+            # Khởi tạo trạng thái giờ học linh hoạt (cho phép chọn bất kỳ giờ phút nào)
+            if "sch_start_val" not in st.session_state:
+                st.session_state["sch_start_val"] = time(7, 30)
+            if "sch_end_val" not in st.session_state:
+                st.session_state["sch_end_val"] = time(11, 0)
+
+            # Lối tắt chọn ca học nhanh (tùy chọn bấm nhanh, không giới hạn)
+            st.markdown('<p class="hint-text">⚡ <b>Lối tắt ca học nhanh</b> (hoặc tự do chỉnh giờ:phút bất kỳ bên dưới):</p>', unsafe_allow_html=True)
+            qc1, qc2, qc3, qc4, qc5 = st.columns(5)
+            if qc1.button("Ca 1\n07:30-11:00", use_container_width=True, key="btn_sch_ca1"):
+                st.session_state["sch_start_val"] = time(7, 30); st.session_state["sch_end_val"] = time(11, 0); st.rerun()
+            if qc2.button("Ca 2\n11:30-15:00", use_container_width=True, key="btn_sch_ca2"):
+                st.session_state["sch_start_val"] = time(11, 30); st.session_state["sch_end_val"] = time(15, 0); st.rerun()
+            if qc3.button("Ca 3\n13:00-16:30", use_container_width=True, key="btn_sch_ca3"):
+                st.session_state["sch_start_val"] = time(13, 0); st.session_state["sch_end_val"] = time(16, 30); st.rerun()
+            if qc4.button("Ca 4\n15:30-19:00", use_container_width=True, key="btn_sch_ca4"):
+                st.session_state["sch_start_val"] = time(15, 30); st.session_state["sch_end_val"] = time(19, 0); st.rerun()
+            if qc5.button("Ca Tối\n18:00-21:00", use_container_width=True, key="btn_sch_cat"):
+                st.session_state["sch_start_val"] = time(18, 0); st.session_state["sch_end_val"] = time(21, 0); st.rerun()
+
             fc, fd, fe = st.columns(3)
             with fc:
                 category = st.selectbox("🏷️ Loại môn",
                     ["Môn lý thuyết","Môn đồ án/bài tập lớn","Môn ngoại ngữ"])
             with fd:
-                start_str = st.text_input("🕗 Giờ bắt đầu (*)", value="07:30", placeholder="07:30")
+                cur_start = st.time_input("🕗 Giờ bắt đầu (*mọi giờ:phút*)", value=st.session_state["sch_start_val"], key="sch_start_input")
+                st.session_state["sch_start_val"] = cur_start
+                start_str = cur_start.strftime("%H:%M")
             with fe:
-                end_str   = st.text_input("🕙 Giờ kết thúc (*)", value="11:00", placeholder="11:00")
-
-            # Quick-fill
-            st.markdown('<p class="hint-text">⚡ Gợi ý ca học nhanh:</p>', unsafe_allow_html=True)
-            qc1, qc2, qc3, qc4, qc5 = st.columns(5)
-            if qc1.button("Ca 1\n07:30-11:00", use_container_width=True):  start_str="07:30"; end_str="11:00"
-            if qc2.button("Ca 2\n11:30-15:00", use_container_width=True):  start_str="11:30"; end_str="15:00"
-            if qc3.button("Ca 3\n13:00-16:30", use_container_width=True):  start_str="13:00"; end_str="16:30"
-            if qc4.button("Ca 4\n15:30-19:00", use_container_width=True):  start_str="15:30"; end_str="19:00"
-            if qc5.button("Ca tối\n18:00-21:00", use_container_width=True): start_str="18:00"; end_str="21:00"
+                cur_end = st.time_input("🕙 Giờ kết thúc (*mọi giờ:phút*)", value=st.session_state["sch_end_val"], key="sch_end_input")
+                st.session_state["sch_end_val"] = cur_end
+                end_str = cur_end.strftime("%H:%M")
 
             fg, fh, fi = st.columns(3)
             with fg:
@@ -973,43 +988,39 @@ elif selected_nav == "🎒 Lịch Học":
                 total_sess = st.number_input("📋 Tổng số buổi (*)", min_value=1, max_value=100, value=10, step=1)
             with fi:
                 max_allowed_limit = max(0, int(total_sess)-1)
-                default_max       = min(1, max_allowed_limit)
-                max_abs = st.number_input(f"🚨 Buổi được nghỉ (0–{max_allowed_limit}) (*)",
-                    min_value=0, max_value=max_allowed_limit, value=default_max, step=1,
-                    help=f"Phải nhỏ hơn tổng số buổi ({int(total_sess)})")
+                default_calc = min(max(1, int(round(total_sess * 0.2))), max_allowed_limit)
+                max_abs = st.number_input(f"🚨 Buổi được nghỉ (Gợi ý 20% = {default_calc}) (*)",
+                    min_value=0, max_value=max_allowed_limit, value=default_calc, step=1,
+                    help=f"Tự động tính mức 20%: {default_calc} buổi. Bạn có thể tăng giảm tùy quy chế trường.")
 
             notes = ""
-            with st.expander("📝 Ghi chú (không bắt buộc)"):
-                notes = st.text_area("Ghi chú", placeholder="VD: Nhớ mang máy tính...", height=70, label_visibility="collapsed")
+            with st.expander("📝 Ghi chú dặn dò (không bắt buộc)"):
+                notes = st.text_area("Ghi chú", placeholder="VD: Nhớ sạc laptop, chuẩn bị slide thuyết trình...", height=70, label_visibility="collapsed")
 
             if subj_name.strip():
                 pct = round((max_abs/total_sess)*100, 1) if total_sess else 0
                 st.markdown(f"""<div class="preview-box">
-                    <b>👁️ Xem trước:</b><br>
+                    <b>👁️ Xem trước thẻ môn học:</b><br>
                     📚 <b>{subj_name}</b> &nbsp;|&nbsp; 🏷️ {category}<br>
                     📅 <b>{day_select}</b> &nbsp;|&nbsp; 🕒 <b>{start_str} → {end_str}</b> &nbsp;|&nbsp; 📍 {room or "(Chưa điền)"}<br>
-                    📋 Tổng <b>{int(total_sess)} buổi</b> &nbsp;|&nbsp; 🚨 Được nghỉ: <b>{int(max_abs)} buổi</b> ({pct}%)
+                    📋 Tổng <b>{int(total_sess)} buổi</b> &nbsp;|&nbsp; 🚨 Cho phép nghỉ: <b>{int(max_abs)} buổi</b> ({pct}%)
                 </div>""", unsafe_allow_html=True)
 
             if st.button("💖 Lưu Môn Học Này Vào Lịch", use_container_width=True, type="primary"):
                 err = []
                 if not subj_name.strip(): err.append("Chưa nhập tên môn học")
-                try: datetime.strptime(start_str, "%H:%M")
-                except: err.append(f"Giờ bắt đầu '{start_str}' sai định dạng HH:MM")
-                try: datetime.strptime(end_str, "%H:%M")
-                except: err.append(f"Giờ kết thúc '{end_str}' sai định dạng HH:MM")
                 if max_abs >= total_sess:
                     err.append(f"Số buổi nghỉ ({int(max_abs)}) phải nhỏ hơn tổng buổi ({int(total_sess)})!")
                 if err:
                     for e in err: st.error(f"⚠️ {e}")
-                    render_cat("huh-cat.jpg","HUH? Sai thông tin rồi! 🙀❓", width=120)
+                    render_cat("huh-cat.jpg","HUH? Thiếu thông tin rồi! 🙀❓", width=120)
                 else:
                     day_idx = day_opts.index(day_select)
                     database.add_schedule(subj_name.strip(), day_idx, day_select, start_str, end_str,
                                           room.strip(), category, notes.strip() if notes else "",
                                           int(total_sess), int(max_abs))
                     invalidate_cache()
-                    st.success(f"✅ Đã lưu môn '{subj_name}'! (Tổng: {int(total_sess)} buổi | Được nghỉ: {int(max_abs)} buổi)")
+                    st.success(f"✅ Đã lưu môn '{subj_name}' ({start_str} - {end_str})!")
                     st.balloons()
                     st.rerun()
 
@@ -1186,19 +1197,32 @@ elif selected_nav == "📝 Deadline":
                     subj_task = st.text_input("Thuộc môn học:", placeholder="VD: Công nghệ phần mềm")
 
             st.markdown('<span class="step-label">2</span> <b>Thời hạn nộp bài (Deadline)</b>', unsafe_allow_html=True)
+            if "dl_time_val" not in st.session_state:
+                st.session_state["dl_time_val"] = time(23, 59)
+
+            st.markdown('<p class="hint-text">⚡ <b>Lối tắt mốc giờ phổ biến</b> (hoặc tự do chỉnh mọi giờ:phút bên dưới):</p>', unsafe_allow_html=True)
+            dq1, dq2, dq3, dq4 = st.columns(4)
+            if dq1.button("🌙 23:59\n(Cuối ngày)", use_container_width=True, key="btn_dl_night"):
+                st.session_state["dl_time_val"] = time(23, 59); st.rerun()
+            if dq2.button("🕛 12:00\n(Nghỉ trưa)", use_container_width=True, key="btn_dl_noon"):
+                st.session_state["dl_time_val"] = time(12, 0); st.rerun()
+            if dq3.button("🕔 17:00\n(Cuối chiều)", use_container_width=True, key="btn_dl_eve"):
+                st.session_state["dl_time_val"] = time(17, 0); st.rerun()
+            if dq4.button("🕗 08:00\n(Đầu sáng)", use_container_width=True, key="btn_dl_morn"):
+                st.session_state["dl_time_val"] = time(8, 0); st.rerun()
+
             tb1, tb2 = st.columns(2)
             with tb1:
-                due_date = st.date_input("Ngày hết hạn (*)", value=date.today() + timedelta(days=3))
+                due_date = st.date_input("Ngày hết hạn (*bất kỳ ngày nào*)", value=date.today() + timedelta(days=3))
             with tb2:
-                due_hour = st.select_slider("Giờ hết hạn (*)",
-                    options=["00:00","01:00","02:00","06:00","07:00","08:00","09:00","10:00",
-                             "11:00","11:59","12:00","13:00","14:00","15:00","16:00","17:00",
-                             "18:00","19:00","20:00","21:00","22:00","23:00","23:59"],
-                    value="23:59")
+                due_time_pick = st.time_input("Giờ hết hạn (*mọi giờ:phút*)", value=st.session_state["dl_time_val"], key="dl_time_input")
+                st.session_state["dl_time_val"] = due_time_pick
+                due_hour = due_time_pick.strftime("%H:%M")
 
-            st.markdown('<span class="step-label">3</span> <b>Khối lượng công việc</b>', unsafe_allow_html=True)
-            est_hours = st.slider("Ước tính cần bao nhiêu giờ để làm xong?",
-                min_value=0.5, max_value=24.0, value=3.0, step=0.5)
+            st.markdown('<span class="step-label">3</span> <b>Khối lượng công việc dự kiến</b>', unsafe_allow_html=True)
+            est_hours = st.number_input("⏱️ Cần khoảng bao nhiêu giờ để hoàn thành? (*mọi số giờ*)",
+                min_value=0.5, max_value=120.0, value=3.0, step=0.5,
+                help="Gợi ý: Bài tập nhỏ 1-2h, Tiểu luận 3-5h, Đồ án lớn 8-20h...")
 
             if task_name.strip():
                 deadline_str = f"{due_date.strftime('%Y-%m-%d')} {due_hour}"
@@ -1581,24 +1605,47 @@ elif selected_nav == "💊 Đơn Thuốc":
                                 with st.expander("Xem văn bản thô"):
                                      st.text(ocr_data["raw_text"])
 
+            if "med_dosage_val" not in st.session_state:
+                st.session_state["med_dosage_val"] = ocr_data.get("dosage", "1 viên (sau ăn)")
+            if "med_times_val" not in st.session_state:
+                st.session_state["med_times_val"] = ocr_data.get("times", "08:00, 19:30")
+
             st.markdown('<span class="step-label">1</span> <b>Thông tin thuốc</b>', unsafe_allow_html=True)
+            st.markdown('<p class="hint-text">Gợi ý liều dùng phổ biến (bấm nhanh hoặc tự nhập tùy ý):</p>', unsafe_allow_html=True)
+            d_col1, d_col2, d_col3, d_col4 = st.columns(4)
+            if d_col1.button("1 viên (sau ăn)", use_container_width=True, key="btn_dose_1"):
+                st.session_state["med_dosage_val"] = "1 viên (sau ăn)"; st.rerun()
+            if d_col2.button("2 viên (sau ăn)", use_container_width=True, key="btn_dose_2"):
+                st.session_state["med_dosage_val"] = "2 viên (sau ăn)"; st.rerun()
+            if d_col3.button("1 gói (trước ăn)", use_container_width=True, key="btn_dose_3"):
+                st.session_state["med_dosage_val"] = "1 gói (trước ăn)"; st.rerun()
+            if d_col4.button("1 viên (khi đau/sốt)", use_container_width=True, key="btn_dose_4"):
+                st.session_state["med_dosage_val"] = "1 viên (khi đau/sốt)"; st.rerun()
+
             m1, m2 = st.columns(2)
             with m1:
                 med_name   = st.text_input("Tên thuốc (*)", value=ocr_data.get("name",""),
                     placeholder="VD: Panadol Extra 500mg, Vitamin C...")
             with m2:
-                med_dosage = st.text_input("Liều lượng (*)", value=ocr_data.get("dosage","1 viên (sau ăn)"),
-                    placeholder="VD: 1 viên sau ăn, 5ml pha nước ấm...")
+                med_dosage = st.text_input("Liều lượng (*tùy ý chỉnh sửa mọi dạng liều*)", value=st.session_state["med_dosage_val"],
+                    placeholder="VD: 1 viên sau ăn, 5ml pha nước ấm...", key="med_dosage_text_input")
+                st.session_state["med_dosage_val"] = med_dosage
 
             st.markdown('<span class="step-label">2</span> <b>Lịch uống trong ngày</b>', unsafe_allow_html=True)
-            st.markdown('<p class="hint-text">Nhập các khung giờ cách nhau bởi dấu phẩy. VD: 08:00, 12:30, 20:00</p>', unsafe_allow_html=True)
+            st.markdown('<p class="hint-text">⚡ <b>Lối tắt tần suất uống</b> (hoặc tự do gõ mọi khung giờ bất kỳ bên dưới):</p>', unsafe_allow_html=True)
             preset_col = st.columns(4)
-            preset_val = ocr_data.get("times","08:00, 19:30")
-            if preset_col[0].button("1 lần/ngày\n(Sáng)",  use_container_width=True): preset_val="08:00"
-            if preset_col[1].button("2 lần/ngày\n(S+T)",   use_container_width=True): preset_val="08:00, 20:00"
-            if preset_col[2].button("3 lần/ngày\n(S+T+T)", use_container_width=True): preset_val="08:00, 13:00, 20:00"
-            if preset_col[3].button("4 lần/ngày",          use_container_width=True): preset_val="07:30, 12:00, 17:00, 21:00"
-            med_times = st.text_input("Các khung giờ uống (*)", value=preset_val)
+            if preset_col[0].button("🌅 1 lần/ngày\n(08:00)", use_container_width=True, key="pmed_1"):
+                st.session_state["med_times_val"] = "08:00"; st.rerun()
+            if preset_col[1].button("☀️🌙 2 lần/ngày\n(08:00, 19:30)", use_container_width=True, key="pmed_2"):
+                st.session_state["med_times_val"] = "08:00, 19:30"; st.rerun()
+            if preset_col[2].button("☀️🌤️🌙 3 lần\n(8:00, 12:30, 19:30)", use_container_width=True, key="pmed_3"):
+                st.session_state["med_times_val"] = "08:00, 12:30, 19:30"; st.rerun()
+            if preset_col[3].button("💊 4 lần/ngày\n(7:30,12:00,17:00,21:00)", use_container_width=True, key="pmed_4"):
+                st.session_state["med_times_val"] = "07:30, 12:00, 17:00, 21:00"; st.rerun()
+
+            med_times = st.text_input("Các khung giờ uống (*nhập mọi giờ tùy thích, cách nhau bởi dấu phẩy*)", 
+                                      value=st.session_state["med_times_val"], key="med_times_text_input")
+            st.session_state["med_times_val"] = med_times
 
             st.markdown('<span class="step-label">3</span> <b>Thời gian điều trị</b>', unsafe_allow_html=True)
             m3, m4 = st.columns(2)
@@ -1849,23 +1896,39 @@ elif selected_nav in ["📖 Cảm Xúc", "📖 Nhật Ký"]:
             )
             chosen_date_str = chosen_date.strftime("%Y-%m-%d")
 
-        # 2. Chọn cảm xúc (1-Click Emoji Selection)
+        # 2. Chọn cảm xúc (1-Chạm Sinh Động)
+        st.markdown('<p class="hint-text">⚡ <b>Chạm nhanh cảm xúc hôm nay</b>:</p>', unsafe_allow_html=True)
+        mb1, mb2, mb3, mb4, mb5 = st.columns(5)
+        if mb1.button("😄\nVui vẻ", use_container_width=True, key="mbtn_happy"):
+            st.session_state["mood_sel_mood"] = "Happy"; st.rerun()
+        if mb2.button("🌸\nBình yên", use_container_width=True, key="mbtn_normal"):
+            st.session_state["mood_sel_mood"] = "Normal"; st.rerun()
+        if mb3.button("😫\nStress", use_container_width=True, key="mbtn_stress"):
+            st.session_state["mood_sel_mood"] = "Stressed"; st.rerun()
+        if mb4.button("🥺\nBuồn", use_container_width=True, key="mbtn_sad"):
+            st.session_state["mood_sel_mood"] = "Sad"; st.rerun()
+        if mb5.button("😴\nMệt mỏi", use_container_width=True, key="mbtn_tired"):
+            st.session_state["mood_sel_mood"] = "Tired"; st.rerun()
+
+        # Radio hỗ trợ chọn chính xác
         mood_radio_val = st.radio(
-            "🟡 Tâm trạng của em hôm nay:",
+            "Tâm trạng đang chọn:",
             options=MOOD_LABELS,
             index=MOOD_KEYS.index(st.session_state.get("mood_sel_mood", "Happy")),
             horizontal=True,
             key="diary_mood_radio",
+            label_visibility="collapsed",
         )
         sel_idx = MOOD_LABELS.index(mood_radio_val)
         sel_mood_key = MOOD_KEYS[sel_idx]
         st.session_state["mood_sel_mood"] = sel_mood_key
 
-        # 3. Ghi chú ngắn
-        mood_note_val = st.text_input(
-            "📝 Ghi chú tâm sự (không bắt buộc):",
-            placeholder="Hôm nay có điều gì làm em vui hay mệt mỏi không? Kể Bác sĩ Mèo nghe nhé...",
+        # 3. Ghi chú tâm sự
+        mood_note_val = st.text_area(
+            "📝 Sổ nhật ký tâm sự cùng Bác sĩ Mèo & Anh (không bắt buộc):",
+            placeholder="Hôm nay của em thế nào? Có điều gì làm em vui, mệt mỏi hay áp lực không? Hãy viết ra đây để nhẹ lòng nhé, anh luôn lắng nghe em... 🌸",
             key="diary_note",
+            height=85,
         )
 
         # 4. Nút lưu
