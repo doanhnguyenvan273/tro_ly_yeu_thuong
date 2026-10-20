@@ -252,8 +252,112 @@ def check_drink_water_reminder():
         database.log_notification_sent("water", target_key, "her", msg)
         print(f"[Scheduler] Đã gửi nhắc uống nước lúc {hour:02d}:00")
 
+def build_weekly_recap_message() -> str:
+    """Tạo nội dung Báo Cáo Tuần (Weekly Recap Card) sinh động gửi tối Chủ Nhật."""
+    settings = load_settings()
+    her_name = settings.get("her_name", "Cậu 🌸")
+
+    all_tasks = database.get_all_tasks(filter_status=None)
+    completed_tasks = [t for t in all_tasks if t.get("status") == "Đã hoàn thành"]
+    pending_tasks = [t for t in all_tasks if t.get("status") != "Đã hoàn thành"]
+
+    upcoming = [
+        t for t in all_tasks
+        if t.get("status") != "Đã hoàn thành"
+        and 0 < _get_hours_left(t.get("deadline", "")) <= 168  # 7 ngày
+    ]
+    upcoming.sort(key=lambda t: _get_hours_left(t.get("deadline", "")))
+
+    recent_moods = database.get_mood_logs(limit=7)
+    mood_emojis = {
+        "Happy": "😄", "Normal": "🌸", "Stressed": "😫", "Sad": "🥺", "Angry": "😡", "Tired": "😴"
+    }
+    mood_str = " ".join(mood_emojis.get(m.get("mood_type"), "🌸") for m in recent_moods) if recent_moods else "Chưa có ghi chép"
+
+    msg = (
+        f"📊 <b>BÁO CÁO TỔNG KẾT TUẦN &amp; LÊN DÂY CÓT TUẦN MỚI</b> 🌸\n\n"
+        f"Chào {her_name}! Tối Chủ Nhật cùng Bác sĩ Mèo nhìn lại tuần qua nhé:\n\n"
+        f"✨ <b>Bài tập &amp; Nhiệm vụ:</b>\n"
+        f"  • Đã hoàn thành: <b>{len(completed_tasks)} việc</b> 🎉\n"
+        f"  • Việc đang chờ: <b>{len(pending_tasks)} việc</b>\n\n"
+        f"🌈 <b>Nhịp điệu cảm xúc tuần qua:</b>\n"
+        f"  {mood_str}\n\n"
+    )
+
+    if upcoming:
+        msg += f"⏰ <b>Deadline tuần tới ({len(upcoming)} việc cần làm):</b>\n"
+        for t in upcoming[:4]:
+            h = _get_hours_left(t.get("deadline", ""))
+            days_left = int(h // 24)
+            label = f"còn {days_left} ngày" if days_left > 0 else "⚡ Trong 24h!"
+            msg += f"  • <b>{t['task_name']}</b> ({t['subject_name']}) — {label}\n"
+        if len(upcoming) > 4:
+            msg += f"  <i>...và {len(upcoming) - 4} việc khác nữa.</i>\n"
+    else:
+        msg += "🎉 <b>Không có deadline nào dồn ập trong 7 ngày tới!</b> Cậu có thể thảnh thơi bắt đầu tuần mới nhé!\n"
+
+    magic = config.get_magic_link()
+    if magic:
+        msg += f"\n📱 <a href='{magic}'>Mở App Yêu Thương (1-Chạm)</a>\n"
+
+    msg += (
+        "\n💖 <i>Tuần mới chúc cậu luôn ngập tràn năng lượng, bình an và mỉm cười thật nhiều nha! Tớ luôn ở đây đồng hành cùng cậu! ✨🧸</i>"
+    )
+    return msg
+
+
+def backup_database_to_telegram() -> bool:
+    """
+    Tự động sao lưu dữ liệu CSDL và gửi file về Telegram bí mật của bạn.
+    """
+    settings = load_settings()
+    my_chat_id = (config.YOUR_CHAT_ID or settings.get("telegram_my_chat_id", "")).strip()
+    if not my_chat_id:
+        return False
+
+    now = get_now()
+    tag = now.strftime("%Y%m%d_%H%M%S")
+    backup_path = config.DATA_DIR / f"backup_schedule_{tag}.db"
+
+    try:
+        # Nếu dùng SQLite file, copy trực tiếp
+        if config.DB_PATH.exists():
+            import shutil
+            shutil.copy2(config.DB_PATH, backup_path)
+        else:
+            # Nếu dùng Turso Cloud, tạo bản dump JSON các bảng chính
+            import json
+            dump_data = {
+                "backup_time": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "schedules": database.get_all_schedules(),
+                "tasks": database.get_all_tasks(),
+                "medicines": database.get_all_medicines(),
+                "menstrual": database.get_menstrual_records(),
+                "mood_logs": database.get_mood_logs(limit=100),
+            }
+            backup_path = config.DATA_DIR / f"backup_turso_{tag}.json"
+            with open(backup_path, "w", encoding="utf-8") as f_bk:
+                json.dump(dump_data, f_bk, ensure_ascii=False, indent=2)
+
+        caption = (
+            f"💾 <b>[SAO LƯU DỮ LIỆU TỰ ĐỘNG]</b> 🌸\n"
+            f"📅 Thời gian: {now.strftime('%d/%m/%Y %H:%M')}\n"
+            f"Toàn bộ lịch học, deadline, đơn thuốc & nhật ký cảm xúc đã được sao lưu an toàn!"
+        )
+        success = notifier.send_telegram_document(my_chat_id, backup_path, caption=caption)
+        try:
+            if backup_path.exists():
+                backup_path.unlink()
+        except Exception:
+            pass
+        return success
+    except Exception as e:
+        print(f"[Backup] Lỗi sao lưu: {e}")
+        return False
+
+
 def check_weekly_summary():
-    """Gửi tóm tắt tuần vào Chủ Nhật lúc 20:00."""
+    """Gửi tóm tắt tuần vào Chủ Nhật lúc 20:00 và tự động sao lưu dữ liệu."""
     now = get_now()
     if now.weekday() != 6 or now.hour != 20 or now.minute > 5:
         return
@@ -263,43 +367,18 @@ def check_weekly_summary():
     if database.has_notification_been_sent("weekly_summary", target_key, "her"):
         return
 
-    settings = load_settings()
-    her_name = settings.get("her_name", "Cậu")
-
-    # Deadline sắp đến trong 7 ngày
-    all_tasks = database.get_all_tasks(filter_status=None)
-    upcoming = [
-        t for t in all_tasks
-        if t.get("status") != "Đã hoàn thành"
-        and 0 < _get_hours_left(t.get("deadline", "")) <= 168  # 7 ngày
-    ]
-    upcoming.sort(key=lambda t: _get_hours_left(t.get("deadline", "")))
-
-    msg = (
-        f"📋 <b>TÓM TẮT TUẦN MỚI – {her_name}</b> 🌸\n\n"
-        f"Tuần mới sắp bắt đầu! Cùng lên kế hoạch để tuần này thật hiệu quả nhé!\n\n"
-    )
-
-    if upcoming:
-        msg += f"⏰ <b>Deadline tuần tới ({len(upcoming)} việc):</b>\n"
-        for t in upcoming[:5]:
-            h = _get_hours_left(t.get("deadline", ""))
-            days_left = int(h // 24)
-            label = f"còn {days_left} ngày" if days_left > 0 else "⚡ Trong vòng 24h!"
-            msg += f"  • <b>{t['task_name']}</b> ({t['subject_name']}) – {label}\n"
-        if len(upcoming) > 5:
-            msg += f"  ... và {len(upcoming) - 5} việc khác.\n"
-    else:
-        msg += "✅ <b>Không có deadline nào trong 7 ngày tới!</b> Tuyệt vời!\n"
-
-    msg += (
-        "\n💡 <i>Gợi ý: Lên danh sách việc cần làm trong tuần này để không bị áp lực nhé!</i>\n"
-        "💖 <i>Tớ tin cậu sẽ làm tốt thôi, cậu bạn giỏi giang của tớ! ✨</i>"
-    )
+    msg = build_weekly_recap_message()
 
     if notifier.notify_her(msg):
         database.log_notification_sent("weekly_summary", target_key, "her", msg)
-        print("[Scheduler] Đã gửi tóm tắt tuần mới!")
+        print("[Scheduler] Đã gửi tóm tắt tuần mới cho cậu ấy!")
+
+    # Tự động sao lưu dữ liệu gửi về Telegram của bạn
+    try:
+        backup_database_to_telegram()
+        print("[Scheduler] Đã tự động sao lưu CSDL tuần về Telegram!")
+    except Exception as e_bk:
+        print(f"[Scheduler] Lỗi sao lưu tuần: {e_bk}")
 
 # ======================= UTILITY =======================
 

@@ -83,6 +83,36 @@ def send_telegram_photo(chat_id: Union[str, int], photo_path: Union[str, Path], 
     # Nếu gửi ảnh thất bại sau các lần thử, thử gửi caption dạng text
     return send_telegram_message(chat_id, caption, parse_mode=parse_mode)
 
+def send_telegram_document(chat_id: Union[str, int], file_path: Union[str, Path], caption: str = "", parse_mode: str = "HTML", max_retries: int = 3) -> bool:
+    """
+    Gửi file tài liệu (ví dụ file sao lưu backup CSDL) tới Telegram.
+    """
+    bot_token = (TELEGRAM_BOT_TOKEN or load_settings().get("telegram_bot_token", "")).strip()
+    if not bot_token or not chat_id:
+        return False
+
+    file_path = Path(file_path)
+    if not file_path.exists():
+        return False
+
+    url = f"https://api.telegram.org/bot{bot_token}/sendDocument"
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            with open(file_path, "rb") as f:
+                files = {"document": f}
+                data = {"chat_id": chat_id, "caption": caption, "parse_mode": parse_mode}
+                response = requests.post(url, data=data, files=files, timeout=30)
+                if response.status_code == 200:
+                    return True
+                else:
+                    print(f"[Telegram Document] Lỗi gửi tài liệu: {response.text}")
+        except Exception as e:
+            print(f"[Telegram Document] Lỗi ngoại lệ (Lần {attempt}): {e}")
+            time.sleep(2)
+
+    return False
+
 def notify_her(message: str, photo_path: Optional[str] = None) -> bool:
     """Gửi thông báo tới Cậu."""
     her_chat_id = (HER_CHAT_ID or load_settings().get("telegram_her_chat_id", "")).strip()
