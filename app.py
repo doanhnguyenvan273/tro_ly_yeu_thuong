@@ -721,25 +721,37 @@ div.stButton > button:hover { transform: scale(1.025) translateY(-1px) !importan
 }
 
 /* ══════════════════════════════════════════════════════
-   BENTO WIDGETS 2x2 GRID TRÊN MOBILE (Loại bỏ triệt để khoảng trống thừa)
+   BENTO WIDGETS GRID (4 cột trên Desktop, 2x2 cân xứng trên Mobile)
    ══════════════════════════════════════════════════════ */
+.bento-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin-bottom: 14px !important;
+    box-sizing: border-box !important;
+}
+.bento-link {
+    text-decoration: none !important;
+    color: inherit !important;
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
 @media (max-width: 768px) {
-    /* Ép 4 widget Bento thành lưới 2x2 cân xứng trên điện thoại */
-    div[data-testid="stHorizontalBlock"]:has(.bento-widget) {
-        display: grid !important;
+    .bento-grid {
         grid-template-columns: 1fr 1fr !important;
         gap: 10px !important;
-    }
-    div[data-testid="stHorizontalBlock"]:has(.bento-widget) > div[data-testid="column"] {
         width: 100% !important;
-        min-width: 0 !important;
-        flex: unset !important;
     }
     .bento-widget {
         min-height: 94px !important;
-        padding: 12px 13px !important;
+        padding: 12px 14px !important;
         border-radius: 20px !important;
         box-shadow: 0 4px 14px rgba(230, 73, 128, 0.06) !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
     .bento-icon-badge {
         width: 34px !important;
@@ -1176,103 +1188,91 @@ if "Trang Chủ" in selected_nav:
                 st.rerun()
 
     # 1. Bốn Thẻ Bento Widgets Monochromatic Pink Aesthetic (Click để chuyển tab)
-    bento1, bento2, bento3, bento4 = st.columns(4)
-    with bento1:
-        sch_val = f"{len(today_scheds)} ca học" if today_scheds else "Hôm nay nghỉ 🎉"
-        sch_desc = f"{today_day_name} ({today_date.strftime('%d/%m')})"
-        st.markdown(
-            f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="bento-widget">'
-            f'<div class="bento-icon-badge bento-icon-active">'
-            f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
-            f'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>'
-            f'<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>'
-            f'<line x1="9" y1="7" x2="15" y2="7"/>'
-            f'<line x1="9" y1="11" x2="13" y2="11"/>'
-            f'</svg>'
-            f'</div>'
-            f'<div>'
-            f'<div class="bento-title">Lịch Học</div>'
-            f'<div class="bento-value">{sch_val}</div>'
-            f'<div class="bento-desc">{sch_desc}</div>'
-            f'</div>'
-            f'</div>'
-            f'</a>',
-            unsafe_allow_html=True,
-        )
+    sch_val = f"{len(today_scheds)} ca học" if today_scheds else "Hôm nay nghỉ 🎉"
+    sch_desc = f"{today_day_name} ({today_date.strftime('%d/%m')})"
 
-    with bento2:
-        task_val = f"{len(pending_tasks)} bài tập" if pending_tasks else "Đã xong hết ✨"
-        task_desc = "Cần hoàn thành" if pending_tasks else "Thảnh thơi nghỉ ngơi nha 🏖️"
-        st.markdown(
-            f'<a href="?nav=Deadline" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="bento-widget">'
-            f'<div class="bento-icon-badge bento-icon-white">'
-            f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
-            f'<circle cx="12" cy="12" r="10"/>'
-            f'<polyline points="12 6 12 12 16 14"/>'
-            f'</svg>'
-            f'</div>'
-            f'<div>'
-            f'<div class="bento-title">Deadline</div>'
-            f'<div class="bento-value">{task_val}</div>'
-            f'<div class="bento-desc">{task_desc}</div>'
-            f'</div>'
-            f'</div>'
-            f'</a>',
-            unsafe_allow_html=True,
-        )
+    task_val = f"{len(pending_tasks)} bài tập" if pending_tasks else "Đã xong hết ✨"
+    task_desc = "Cần hoàn thành" if pending_tasks else "Thảnh thơi nghỉ ngơi nha 🏖️"
 
-    with bento3:
-        if pred_home.get("has_data"):
-            ck_val = f"Còn {pred_home['days_left']} ngày"
-            ck_desc = f"Dự kiến: {pred_home.get('predicted_next_date', '---')}"
-        else:
-            ck_val = "Chưa có kỳ"
-            ck_desc = "Theo dõi chu kỳ"
-        st.markdown(
-            f'<a href="?nav=ChuKy" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="bento-widget">'
-            f'<div class="bento-icon-badge bento-icon-active">'
-            f'<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">'
-            f'<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>'
-            f'</svg>'
-            f'</div>'
-            f'<div>'
-            f'<div class="bento-title">Chu Kỳ</div>'
-            f'<div class="bento-value">{ck_val}</div>'
-            f'<div class="bento-desc">{ck_desc}</div>'
-            f'</div>'
-            f'</div>'
-            f'</a>',
-            unsafe_allow_html=True,
-        )
+    if pred_home.get("has_data"):
+        ck_val = f"Còn {pred_home['days_left']} ngày"
+        ck_desc = f"Dự kiến: {pred_home.get('predicted_next_date', '---')}"
+    else:
+        ck_val = "Chưa có kỳ"
+        ck_desc = "Theo dõi chu kỳ"
 
-    with bento4:
-        if total_meds_home:
-            med_val = f"{taken_meds_home}/{total_meds_home} liều"
-            med_desc = "Đã uống đủ! 💖" if taken_meds_home == total_meds_home else f"Còn {total_meds_home - taken_meds_home} liều nữa nha"
-        else:
-            med_val = "Trống lịch"
-            med_desc = "Khỏe mạnh mỗi ngày ✨"
-        st.markdown(
-            f'<a href="?nav=DonThuoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
-            f'<div class="bento-widget">'
-            f'<div class="bento-icon-badge bento-icon-white">'
-            f'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
-            f'<path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>'
-            f'<path d="m8.5 8.5 7 7"/>'
-            f'</svg>'
-            f'</div>'
-            f'<div>'
-            f'<div class="bento-title">Uống Thuốc</div>'
-            f'<div class="bento-value">{med_val}</div>'
-            f'<div class="bento-desc">{med_desc}</div>'
-            f'</div>'
-            f'</div>'
-            f'</a>',
-            unsafe_allow_html=True,
-        )
+    if total_meds_home:
+        med_val = f"{taken_meds_home}/{total_meds_home} liều"
+        med_desc = "Đã uống đủ! 💖" if taken_meds_home == total_meds_home else f"Còn {total_meds_home - taken_meds_home} liều nữa nha"
+    else:
+        med_val = "Trống lịch"
+        med_desc = "Khỏe mạnh mỗi ngày ✨"
+
+    st.markdown(f"""
+    <div class="bento-grid">
+        <a href="?nav=LichHoc" target="_self" class="bento-link">
+            <div class="bento-widget">
+                <div class="bento-icon-badge bento-icon-active">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        <line x1="9" y1="7" x2="15" y2="7"/>
+                        <line x1="9" y1="11" x2="13" y2="11"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="bento-title">Lịch Học</div>
+                    <div class="bento-value">{sch_val}</div>
+                    <div class="bento-desc">{sch_desc}</div>
+                </div>
+            </div>
+        </a>
+        <a href="?nav=Deadline" target="_self" class="bento-link">
+            <div class="bento-widget">
+                <div class="bento-icon-badge bento-icon-white">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="bento-title">Deadline</div>
+                    <div class="bento-value">{task_val}</div>
+                    <div class="bento-desc">{task_desc}</div>
+                </div>
+            </div>
+        </a>
+        <a href="?nav=ChuKy" target="_self" class="bento-link">
+            <div class="bento-widget">
+                <div class="bento-icon-badge bento-icon-active">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="bento-title">Chu Kỳ</div>
+                    <div class="bento-value">{ck_val}</div>
+                    <div class="bento-desc">{ck_desc}</div>
+                </div>
+            </div>
+        </a>
+        <a href="?nav=DonThuoc" target="_self" class="bento-link">
+            <div class="bento-widget">
+                <div class="bento-icon-badge bento-icon-white">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
+                        <path d="m8.5 8.5 7 7"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="bento-title">Uống Thuốc</div>
+                    <div class="bento-value">{med_val}</div>
+                    <div class="bento-desc">{med_desc}</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 2. Lời Nhắn Yêu Thương & Chăm Sóc Hôm Nay
     render_mascot_banner(
