@@ -13,6 +13,7 @@ import medicine_ocr
 import notifier
 import scheduler
 import telegram_listener
+import mascot_manager
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PAGE CONFIG  (phải là lệnh đầu tiên)
@@ -978,6 +979,7 @@ NAV_OPTIONS = [
     "Chu Kỳ",
     "Đơn Thuốc",
     "Cảm Xúc",
+    "Bé Jolyne 🦋",
     "Cài Đặt",
 ]
 
@@ -988,6 +990,7 @@ NAV_QUERY_MAP = {
     "ChuKy":    "Chu Kỳ",
     "DonThuoc": "Đơn Thuốc",
     "CamXuc":   "Cảm Xúc",
+    "Jolyne":   "Bé Jolyne 🦋",
     "CaiDat":   "Cài Đặt",
 }
 
@@ -1085,6 +1088,11 @@ selected_nav = st.radio(
     key="nav_radio_pills",
 )
 st.session_state["active_nav"] = selected_nav
+
+# ── BÉ JOLYNE KUJO ĐỒNG HÀNH LƠ LỬNG TRÊN TOÀN BỘ WEB APP ──
+mascot_floating_html = mascot_manager.build_floating_mascot_html(her_name=her_name, my_name=my_name)
+if mascot_floating_html:
+    st.markdown(mascot_floating_html, unsafe_allow_html=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ROUTING NỘI DUNG THEO NAVBAR
@@ -2630,6 +2638,12 @@ elif "Cảm Xúc" in selected_nav or "Nhật Ký" in selected_nav:
 # ══════════════════════════════════════════════════════════════════════════════
 # TAB 5 — CÀI ĐẶT & TELEGRAM BOT
 # ══════════════════════════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TAB TÙY CHỈNH BÉ JOLYNE KUJO 🦋
+# ══════════════════════════════════════════════════════════════════════════════
+elif "Bé Jolyne" in selected_nav:
+    mascot_manager.render_mascot_tab_ui(st, her_name=her_name, my_name=my_name)
 
 elif "Cài Đặt" in selected_nav:
     st.subheader("⚙️ Cài Đặt Không Gian Riêng & Kết Nối")
