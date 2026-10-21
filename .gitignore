@@ -13,7 +13,7 @@ ENV/
 # Database & Sensitive Settings
 data/*.db
 data/*.db-journal
-data/settings.json
+data/*.json
 data/uploads/*
 !data/uploads/.gitkeep
 
