@@ -2,18 +2,18 @@
 mascot_manager.py
 =================
 Quản lý nhân vật đồng hành Chibi Jolyne Kujo (JoJo Part 6: Stone Ocean)
-- 12 hành động chuẩn định dạng WebP tĩnh siêu nhẹ (~50KB/ảnh, phục vụ qua /app/static/mascot/)
-- Tích hợp chuẩn qua st.components.v1.html gắn trực tiếp vào window.parent.document.body
-  => 100% không bị lỗi tràn chữ Base64 ra màn hình
-  => Không bị gián đoạn hay reset vị trí khi Streamlit chuyển tab
-- Kéo thả an toàn bằng Pointer Events (chỉ di chuyển khi giữ chuột, buông là dừng)
-- Khóa chặt biên màn hình (không trôi khỏi khung hình)
-- Tự động quay về pose mặc định sau 4.5s khi đóng thoại
-- Tab điều hướng "Bé Jolyne 🦋" trên Navbar Streamlit để tùy chỉnh
+- 12 hành động chuẩn định dạng WebP siêu nhẹ (/app/static/mascot/)
+- Animation lơ lửng 100% Pure CSS (jolyneFloat) nhấp nhô mượt mà trên GPU
+- Hiệu ứng Stand Menacing (ゴゴゴゴ) thuần CSS bay bổng bên phải nhân vật
+- Tùy chỉnh kích thước (size slider), bật/tắt tức thì
+- Tự động phản ứng thông minh theo các tab (Lịch học, Deadline, Chu kỳ, Đơn thuốc, Cảm xúc)
+- Ăn mừng khi hoàn thành deadline (victory pose)
+- Kéo thả an toàn bằng Pointer Events (đè giữ mới di chuyển, buông là dừng, khóa biên màn hình)
 """
 
 import os
 import json
+import random
 from typing import Dict, List, Any
 
 SETTINGS_PATH = os.path.join("data", "mascot_settings.json")
@@ -132,32 +132,22 @@ def save_mascot_settings(settings: Dict[str, Any]) -> None:
         json.dump(settings, f, ensure_ascii=False, indent=2)
 
 
-def render_floating_mascot(st_module, her_name: str, my_name: str) -> None:
+def render_floating_mascot(
+    st_module,
+    her_name: str,
+    my_name: str,
+    action: str = "idle",
+) -> None:
     """
-    Nhúng bé Jolyne vào trang Streamlit bằng components.v1.html.
-    Tự động gắn trực tiếp vào window.parent.document.body:
-    - Sử dụng URL ảnh tĩnh WebP (/app/static/mascot/...) cực nhẹ (~5KB payload)
-    - KHÔNG đưa chuỗi Base64 vào markdown, triệt tiêu 100% lỗi in chữ thô
-    - Widget sống độc lập, không bị giật lag khi Streamlit reload các widget khác
+    Render bé Jolyne Kujo lơ lửng trực tiếp trên giao diện Streamlit bằng st.markdown:
+    - 100% Pure CSS Animation: jolyneFloat chạy liên tục trên GPU
+    - 100% Pure CSS Menacing Effect: 5 chữ ゴ bay bổng bên phải nhân vật
+    - Hiển thị bóng thoại linh hoạt theo hành động/tab đang mở
+    - Kéo thả mượt mà bằng Pointer Events
+    - Tự động quay về pose mặc định sau 4.5s
     """
     settings = get_mascot_settings()
-    enabled = settings.get("enabled", True)
-
-    if not enabled:
-        # Nếu người dùng tắt, dọn dẹp widget khỏi DOM nếu đang tồn tại
-        cleanup_html = """
-        <script>
-        try {
-            const pDoc = window.parent.document;
-            const w = pDoc.getElementById('jolyneWidget');
-            if (w) w.remove();
-            const s = pDoc.getElementById('jolyneStyles');
-            if (s) s.remove();
-            window.parent.__jolyne_initialized = false;
-        } catch(e) {}
-        </script>
-        """
-        st_module.components.v1.html(cleanup_html, height=0)
+    if not settings.get("enabled", True):
         return
 
     size = int(settings.get("size", 95))
@@ -165,483 +155,339 @@ def render_floating_mascot(st_module, her_name: str, my_name: str) -> None:
     gogo_enabled = bool(settings.get("gogo_enabled", True))
     auto_hide_sec = float(settings.get("auto_hide_seconds", 4.5))
 
-    # Định dạng các câu thoại với tên riêng
+    # Lấy câu thoại ngẫu nhiên theo action
     raw_dialogues = settings.get("dialogues", DEFAULT_SETTINGS["dialogues"])
-    formatted_dialogues: Dict[str, List[str]] = {}
-    for act, lines in raw_dialogues.items():
-        fmt_lines = []
-        for line in lines:
-            fmt_lines.append(line.replace("{her_name}", her_name).replace("{my_name}", my_name))
-        formatted_dialogues[act] = fmt_lines
+    act_lines = raw_dialogues.get(action, raw_dialogues.get("idle", ["Xin chào! 🌸"]))
+    selected_line = random.choice(act_lines).replace("{her_name}", her_name).replace("{my_name}", my_name)
 
-    # Đường dẫn URL tĩnh WebP qua Streamlit static file handler
-    sprites_urls = {
-        k: f"app/static/mascot/jolyne_{k}.webp"
-        for k in ACTION_LABELS.keys()
-    }
-
-    sprites_json = json.dumps(sprites_urls, ensure_ascii=False)
-    dialogues_json = json.dumps(formatted_dialogues, ensure_ascii=False)
+    current_sprite_url = f"/app/static/mascot/jolyne_{action}.webp"
+    idle_sprite_url = "/app/static/mascot/jolyne_idle.webp"
     gogo_display = "block" if gogo_enabled else "none"
 
-    injection_script = f"""
-    <!DOCTYPE html>
-    <html>
-    <head><meta charset="utf-8"></head>
-    <body style="margin:0;padding:0;">
-    <script>
-    (function() {{
-        try {{
-            const pDoc = window.parent.document;
-            const pWin = window.parent;
-            if (!pDoc || !pDoc.body) return;
+    # HTML và CSS không có thụt lề 4 space ở đầu dòng (để markdown không bao giờ bị lỗi code block)
+    html_code = f"""<style>
+.jolyne-floating-container {{
+position: fixed !important;
+bottom: 24px !important;
+right: 24px !important;
+z-index: 9999999 !important;
+pointer-events: none !important;
+display: flex !important;
+flex-direction: column !important;
+align-items: flex-end !important;
+user-select: none !important;
+-webkit-user-select: none !important;
+will-change: transform !important;
+transform: translate3d(0, 0, 0);
+}}
 
-            const SPRITES = {sprites_json};
-            const DIALOGUES = {dialogues_json};
-            const AUTO_HIDE_MS = {int(auto_hide_sec * 1000)};
-            const SIZE_PX = {size};
-            const SPEED_SEC = {speed};
-            const GOGO_DISPLAY = "{gogo_display}";
+.jolyne-floating-container.is-dragging {{
+cursor: grabbing !important;
+}}
 
-            // 1. Cập nhật CSS vào head của parent window
-            let styleEl = pDoc.getElementById('jolyneStyles');
-            const cssContent = `
-                .jolyne-floating-container {{
-                    position: fixed !important;
-                    bottom: 24px !important;
-                    right: 24px !important;
-                    z-index: 9999999 !important;
-                    pointer-events: none !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    align-items: flex-end !important;
-                    user-select: none !important;
-                    -webkit-user-select: none !important;
-                    will-change: transform !important;
-                    transform: translate3d(0, 0, 0);
-                }}
+.jolyne-speech-bubble {{
+background: rgba(255, 255, 255, 0.98) !important;
+backdrop-filter: blur(16px) !important;
+-webkit-backdrop-filter: blur(16px) !important;
+border: 2px solid #ffd1dc !important;
+border-radius: 18px 18px 4px 18px !important;
+padding: 12px 16px !important;
+box-shadow: 0 10px 30px rgba(216, 17, 89, 0.16) !important;
+color: #9d174d !important;
+font-size: 0.88rem !important;
+line-height: 1.5 !important;
+font-weight: 600 !important;
+max-width: 260px !important;
+margin-bottom: 8px !important;
+margin-right: 14px !important;
+opacity: 1 !important;
+visibility: visible !important;
+pointer-events: auto !important;
+cursor: pointer !important;
+transform-origin: bottom right !important;
+transform: scale(1) translate3d(0, 0, 0) !important;
+transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+position: relative !important;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}}
 
-                .jolyne-floating-container.is-dragging {{
-                    cursor: grabbing !important;
-                }}
+.jolyne-speech-bubble.hide-bubble {{
+opacity: 0 !important;
+visibility: hidden !important;
+transform: scale(0.6) translate3d(0, 10px, 0) !important;
+}}
 
-                .jolyne-speech-bubble {{
-                    background: rgba(255, 255, 255, 0.98) !important;
-                    backdrop-filter: blur(16px) !important;
-                    -webkit-backdrop-filter: blur(16px) !important;
-                    border: 2px solid #ffd1dc !important;
-                    border-radius: 18px 18px 4px 18px !important;
-                    padding: 12px 16px !important;
-                    box-shadow: 0 10px 30px rgba(216, 17, 89, 0.16) !important;
-                    color: #9d174d !important;
-                    font-size: 0.88rem !important;
-                    line-height: 1.5 !important;
-                    font-weight: 600 !important;
-                    max-width: 260px !important;
-                    margin-bottom: 8px !important;
-                    margin-right: 14px !important;
-                    opacity: 0 !important;
-                    visibility: hidden !important;
-                    pointer-events: auto !important;
-                    cursor: pointer !important;
-                    transform-origin: bottom right !important;
-                    transform: scale(0.6) translate3d(0, 10px, 0) !important;
-                    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-                    position: relative !important;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-                }}
+.jolyne-speech-bubble::after {{
+content: "" !important;
+position: absolute !important;
+bottom: -8px !important;
+right: 28px !important;
+width: 12px !important;
+height: 12px !important;
+background: white !important;
+border-right: 2px solid #ffd1dc !important;
+border-bottom: 2px solid #ffd1dc !important;
+transform: rotate(45deg) !important;
+}}
 
-                .jolyne-speech-bubble.show {{
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                    transform: scale(1) translate3d(0, 0, 0) !important;
-                }}
+.jolyne-avatar-wrap {{
+position: relative !important;
+pointer-events: auto !important;
+cursor: grab !important;
+touch-action: none !important;
+transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}}
 
-                .jolyne-speech-bubble::after {{
-                    content: "" !important;
-                    position: absolute !important;
-                    bottom: -8px !important;
-                    right: 28px !important;
-                    width: 12px !important;
-                    height: 12px !important;
-                    background: white !important;
-                    border-right: 2px solid #ffd1dc !important;
-                    border-bottom: 2px solid #ffd1dc !important;
-                    transform: rotate(45deg) !important;
-                }}
+.jolyne-avatar-img {{
+width: {size}px !important;
+height: auto !important;
+display: block !important;
+filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.14)) !important;
+animation: jolyneFloat {speed}s ease-in-out infinite alternate !important;
+will-change: transform !important;
+transform-origin: bottom center !important;
+transition: opacity 0.2s ease !important;
+user-select: none !important;
+-webkit-user-select: none !important;
+-webkit-user-drag: none !important;
+pointer-events: none !important;
+}}
 
-                .jolyne-avatar-wrap {{
-                    position: relative !important;
-                    pointer-events: auto !important;
-                    cursor: grab !important;
-                    touch-action: none !important;
-                    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-                }}
+.drag-hint {{
+position: absolute !important;
+top: -24px !important;
+left: 50% !important;
+transform: translateX(-50%) scale(0) !important;
+background: rgba(244, 63, 94, 0.90) !important;
+color: white !important;
+font-size: 0.68rem !important;
+font-weight: 700 !important;
+padding: 3px 10px !important;
+border-radius: 20px !important;
+white-space: nowrap !important;
+pointer-events: none !important;
+transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+z-index: 100001 !important;
+font-family: sans-serif !important;
+}}
 
-                .jolyne-avatar-img {{
-                    width: ${{SIZE_PX}}px !important;
-                    height: auto !important;
-                    display: block !important;
-                    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.14)) !important;
-                    animation: jolyneFloat ${{SPEED_SEC}}s ease-in-out infinite alternate !important;
-                    will-change: transform !important;
-                    transform-origin: bottom center !important;
-                    transition: opacity 0.2s ease !important;
-                    user-select: none !important;
-                    -webkit-user-select: none !important;
-                    -webkit-user-drag: none !important;
-                    pointer-events: none !important;
-                }}
+.jolyne-avatar-wrap:hover .drag-hint {{
+transform: translateX(-50%) scale(1) !important;
+}}
 
-                .drag-hint {{
-                    position: absolute !important;
-                    top: -24px !important;
-                    left: 50% !important;
-                    transform: translateX(-50%) scale(0) !important;
-                    background: rgba(244, 63, 94, 0.90) !important;
-                    color: white !important;
-                    font-size: 0.68rem !important;
-                    font-weight: 700 !important;
-                    padding: 3px 10px !important;
-                    border-radius: 20px !important;
-                    white-space: nowrap !important;
-                    pointer-events: none !important;
-                    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-                    z-index: 100001 !important;
-                    font-family: sans-serif !important;
-                }}
+@keyframes jolyneFloat {{
+0%   {{ transform: translate3d(0, 0, 0) rotate(0deg); }}
+50%  {{ transform: translate3d(0, -8px, 0) rotate(-1.5deg); }}
+100% {{ transform: translate3d(0, -3px, 0) rotate(1.5deg); }}
+}}
 
-                .jolyne-avatar-wrap:hover .drag-hint {{
-                    transform: translateX(-50%) scale(1) !important;
-                }}
+/* Stand Menacing Effect (ゴゴゴゴ) BÊN PHẢI NHÂN VẬT */
+.gogo-container {{
+position: absolute !important;
+left: 100% !important;
+bottom: 0 !important;
+width: 60px !important;
+height: 120% !important;
+pointer-events: none !important;
+z-index: 100002 !important;
+overflow: visible !important;
+display: {gogo_display} !important;
+}}
 
-                @keyframes jolyneFloat {{
-                    0%   {{ transform: translate3d(0, 0, 0) rotate(0deg); }}
-                    50%  {{ transform: translate3d(0, -7px, 0) rotate(-1.5deg); }}
-                    100% {{ transform: translate3d(0, -3px, 0) rotate(1.5deg); }}
-                }}
+.gogo-glyph {{
+position: absolute !important;
+font-family: 'Noto Sans JP', 'MS Gothic', sans-serif, serif !important;
+font-weight: 900 !important;
+font-style: italic !important;
+background: linear-gradient(165deg, #e879f9 0%, #a855f7 35%, #6b21a8 75%, #3b0764 100%) !important;
+-webkit-background-clip: text !important;
+-webkit-text-fill-color: transparent !important;
+background-clip: text !important;
+filter: drop-shadow(0 0 5px rgba(216, 70, 239, 0.75))
+        drop-shadow(1.5px 2.5px 0 rgba(0, 0, 0, 0.6)) !important;
+will-change: transform, opacity !important;
+user-select: none !important;
+letter-spacing: -2px !important;
+opacity: 0;
+line-height: 1 !important;
+}}
 
-                @keyframes jolyneHappyBounce {{
-                    0%   {{ transform: scale(1) translate3d(0, 0, 0); }}
-                    30%  {{ transform: scale(1.18, 0.85) translate3d(0, 4px, 0); }}
-                    60%  {{ transform: scale(0.9, 1.15) translate3d(0, -22px, 0) rotate(3deg); }}
-                    80%  {{ transform: scale(1.05, 0.95) translate3d(0, -4px, 0); }}
-                    100% {{ transform: scale(1) translate3d(0, 0, 0); }}
-                }}
+@keyframes gogoFloat0 {{
+0%   {{ transform: translate3d(0, 0, 0) rotate(-10deg) scale(0.95); opacity: 0; }}
+18%  {{ opacity: 0.95; }}
+55%  {{ transform: translate3d(6px, -18px, 0) rotate(-14deg) scale(1.08); opacity: 0.85; }}
+100% {{ transform: translate3d(12px, -36px, 0) rotate(-8deg) scale(0.80); opacity: 0; }}
+}}
+@keyframes gogoFloat1 {{
+0%   {{ transform: translate3d(0, 0, 0) rotate(8deg) scale(0.90); opacity: 0; }}
+15%  {{ opacity: 0.90; }}
+50%  {{ transform: translate3d(8px, -14px, 0) rotate(12deg) scale(1.02); opacity: 0.80; }}
+100% {{ transform: translate3d(4px, -32px, 0) rotate(6deg) scale(0.75); opacity: 0; }}
+}}
+@keyframes gogoFloat2 {{
+0%   {{ transform: translate3d(0, 0, 0) rotate(-6deg) scale(1.10); opacity: 0; }}
+20%  {{ opacity: 0.95; }}
+55%  {{ transform: translate3d(10px, -12px, 0) rotate(-9deg) scale(1.18); opacity: 0.88; }}
+100% {{ transform: translate3d(15px, -28px, 0) rotate(-4deg) scale(0.88); opacity: 0; }}
+}}
+@keyframes gogoFloat3 {{
+0%   {{ transform: translate3d(0, 0, 0) rotate(14deg) scale(0.85); opacity: 0; }}
+16%  {{ opacity: 0.85; }}
+55%  {{ transform: translate3d(7px, -15px, 0) rotate(18deg) scale(0.96); opacity: 0.75; }}
+100% {{ transform: translate3d(11px, -34px, 0) rotate(12deg) scale(0.70); opacity: 0; }}
+}}
+@keyframes gogoFloat4 {{
+0%   {{ transform: translate3d(0, 0, 0) rotate(-16deg) scale(0.75); opacity: 0; }}
+14%  {{ opacity: 0.80; }}
+50%  {{ transform: translate3d(5px, -10px, 0) rotate(-20deg) scale(0.85); opacity: 0.70; }}
+100% {{ transform: translate3d(8px, -24px, 0) rotate(-12deg) scale(0.60); opacity: 0; }}
+}}
+</style>
 
-                @keyframes jolynePoseShake {{
-                    0%, 100% {{ transform: translate3d(0, 0, 0) rotate(0); }}
-                    20%      {{ transform: translate3d(-5px, 0, 0) rotate(-4deg); }}
-                    40%      {{ transform: translate3d(5px, 0, 0) rotate(4deg); }}
-                    60%      {{ transform: translate3d(-3px, 0, 0) rotate(-2deg); }}
-                    80%      {{ transform: translate3d(3px, 0, 0) rotate(2deg); }}
-                }}
+<div class="jolyne-floating-container" id="jolyneWidget">
+<div class="jolyne-speech-bubble" id="jolyneBubble" onclick="this.classList.add('hide-bubble'); window.jolyneResetToIdle && window.jolyneResetToIdle();" title="Bấm để ẩn thoại">
+{selected_line}
+</div>
+<div class="jolyne-avatar-wrap" id="jolyneWrap" onclick="window.jolyneInteract && window.jolyneInteract();">
+<div class="drag-hint">✥ kéo để di chuyển</div>
+<div class="gogo-container" id="gogoContainer">
+<div class="gogo-glyph" style="font-size:2.1rem;bottom:78%;left:4px;animation:gogoFloat0 2.3s ease-in-out infinite 0s both;">ゴ</div>
+<div class="gogo-glyph" style="font-size:1.6rem;bottom:60%;left:14px;animation:gogoFloat1 2.7s ease-in-out infinite 0.4s both;">ゴ</div>
+<div class="gogo-glyph" style="font-size:1.3rem;bottom:43%;left:8px;animation:gogoFloat2 2.1s ease-in-out infinite 0.75s both;">ゴ</div>
+<div class="gogo-glyph" style="font-size:1.05rem;bottom:27%;left:18px;animation:gogoFloat3 2.9s ease-in-out infinite 1.05s both;">ゴ</div>
+<div class="gogo-glyph" style="font-size:0.82rem;bottom:12%;left:10px;animation:gogoFloat4 2.5s ease-in-out infinite 1.35s both;">ゴ</div>
+</div>
+<img src="{current_sprite_url}" id="jolyneImg" class="jolyne-avatar-img" alt="Jolyne Chibi" draggable="false" />
+</div>
+</div>
 
-                .animate-bounce {{
-                    animation: jolyneHappyBounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-                }}
-                .animate-shake {{
-                    animation: jolynePoseShake 0.45s ease-in-out !important;
-                }}
+<img src="x" style="display:none;" onerror="
+(function() {{
+var widget = document.getElementById('jolyneWidget');
+var wrap = document.getElementById('jolyneWrap');
+var img = document.getElementById('jolyneImg');
+var bubble = document.getElementById('jolyneBubble');
+if (!widget || !wrap) return;
 
-                .sparkle-particle {{
-                    position: absolute !important;
-                    font-size: 1.15rem !important;
-                    pointer-events: none !important;
-                    opacity: 0 !important;
-                    animation: particleFly 1s ease-out forwards !important;
-                    z-index: 100000 !important;
-                }}
+// Tự động thu bóng thoại và trở về pose mặc định sau {auto_hide_sec}s
+if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
+window.__jolyne_timer = setTimeout(function() {{
+    if (bubble) bubble.classList.add('hide-bubble');
+    if ('{action}' !== 'idle' && img) {{
+        img.style.opacity = '0.5';
+        setTimeout(function() {{
+            img.src = '{idle_sprite_url}';
+            img.style.opacity = '1';
+        }}, 120);
+    }}
+}}, {int(auto_hide_sec * 1000)});
 
-                @keyframes particleFly {{
-                    0% {{ opacity: 1; transform: translate3d(0, 0, 0) scale(0.5); }}
-                    100% {{ opacity: 0; transform: translate3d(var(--tx), var(--ty), 0) scale(1.4) rotate(var(--rot)); }}
-                }}
+window.jolyneResetToIdle = function() {{
+    if (img) {{
+        img.style.opacity = '0.5';
+        setTimeout(function() {{
+            img.src = '{idle_sprite_url}';
+            img.style.opacity = '1';
+        }}, 120);
+    }}
+}};
 
-                /* Stand Menacing Effect BÊN PHẢI NHÂN VẬT */
-                .gogo-container {{
-                    position: absolute !important;
-                    left: 100% !important;
-                    bottom: 0 !important;
-                    width: 70px !important;
-                    height: 120% !important;
-                    pointer-events: none !important;
-                    z-index: 100002 !important;
-                    overflow: visible !important;
-                    display: ${{GOGO_DISPLAY}} !important;
-                }}
+// Click vào nhân vật: đổi sang dáng e thẹn
+window.jolyneInteract = function() {{
+    if (img) {{
+        img.style.opacity = '0.5';
+        setTimeout(function() {{
+            img.src = '/app/static/mascot/jolyne_shy.webp';
+            img.style.opacity = '1';
+        }}, 100);
+    }}
+    if (bubble) {{
+        bubble.innerHTML = 'Hì hì, {her_name} chọc tớ à? Ngại ghê á~ 👉👈🌸';
+        bubble.classList.remove('hide-bubble');
+    }}
+    if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
+    window.__jolyne_timer = setTimeout(function() {{
+        if (bubble) bubble.classList.add('hide-bubble');
+        window.jolyneResetToIdle();
+    }}, 4500);
+}};
 
-                .gogo-glyph {{
-                    position: absolute !important;
-                    font-family: 'Noto Sans JP', 'MS Gothic', sans-serif, serif !important;
-                    font-weight: 900 !important;
-                    font-style: italic !important;
-                    background: linear-gradient(165deg, #e879f9 0%, #a855f7 35%, #6b21a8 75%, #3b0764 100%) !important;
-                    -webkit-background-clip: text !important;
-                    -webkit-text-fill-color: transparent !important;
-                    background-clip: text !important;
-                    filter: drop-shadow(0 0 5px rgba(216, 70, 239, 0.75))
-                            drop-shadow(1.5px 2.5px 0 rgba(0, 0, 0, 0.6)) !important;
-                    will-change: transform, opacity !important;
-                    user-select: none !important;
-                    letter-spacing: -2px !important;
-                    opacity: 0 !important;
-                    line-height: 1 !important;
-                }}
+// Kéo thả bằng Pointer Events (chuẩn hiện đại, không dính chuột)
+if (!wrap.__drag_bound) {{
+    wrap.__drag_bound = true;
+    var isDragging = false;
+    var dragX = window.__jolyne_dragX || 0;
+    var dragY = window.__jolyne_dragY || 0;
+    var startX = 0, startY = 0;
+    var initX = 0, initY = 0;
+    var moved = false;
 
-                @keyframes gogoFloat0 {{
-                    0%   {{ transform: translate3d(0, 0, 0) rotate(-10deg) scale(0.95); opacity: 0; }}
-                    18%  {{ opacity: 0.95; }}
-                    55%  {{ transform: translate3d(6px, -18px, 0) rotate(-14deg) scale(1.08); opacity: 0.85; }}
-                    100% {{ transform: translate3d(12px, -36px, 0) rotate(-8deg) scale(0.80); opacity: 0; }}
-                }}
-                @keyframes gogoFloat1 {{
-                    0%   {{ transform: translate3d(0, 0, 0) rotate(8deg) scale(0.90); opacity: 0; }}
-                    15%  {{ opacity: 0.90; }}
-                    50%  {{ transform: translate3d(8px, -14px, 0) rotate(12deg) scale(1.02); opacity: 0.80; }}
-                    100% {{ transform: translate3d(4px, -32px, 0) rotate(6deg) scale(0.75); opacity: 0; }}
-                }}
-                @keyframes gogoFloat2 {{
-                    0%   {{ transform: translate3d(0, 0, 0) rotate(-6deg) scale(1.10); opacity: 0; }}
-                    20%  {{ opacity: 0.95; }}
-                    55%  {{ transform: translate3d(10px, -12px, 0) rotate(-9deg) scale(1.18); opacity: 0.88; }}
-                    100% {{ transform: translate3d(15px, -28px, 0) rotate(-4deg) scale(0.88); opacity: 0; }}
-                }}
-                @keyframes gogoFloat3 {{
-                    0%   {{ transform: translate3d(0, 0, 0) rotate(14deg) scale(0.85); opacity: 0; }}
-                    16%  {{ opacity: 0.85; }}
-                    55%  {{ transform: translate3d(7px, -15px, 0) rotate(18deg) scale(0.96); opacity: 0.75; }}
-                    100% {{ transform: translate3d(11px, -34px, 0) rotate(12deg) scale(0.70); opacity: 0; }}
-                }}
-                @keyframes gogoFloat4 {{
-                    0%   {{ transform: translate3d(0, 0, 0) rotate(-16deg) scale(0.75); opacity: 0; }}
-                    14%  {{ opacity: 0.80; }}
-                    50%  {{ transform: translate3d(5px, -10px, 0) rotate(-20deg) scale(0.85); opacity: 0.70; }}
-                    100% {{ transform: translate3d(8px, -24px, 0) rotate(-12deg) scale(0.60); opacity: 0; }}
-                }}
-            `;
+    // Giữ nguyên vị trí đã kéo trước đó
+    if (dragX !== 0 || dragY !== 0) {{
+        widget.style.transform = 'translate3d(' + dragX + 'px, ' + dragY + 'px, 0)';
+    }}
 
-            if (!styleEl) {{
-                styleEl = pDoc.createElement('style');
-                styleEl.id = 'jolyneStyles';
-                styleEl.textContent = cssContent;
-                pDoc.head.appendChild(styleEl);
-            }} else {{
-                styleEl.textContent = cssContent;
-            }}
+    wrap.addEventListener('dragstart', function(e) {{ e.preventDefault(); }});
 
-            // 2. Cập nhật DOM của Mascot Widget
-            let widget = pDoc.getElementById('jolyneWidget');
-            if (!widget) {{
-                widget = pDoc.createElement('div');
-                widget.id = 'jolyneWidget';
-                widget.className = 'jolyne-floating-container';
-                widget.innerHTML = `
-                    <div class="jolyne-speech-bubble" id="jolyneBubble" title="Bấm để ẩn thoại">
-                        Chào {her_name}! Tớ là Jolyne Kujo nè! 🦋✨
-                    </div>
-                    <div class="jolyne-avatar-wrap" id="jolyneWrap">
-                        <div class="drag-hint">✥ kéo để di chuyển</div>
-                        <div class="gogo-container" id="gogoContainer"></div>
-                        <img src="${{SPRITES['idle']}}" id="jolyneImg" class="jolyne-avatar-img" alt="Jolyne Chibi" draggable="false" />
-                    </div>
-                `;
-                pDoc.body.appendChild(widget);
+    wrap.addEventListener('pointerdown', function(e) {{
+        if (e.button !== undefined && e.button !== 0) return;
+        isDragging = true;
+        moved = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        initX = dragX;
+        initY = dragY;
+        widget.classList.add('is-dragging');
+        try {{ wrap.setPointerCapture(e.pointerId); }} catch(err) {{}}
+        e.preventDefault();
+    }});
 
-                // Khởi tạo các ký tự Menacing
-                const gogoBox = widget.querySelector('#gogoContainer');
-                if (gogoBox) {{
-                    const glyphData = [
-                        {{ text: 'ゴ', fs: '2.1rem',  b: '78%', l: '4px',  anim: 'gogoFloat0', delay: 0.00, dur: 2.3 }},
-                        {{ text: 'ゴ', fs: '1.6rem',  b: '60%', l: '14px', anim: 'gogoFloat1', delay: 0.40, dur: 2.7 }},
-                        {{ text: 'ゴ', fs: '1.3rem',  b: '43%', l: '8px',  anim: 'gogoFloat2', delay: 0.75, dur: 2.1 }},
-                        {{ text: 'ゴ', fs: '1.05rem', b: '27%', l: '18px', anim: 'gogoFloat3', delay: 1.05, dur: 2.9 }},
-                        {{ text: 'ゴ', fs: '0.82rem', b: '12%', l: '10px', anim: 'gogoFloat4', delay: 1.35, dur: 2.5 }},
-                    ];
-                    glyphData.forEach(g => {{
-                        const el = pDoc.createElement('div');
-                        el.className = 'gogo-glyph';
-                        el.textContent = g.text;
-                        el.style.fontSize = g.fs;
-                        el.style.bottom = g.b;
-                        el.style.left = g.l;
-                        el.style.animationName = g.anim;
-                        el.style.animationDuration = g.dur + 's';
-                        el.style.animationDelay = g.delay + 's';
-                        el.style.animationTimingFunction = 'ease-in-out';
-                        el.style.animationIterationCount = 'infinite';
-                        el.style.animationFillMode = 'both';
-                        gogoBox.appendChild(el);
-                    }});
-                }}
+    wrap.addEventListener('pointermove', function(e) {{
+        if (!isDragging) return;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
 
-                // Kéo thả bằng Pointer Events (chuẩn hiện đại, không dính chuột)
-                (function setupDrag() {{
-                    const wrap = widget.querySelector('#jolyneWrap');
-                    if (!wrap) return;
+        var wrapRect = wrap.getBoundingClientRect();
+        var pad = 8;
+        var targetDX = initX + dx;
+        var targetDY = initY + dy;
 
-                    let isDragging = false;
-                    let dragX = 0, dragY = 0;
-                    let startX = 0, startY = 0;
-                    let initX = 0, initY = 0;
-                    let moved = false;
+        var minDX = initX - (wrapRect.left - pad);
+        var maxDX = initX + ((window.innerWidth - pad) - wrapRect.right);
+        var minDY = initY - (wrapRect.top - pad);
+        var maxDY = initY + ((window.innerHeight - pad) - wrapRect.bottom);
 
-                    wrap.addEventListener('dragstart', e => e.preventDefault());
+        dragX = Math.max(minDX, Math.min(maxDX, targetDX));
+        dragY = Math.max(minDY, Math.min(maxDY, targetDY));
+        window.__jolyne_dragX = dragX;
+        window.__jolyne_dragY = dragY;
 
-                    function onDown(e) {{
-                        if (e.button !== undefined && e.button !== 0) return;
-                        isDragging = true;
-                        moved = false;
-                        startX = e.clientX;
-                        startY = e.clientY;
-                        initX = dragX;
-                        initY = dragY;
-                        widget.classList.add('is-dragging');
-                        try {{ wrap.setPointerCapture(e.pointerId); }} catch(err) {{}}
-                        e.preventDefault();
-                    }}
+        widget.style.transform = 'translate3d(' + dragX + 'px, ' + dragY + 'px, 0)';
+    }});
 
-                    function onMove(e) {{
-                        if (!isDragging) return;
-                        const dx = e.clientX - startX;
-                        const dy = e.clientY - startY;
-                        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
-
-                        const boundary = {{
-                            left: 0,
-                            top: 0,
-                            right: pWin.innerWidth,
-                            bottom: pWin.innerHeight
-                        }};
-
-                        const wrapRect = wrap.getBoundingClientRect();
-                        const pad = 8;
-                        const targetDX = initX + dx;
-                        const targetDY = initY + dy;
-
-                        const minDX = initX - (wrapRect.left - (boundary.left + pad));
-                        const maxDX = initX + ((boundary.right - pad) - wrapRect.right);
-                        const minDY = initY - (wrapRect.top - (boundary.top + pad));
-                        const maxDY = initY + ((boundary.bottom - pad) - wrapRect.bottom);
-
-                        dragX = Math.max(minDX, Math.min(maxDX, targetDX));
-                        dragY = Math.max(minDY, Math.min(maxDY, targetDY));
-
-                        widget.style.transform = `translate3d(${{dragX}}px, ${{dragY}}px, 0)`;
-                    }}
-
-                    function onUp(e) {{
-                        if (!isDragging) return;
-                        isDragging = false;
-                        widget.classList.remove('is-dragging');
-                        try {{ wrap.releasePointerCapture(e.pointerId); }} catch(err) {{}}
-
-                        if (moved) {{
-                            const stopClick = ev => {{
-                                ev.stopPropagation();
-                                ev.preventDefault();
-                                wrap.removeEventListener('click', stopClick, true);
-                            }};
-                            wrap.addEventListener('click', stopClick, true);
-                        }}
-                    }}
-
-                    wrap.addEventListener('pointerdown', onDown);
-                    wrap.addEventListener('pointermove', onMove);
-                    wrap.addEventListener('pointerup', onUp);
-                    wrap.addEventListener('pointercancel', onUp);
-                }})();
-            }}
-
-            // 3. Đăng ký hàm điều khiển toàn cục trên window.parent
-            let hideTimeout = null;
-            let returnTimeout = null;
-
-            pWin.jolyneResetToIdle = function() {{
-                const img = pDoc.getElementById('jolyneImg');
-                if (img && SPRITES['idle']) {{
-                    img.style.opacity = '0.5';
-                    setTimeout(() => {{
-                        img.src = SPRITES['idle'];
-                        img.style.opacity = '1';
-                    }}, 100);
-                }}
+    function onPointerUp(e) {{
+        if (!isDragging) return;
+        isDragging = false;
+        widget.classList.remove('is-dragging');
+        try {{ wrap.releasePointerCapture(e.pointerId); }} catch(err) {{}}
+        if (moved) {{
+            var stopClick = function(ev) {{
+                ev.stopPropagation();
+                ev.preventDefault();
+                wrap.removeEventListener('click', stopClick, true);
             }};
-
-            pWin.jolyneTrigger = function(actionKey) {{
-                const dataLines = DIALOGUES[actionKey] || DIALOGUES['idle'] || [];
-                const img = pDoc.getElementById('jolyneImg');
-                const bubble = pDoc.getElementById('jolyneBubble');
-                if (!img || !bubble) return;
-
-                if (hideTimeout) clearTimeout(hideTimeout);
-                if (returnTimeout) clearTimeout(returnTimeout);
-
-                if (SPRITES[actionKey]) {{
-                    img.style.opacity = '0.4';
-                    setTimeout(() => {{
-                        img.src = SPRITES[actionKey];
-                        img.style.opacity = '1';
-                    }}, 100);
-                }}
-
-                if (dataLines.length > 0) {{
-                    const line = dataLines[Math.floor(Math.random() * dataLines.length)];
-                    bubble.innerHTML = line;
-                    bubble.classList.add('show');
-                }}
-
-                img.classList.remove('animate-bounce', 'animate-shake');
-                void img.offsetWidth;
-                if (actionKey === 'panic' || actionKey === 'fight') {{
-                    img.classList.add('animate-shake');
-                }} else {{
-                    img.classList.add('animate-bounce');
-                }}
-
-                // Tự động trở về pose mặc định sau khi hết thoại
-                hideTimeout = setTimeout(() => {{
-                    bubble.classList.remove('show');
-                    if (actionKey !== 'idle') {{
-                        returnTimeout = setTimeout(pWin.jolyneResetToIdle, 300);
-                    }}
-                }}, AUTO_HIDE_MS);
-            }};
-
-            // Gán sự kiện click vào bubble và avatar
-            const bubbleEl = pDoc.getElementById('jolyneBubble');
-            if (bubbleEl) {{
-                bubbleEl.onclick = function() {{
-                    this.classList.remove('show');
-                    pWin.jolyneResetToIdle();
-                }};
-            }}
-
-            const wrapEl = pDoc.getElementById('jolyneWrap');
-            if (wrapEl) {{
-                wrapEl.onclick = function() {{
-                    const pool = ['shy', 'hug', 'water', 'idle'];
-                    const act = pool[Math.floor(Math.random() * pool.length)];
-                    pWin.jolyneTrigger(act);
-                }};
-            }}
-
-            // Lần đầu tải trang -> chào nhẹ
-            if (!pWin.__jolyne_greeting_done) {{
-                pWin.__jolyne_greeting_done = true;
-                setTimeout(() => pWin.jolyneTrigger('idle'), 1000);
-            }}
-
-        }} catch(err) {{
-            console.error("Jolyne widget init error:", err);
+            wrap.addEventListener('click', stopClick, true);
         }}
-    }})();
-    </script>
-    </body>
-    </html>
-    """
+    }}
 
-    st_module.components.v1.html(injection_script, height=0)
+    wrap.addEventListener('pointerup', onPointerUp);
+    wrap.addEventListener('pointercancel', onPointerUp);
+}}
+}})();
+" />"""
+
+    st_module.markdown(html_code, unsafe_allow_html=True)
 
 
 def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
@@ -689,7 +535,7 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
             max_value=150,
             value=int(settings.get("size", 95)),
             step=5,
-            help="Điều chỉnh độ lớn của bé Jolyne trên màn hình",
+            help="Điều chỉnh độ lớn của bé Jolyne trên màn hình (thay đổi ngay sau khi lưu)",
         )
         mascot_speed = st_module.slider(
             "Tốc độ lơ lửng (giây)",
@@ -702,7 +548,7 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
 
     st_module.markdown("---")
     st_module.markdown("#### 🎭 Thử Nghiệm Hành Động Trực Tiếp")
-    st_module.caption("Bấm nút bên dưới để bé Jolyne đổi pose và nói thử ngay trên màn hình:")
+    st_module.caption("Bấm nút bên dưới để đổi pose và câu thoại thử nghiệm:")
 
     act_keys = list(ACTION_LABELS.keys())
     row1 = act_keys[:6]
@@ -712,19 +558,15 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
     for i, k in enumerate(row1):
         icon, name = ACTION_LABELS[k]
         if cols_r1[i].button(f"{icon} {name}", key=f"btn_test_{k}", use_container_width=True):
-            st_module.components.v1.html(
-                f"<script>window.parent.jolyneTrigger && window.parent.jolyneTrigger('{k}');</script>",
-                height=0,
-            )
+            st_module.session_state["mascot_action"] = k
+            st_module.rerun()
 
     cols_r2 = st_module.columns(6)
     for i, k in enumerate(row2):
         icon, name = ACTION_LABELS[k]
         if cols_r2[i].button(f"{icon} {name}", key=f"btn_test_{k}", use_container_width=True):
-            st_module.components.v1.html(
-                f"<script>window.parent.jolyneTrigger && window.parent.jolyneTrigger('{k}');</script>",
-                height=0,
-            )
+            st_module.session_state["mascot_action"] = k
+            st_module.rerun()
 
     st_module.markdown("---")
     st_module.markdown("#### 💬 Chỉnh Sửa Lời Thoại Của Bé Jolyne")
@@ -770,7 +612,7 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
             "dialogues": dialogues,
         }
         save_mascot_settings(new_settings)
-        st_module.success("✅ Đã lưu cấu hình bé Jolyne thành công! Cài đặt sẽ có hiệu lực ngay.")
+        st_module.success("✅ Đã lưu cấu hình bé Jolyne thành công! Cài đặt kích thước và lời thoại đã có hiệu lực.")
         st_module.rerun()
 
     if save_col2.button("🔄 Khôi Phục Mặc Định", use_container_width=True):

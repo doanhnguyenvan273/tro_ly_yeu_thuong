@@ -1021,6 +1021,7 @@ if "task_act" in st.query_params:
             database.update_task_status(_t_id, "Đang làm")
         elif _t_act == "done":
             database.update_task_status(_t_id, "Đã hoàn thành")
+            st.session_state["mascot_action"] = "victory" 
         elif _t_act == "del":
             database.delete_task(_t_id)
         invalidate_cache()
@@ -1089,8 +1090,38 @@ selected_nav = st.radio(
 )
 st.session_state["active_nav"] = selected_nav
 
-# ── BÉ JOLYNE KUJO ĐỒNG HÀNH LƠ LỬNG TRÊN TOÀN BỘ WEB APP ──
-mascot_manager.render_floating_mascot(st, her_name=her_name, my_name=my_name)
+# ── BÉ JOLYNE KUJO ĐỒNG HÀNH LƠ LỬNG VÀ PHẢN ỨNG THÔNG MINH ──
+current_mascot_action = "idle"
+if st.session_state.get("mascot_action"):
+    current_mascot_action = st.session_state.pop("mascot_action")
+elif "Lịch Học" in selected_nav:
+    current_mascot_action = "study"
+elif "Deadline" in selected_nav:
+    current_mascot_action = "fight"
+elif "Chu Kỳ" in selected_nav:
+    current_mascot_action = "period"
+elif "Đơn Thuốc" in selected_nav:
+    current_mascot_action = "med"
+elif "Cảm Xúc" in selected_nav:
+    current_mascot_action = "hug"
+elif "Bé Jolyne" in selected_nav:
+    current_mascot_action = "shy"
+else:
+    # Trang Chủ: chào theo giờ
+    current_h = datetime.now().hour
+    if 5 <= current_h < 11:
+        current_mascot_action = "morning"
+    elif current_h >= 22:
+        current_mascot_action = "sleep"
+    else:
+        current_mascot_action = "idle"
+
+mascot_manager.render_floating_mascot(
+    st,
+    her_name=her_name,
+    my_name=my_name,
+    action=current_mascot_action,
+)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ROUTING NỘI DUNG THEO NAVBAR
@@ -1685,6 +1716,7 @@ elif "Deadline" in selected_nav:
                     is_d = (t["status"] == "Đã hoàn thành")
                     if st.button("✓ Hoàn thành", key=f"btn_d_{t['id']}", use_container_width=True, type="primary" if is_d else "secondary"):
                         database.update_task_status(t['id'], "Đã hoàn thành")
+                        st.session_state["mascot_action"] = "victory" 
                         invalidate_cache()
                         st.rerun()
                 with c_del:
