@@ -911,6 +911,7 @@ if "logout" in st.query_params:
 
 # 3. Chặn hoàn toàn và hiển thị Màn hình Khóa Mèo Bảo Vệ nếu chưa mở khóa
 if not st.session_state.get("is_authenticated", False):
+    st.markdown("""<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'></svg>" style="display:none!important;" onload="try{var w=window.parent.document.getElementById('jolyneWidget');if(w)w.style.display='none';}catch(e){}" />""", unsafe_allow_html=True)
     st.markdown(f"""
     <div style="max-width: 440px; margin: 36px auto 16px; text-align: center;">
         <div style="background: white; border-radius: 24px; border: 2px solid #ffd6e0; box-shadow: 0 10px 30px rgba(255,107,139,0.12); padding: 26px 20px;">
@@ -1097,7 +1098,16 @@ if st.session_state.get("mascot_action"):
 elif "Lịch Học" in selected_nav:
     current_mascot_action = "study"
 elif "Deadline" in selected_nav:
-    current_mascot_action = "fight"
+    try:
+        tasks = get_cached_tasks()
+        today_iso = date.today().isoformat()
+        has_urgent = any(
+            t.get("status") != "Đã hoàn thành" and t.get("deadline") and str(t["deadline"]) <= today_iso
+            for t in tasks
+        )
+        current_mascot_action = "panic" if has_urgent else "fight"
+    except Exception:
+        current_mascot_action = "fight"
 elif "Chu Kỳ" in selected_nav:
     current_mascot_action = "period"
 elif "Đơn Thuốc" in selected_nav:
@@ -2006,6 +2016,7 @@ elif "Đơn Thuốc" in selected_nav:
                                          use_container_width=True):
                                 database.log_medicine_taken(item["medicine_id"], today_str_m, item["time_slot"])
                                 invalidate_cache()
+                                st.session_state["mascot_action"] = "water"
                                 st.success(f"{her_name} giỏi quá! 🌸")
                                 st.rerun()
                         with c_test:

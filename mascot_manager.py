@@ -16,6 +16,7 @@ import json
 import random
 import time
 import copy
+import html
 from typing import Dict, List, Any
 
 SETTINGS_PATH = os.path.join("data", "mascot_settings.json")
@@ -157,13 +158,18 @@ def render_floating_mascot(
 ) -> None:
     """
     Render bé Jolyne Kujo lơ lửng:
-    1. HTML/CSS tinh gọn 100% trong st.markdown (không có script inline).
-    2. Giữ nguyên tọa độ (x, y) xuyên suốt tất cả các trang bằng localStorage.
-    3. Bộ lắng nghe kéo thả bằng Event Delegation trên window.parent.document,
-       đảm bảo ở BẤT KỲ TRANG NÀO cũng kéo thả được mượt mà 100%.
+    1. HTML/CSS với z-index: 2147483647 (cao nhất tuyệt đối).
+    2. Teleport trực tiếp ra document.body để nằm trên tất cả card, tabs, modals.
+    3. Giữ nguyên tọa độ (x, y) xuyên suốt tất cả các trang bằng localStorage & CSS vars.
+    4. MỖI KHI ĐỔI ACTION/TAB: LUÔN CÓ BÓNG THOẠI HIỆN LÊN RỰC RỠ VỚI CÂU NÓI PHÙ HỢP.
     """
     settings = get_mascot_settings(st_module)
     if not settings.get("enabled", True):
+        # Ẩn hoặc dọn dẹp widget nếu tắt bé Jolyne
+        st_module.markdown(
+            """<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'></svg>" style="display:none!important;" onload="try{var w=window.parent.document.getElementById('jolyneWidget');if(w)w.style.display='none';}catch(e){}" />""",
+            unsafe_allow_html=True,
+        )
         return
 
     size = int(settings.get("size", 95))
@@ -171,16 +177,25 @@ def render_floating_mascot(
     gogo_enabled = bool(settings.get("gogo_enabled", True))
     auto_hide_sec = float(settings.get("auto_hide_seconds", 4.5))
 
-    raw_dialogues = settings.get("dialogues", DEFAULT_SETTINGS["dialogues"])
-    act_lines = raw_dialogues.get(action, raw_dialogues.get("idle", ["Xin chào! 🌸"]))
+    raw_dialogues = settings.get("dialogues", {})
+    act_lines = [l.strip() for l in raw_dialogues.get(action, []) if l and l.strip()]
+    if not act_lines:
+        act_lines = DEFAULT_SETTINGS["dialogues"].get(action, DEFAULT_SETTINGS["dialogues"]["idle"])
+
     selected_line = random.choice(act_lines).replace("{her_name}", her_name).replace("{my_name}", my_name)
+    escaped_selected_line = html.escape(selected_line, quote=True)
 
     all_formatted_dialogues = {}
     for k_act, lines in raw_dialogues.items():
         all_formatted_dialogues[k_act] = [
             l.replace("{her_name}", her_name).replace("{my_name}", my_name)
-            for l in lines
+            for l in lines if l and l.strip()
         ]
+        if not all_formatted_dialogues[k_act]:
+            all_formatted_dialogues[k_act] = [
+                l.replace("{her_name}", her_name).replace("{my_name}", my_name)
+                for l in DEFAULT_SETTINGS["dialogues"].get(k_act, ["Xin chào! 🌸"])
+            ]
 
     sprite_map = {
         k_act: f"/app/static/mascot/jolyne_{k_act}.webp"
@@ -197,7 +212,7 @@ def render_floating_mascot(
 position: fixed !important;
 bottom: 24px !important;
 right: 24px !important;
-z-index: 9999999 !important;
+z-index: 2147483647 !important;
 pointer-events: none !important;
 display: flex !important;
 flex-direction: column !important;
@@ -220,7 +235,7 @@ backdrop-filter: blur(16px) !important;
 border: 2px solid #ffd1dc !important;
 border-radius: 18px 18px 4px 18px !important;
 padding: 12px 16px !important;
-box-shadow: 0 10px 30px rgba(216, 17, 89, 0.16) !important;
+box-shadow: 0 10px 30px rgba(216, 17, 89, 0.18) !important;
 color: #9d174d !important;
 font-size: 0.88rem !important;
 line-height: 1.5 !important;
@@ -234,9 +249,10 @@ pointer-events: auto !important;
 cursor: pointer !important;
 transform-origin: bottom right !important;
 transform: scale(1) translate3d(0, 0, 0) !important;
-transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
 position: relative !important;
 font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+z-index: 2147483647 !important;
 }}
 
 .jolyne-speech-bubble.hide-bubble {{
@@ -265,13 +281,14 @@ pointer-events: auto !important;
 cursor: grab !important;
 touch-action: none !important;
 transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+z-index: 2147483647 !important;
 }}
 
 .jolyne-avatar-img {{
 width: {size}px !important;
 height: auto !important;
 display: block !important;
-filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.14)) !important;
+filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.16)) !important;
 animation: jolyneFloat {speed}s ease-in-out infinite alternate !important;
 will-change: transform !important;
 transform-origin: bottom center !important;
@@ -296,7 +313,7 @@ border-radius: 20px !important;
 white-space: nowrap !important;
 pointer-events: none !important;
 transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-z-index: 100001 !important;
+z-index: 2147483647 !important;
 font-family: sans-serif !important;
 }}
 
@@ -318,7 +335,7 @@ bottom: 0 !important;
 width: 60px !important;
 height: 120% !important;
 pointer-events: none !important;
-z-index: 100002 !important;
+z-index: 2147483647 !important;
 overflow: visible !important;
 display: {gogo_display} !important;
 }}
@@ -382,7 +399,15 @@ position: absolute !important;
 }}
 </style>
 
-<div class="jolyne-floating-container" id="jolyneWidget">
+<div class="jolyne-floating-container" id="jolyneWidget"
+     data-action="{action}"
+     data-line="{escaped_selected_line}"
+     data-sprite="{current_sprite_url}"
+     data-idle="{idle_sprite_url}"
+     data-size="{size}"
+     data-speed="{speed}"
+     data-gogo="{gogo_display}"
+     data-autohide="{auto_hide_sec}">
 <div class="jolyne-speech-bubble" id="jolyneBubble" title="Bấm để ẩn thoại">
 {selected_line}
 </div>
@@ -398,6 +423,7 @@ position: absolute !important;
 <img src="{current_sprite_url}" id="jolyneImg" class="jolyne-avatar-img" alt="Jolyne Chibi" draggable="false" />
 </div>
 </div>
+<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'></svg>" style="display:none!important;" onload="try{{if(window.parent&&window.parent.__jolyne_fast_sync)window.parent.__jolyne_fast_sync(this);}}catch(e){{}}" />
 """
 
     clean_html = "\n".join(line.strip() for line in raw_css_html.splitlines() if line.strip())
@@ -426,14 +452,24 @@ position: absolute !important;
                 if (window.__jolyne_core_initialized) return;
                 window.__jolyne_core_initialized = true;
 
+                var pDoc = window.document;
+
+                // Inject style toàn cục vào head với z-index cao nhất
+                if (!pDoc.getElementById('jolyne-global-style')) {
+                    var gs = pDoc.createElement('style');
+                    gs.id = 'jolyne-global-style';
+                    gs.textContent = '#jolyneWidget { position: fixed !important; z-index: 2147483647 !important; pointer-events: none !important; bottom: 24px !important; right: 24px !important; } #jolyneWidget * { box-sizing: border-box !important; } #jolyneWidget .jolyne-avatar-wrap, #jolyneWidget .jolyne-speech-bubble { pointer-events: auto !important; }';
+                    pDoc.head.appendChild(gs);
+                }
+
                 // A. Đọc và áp dụng tọa độ đã lưu vào CSS variables (--jolyne-x, --jolyne-y)
                 function initSavedPos() {
                     try {
                         var s = JSON.parse(localStorage.getItem('jolyne_pos_v2'));
                         if (s && typeof s.x === 'number' && typeof s.y === 'number') {
-                            document.documentElement.style.setProperty('--jolyne-x', s.x + 'px');
-                            document.documentElement.style.setProperty('--jolyne-y', s.y + 'px');
-                            var w = document.getElementById('jolyneWidget');
+                            pDoc.documentElement.style.setProperty('--jolyne-x', s.x + 'px');
+                            pDoc.documentElement.style.setProperty('--jolyne-y', s.y + 'px');
+                            var w = pDoc.getElementById('jolyneWidget');
                             if (w) w.style.transform = 'translate3d(' + s.x + 'px, ' + s.y + 'px, 0)';
                         }
                     } catch(e) {}
@@ -455,17 +491,168 @@ position: absolute !important;
                 }
 
                 window.addEventListener('resize', function() {
-                    var curX = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
-                    var curY = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
+                    var curX = parseFloat(pDoc.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
+                    var curY = parseFloat(pDoc.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
                     var c = clampPos(curX, curY);
                     if (c.x !== curX || c.y !== curY) {
-                        document.documentElement.style.setProperty('--jolyne-x', c.x + 'px');
-                        document.documentElement.style.setProperty('--jolyne-y', c.y + 'px');
+                        pDoc.documentElement.style.setProperty('--jolyne-x', c.x + 'px');
+                        pDoc.documentElement.style.setProperty('--jolyne-y', c.y + 'px');
                         try { localStorage.setItem('jolyne_pos_v2', JSON.stringify(c)); } catch(e) {}
                     }
                 });
 
-                // C. BỘ LẮNG NGHE KÉO THẢ TOÀN CỤC TRÊN DOCUMENT (MỌI TRANG / MỌI TAB ĐỀU HOẠT ĐỘNG 100%)
+                // C. MASTER SYNC FUNCTION: ĐẢM BẢO NHÂN VẬT LUÔN Ở LỚP TRÊN CÙNG (pDoc.body) & CÓ THOẠI KHI ĐỔI ACTION
+                window.__jolyne_sync = function(cfg) {
+                    if (!pDoc || !pDoc.body) return;
+
+                    // 1. Tìm hoặc dịch chuyển #jolyneWidget trực tiếp ra pDoc.body
+                    var bodyWidget = null;
+                    var allWidgets = pDoc.querySelectorAll('#jolyneWidget');
+
+                    for (var i = 0; i < allWidgets.length; i++) {
+                        if (allWidgets[i].parentElement === pDoc.body) {
+                            bodyWidget = allWidgets[i];
+                            break;
+                        }
+                    }
+
+                    var innerWidget = null;
+                    for (var j = 0; j < allWidgets.length; j++) {
+                        if (allWidgets[j].parentElement !== pDoc.body) {
+                            innerWidget = allWidgets[j];
+                            break;
+                        }
+                    }
+
+                    var targetWidget = bodyWidget;
+                    if (!bodyWidget) {
+                        if (innerWidget) {
+                            pDoc.body.appendChild(innerWidget);
+                            targetWidget = innerWidget;
+                        }
+                    } else {
+                        if (innerWidget) {
+                            // Đã có widget cố định trên body, dọn bản sao bên trong Streamlit container
+                            try { innerWidget.parentElement.removeChild(innerWidget); } catch(e) {}
+                        }
+                    }
+
+                    if (!targetWidget) return;
+
+                    // Ép z-index cao nhất tuyệt đối (2147483647) và cố định trên màn hình
+                    targetWidget.style.setProperty('z-index', '2147483647', 'important');
+                    targetWidget.style.setProperty('position', 'fixed', 'important');
+                    targetWidget.style.setProperty('pointer-events', 'none', 'important');
+                    targetWidget.style.setProperty('display', 'flex', 'important');
+
+                    // Đồng bộ tọa độ transform
+                    try {
+                        var s = JSON.parse(localStorage.getItem('jolyne_pos_v2'));
+                        if (s && typeof s.x === 'number' && typeof s.y === 'number') {
+                            pDoc.documentElement.style.setProperty('--jolyne-x', s.x + 'px');
+                            pDoc.documentElement.style.setProperty('--jolyne-y', s.y + 'px');
+                            targetWidget.style.transform = 'translate3d(' + s.x + 'px, ' + s.y + 'px, 0)';
+                        }
+                    } catch(e) {}
+
+                    if (!cfg) return;
+
+                    if (cfg.action) window.__jolyne_current_action = cfg.action;
+                    if (cfg.dialogues) window.__jolyne_all_dialogues = cfg.dialogues;
+                    if (cfg.idleUrl) window.__jolyne_idle_url = cfg.idleUrl;
+                    if (cfg.spriteMap) window.__jolyne_sprite_map = cfg.spriteMap;
+                    if (cfg.autoHideSec) window.__jolyne_auto_hide_sec = cfg.autoHideSec;
+
+                    // Cập nhật sprite ảnh
+                    var img = targetWidget.querySelector('#jolyneImg');
+                    if (img && cfg.spriteUrl) {
+                        img.src = cfg.spriteUrl;
+                        if (cfg.size) img.style.width = cfg.size + 'px';
+                        if (cfg.speed) img.style.animationDuration = cfg.speed + 's';
+                    }
+
+                    // Cập nhật hiệu ứng Menacing GoGo
+                    var gogo = targetWidget.querySelector('#gogoContainer');
+                    if (gogo && cfg.gogoDisplay) {
+                        gogo.style.display = cfg.gogoDisplay;
+                    }
+
+                    // LUÔN LUÔN BẬT BÓNG THOẠI KHI CÓ HÀNH ĐỘNG MỚI
+                    var bubble = targetWidget.querySelector('#jolyneBubble');
+                    if (bubble) {
+                        var line = cfg.line;
+                        if (!line || !line.trim()) {
+                            var act = cfg.action || window.__jolyne_current_action || 'idle';
+                            var allD = window.__jolyne_all_dialogues || {};
+                            var pool = allD[act] || allD['idle'] || ['Xin chào! 🌸'];
+                            line = pool[Math.floor(Math.random() * pool.length)];
+                        }
+                        bubble.innerHTML = line;
+                        bubble.classList.remove('hide-bubble');
+                        bubble.style.setProperty('display', 'block', 'important');
+                        bubble.style.setProperty('opacity', '1', 'important');
+                        bubble.style.setProperty('visibility', 'visible', 'important');
+                        bubble.style.setProperty('transform', 'scale(1) translate3d(0, 0, 0)', 'important');
+
+                        if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
+                        var hideSec = cfg.autoHideSec || window.__jolyne_auto_hide_sec || 4.5;
+                        var hideMs = Math.max(3500, Math.round(hideSec * 1000));
+                        window.__jolyne_timer = setTimeout(function() {
+                            if (bubble) bubble.classList.add('hide-bubble');
+                            if (cfg.action !== 'idle' && img && (cfg.idleUrl || window.__jolyne_idle_url)) {
+                                img.style.opacity = '0.5';
+                                setTimeout(function() {
+                                    img.src = cfg.idleUrl || window.__jolyne_idle_url;
+                                    img.style.opacity = '1';
+                                }, 120);
+                            }
+                        }, hideMs);
+                    }
+                };
+
+                // Fast sync hook gọi từ inline image onload khi st.markdown vừa mount
+                window.__jolyne_fast_sync = function(imgEl) {
+                    try {
+                        var container = imgEl ? (imgEl.previousElementSibling || imgEl.parentElement.querySelector('#jolyneWidget')) : null;
+                        if (!container || container.id !== 'jolyneWidget') return;
+                        var cfg = {
+                            action: container.getAttribute('data-action') || 'idle',
+                            line: container.getAttribute('data-line') || '',
+                            spriteUrl: container.getAttribute('data-sprite') || '',
+                            idleUrl: container.getAttribute('data-idle') || '',
+                            size: container.getAttribute('data-size') || '',
+                            speed: container.getAttribute('data-speed') || '',
+                            gogoDisplay: container.getAttribute('data-gogo') || 'block',
+                            autoHideSec: parseFloat(container.getAttribute('data-autohide')) || 4.5
+                        };
+                        window.__jolyne_sync(cfg);
+                    } catch(e) {
+                        console.error('Fast sync error:', e);
+                    }
+                };
+
+                // MutationObserver: bắt ngay tức khắc các thay đổi DOM của Streamlit trước khi paint
+                try {
+                    var obs = new MutationObserver(function() {
+                        var inner = pDoc.querySelector('#root #jolyneWidget, div[data-testid="stApp"] #jolyneWidget');
+                        if (inner) {
+                            var cfg = {
+                                action: inner.getAttribute('data-action') || 'idle',
+                                line: inner.getAttribute('data-line') || '',
+                                spriteUrl: inner.getAttribute('data-sprite') || '',
+                                idleUrl: inner.getAttribute('data-idle') || '',
+                                size: inner.getAttribute('data-size') || '',
+                                speed: inner.getAttribute('data-speed') || '',
+                                gogoDisplay: inner.getAttribute('data-gogo') || 'block',
+                                autoHideSec: parseFloat(inner.getAttribute('data-autohide')) || 4.5
+                            };
+                            window.__jolyne_sync(cfg);
+                        }
+                    });
+                    obs.observe(pDoc.body, { childList: true, subtree: true });
+                } catch(err) {}
+
+                // D. BỘ LẮNG NGHE KÉO THẢ TOÀN CỤC TRÊN DOCUMENT (MỌI TRANG / MỌI TAB)
                 var isDragging = false;
                 var currentWidget = null;
                 var currentWrap = null;
@@ -474,18 +661,18 @@ position: absolute !important;
                 var minDX = 0, maxDX = 0, minDY = 0, maxDY = 0;
                 var moved = false;
 
-                document.addEventListener('dragstart', function(e) {
+                pDoc.addEventListener('dragstart', function(e) {
                     if (e.target && e.target.closest && e.target.closest('#jolyneWrap')) {
                         e.preventDefault();
                     }
                 }, true);
 
-                document.addEventListener('pointerdown', function(e) {
+                pDoc.addEventListener('pointerdown', function(e) {
                     if (e.button !== undefined && e.button !== 0) return;
                     var wrap = e.target && e.target.closest ? e.target.closest('#jolyneWrap') : null;
                     if (!wrap) return;
 
-                    var widget = document.getElementById('jolyneWidget');
+                    var widget = pDoc.getElementById('jolyneWidget');
                     if (!widget) return;
 
                     currentWidget = widget;
@@ -495,11 +682,9 @@ position: absolute !important;
                     startX = e.clientX;
                     startY = e.clientY;
 
-                    // Đọc tọa độ hiện tại từ CSS variables
-                    initX = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
-                    initY = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
+                    initX = parseFloat(pDoc.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
+                    initY = parseFloat(pDoc.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
 
-                    // Đo kích thước thực tế để khóa biên an toàn
                     var wrapRect = wrap.getBoundingClientRect();
                     var pad = 8;
                     var winW = window.innerWidth || 1024;
@@ -515,7 +700,7 @@ position: absolute !important;
                     e.preventDefault();
                 }, true);
 
-                document.addEventListener('pointermove', function(e) {
+                pDoc.addEventListener('pointermove', function(e) {
                     if (!isDragging || !currentWidget || !currentWrap) return;
                     var dx = e.clientX - startX;
                     var dy = e.clientY - startY;
@@ -527,8 +712,8 @@ position: absolute !important;
                     var curX = Math.max(minDX, Math.min(maxDX, targetX));
                     var curY = Math.max(minDY, Math.min(maxDY, targetY));
 
-                    document.documentElement.style.setProperty('--jolyne-x', curX + 'px');
-                    document.documentElement.style.setProperty('--jolyne-y', curY + 'px');
+                    pDoc.documentElement.style.setProperty('--jolyne-x', curX + 'px');
+                    pDoc.documentElement.style.setProperty('--jolyne-y', curY + 'px');
                     currentWidget.style.transform = 'translate3d(' + curX + 'px, ' + curY + 'px, 0)';
                 }, true);
 
@@ -537,10 +722,9 @@ position: absolute !important;
                     isDragging = false;
                     if (currentWidget) currentWidget.classList.remove('is-dragging');
 
-                    var finalX = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
-                    var finalY = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
+                    var finalX = parseFloat(pDoc.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
+                    var finalY = parseFloat(pDoc.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
 
-                    // Lưu vị trí vào localStorage để giữ nguyên xuyên suốt mọi trang và reload
                     try {
                         localStorage.setItem('jolyne_pos_v2', JSON.stringify({ x: finalX, y: finalY }));
                     } catch(err) {}
@@ -560,16 +744,16 @@ position: absolute !important;
                     currentWrap = null;
                 }
 
-                document.addEventListener('pointerup', onPointerEnd, true);
-                document.addEventListener('pointercancel', onPointerEnd, true);
+                pDoc.addEventListener('pointerup', onPointerEnd, true);
+                pDoc.addEventListener('pointercancel', onPointerEnd, true);
 
-                // D. CLICK VÀO BÓNG THOẠI HOẶC AVATAR
-                document.addEventListener('click', function(e) {
+                // E. CLICK VÀO BÓNG THOẠI HOẶC AVATAR
+                pDoc.addEventListener('click', function(e) {
                     // Click vào bóng thoại: ẩn bóng thoại và trở về pose idle
                     var bubbleClick = e.target && e.target.closest ? e.target.closest('#jolyneBubble') : null;
                     if (bubbleClick) {
                         bubbleClick.classList.add('hide-bubble');
-                        var img = document.getElementById('jolyneImg');
+                        var img = pDoc.getElementById('jolyneImg');
                         if (img && window.__jolyne_idle_url) {
                             img.style.opacity = '0.5';
                             setTimeout(function() {
@@ -580,106 +764,46 @@ position: absolute !important;
                         return;
                     }
 
-                    // Click vào avatar: nói câu thoại theo ngữ cảnh trang hiện tại
+                    // Click vào avatar: nói câu thoại theo ngữ cảnh hoặc e thẹn
                     var wrapClick = e.target && e.target.closest ? e.target.closest('#jolyneWrap') : null;
                     if (!wrapClick || moved) return;
-
-                    var b = document.getElementById('jolyneBubble');
-                    var i = document.getElementById('jolyneImg');
-                    if (!b || !i) return;
 
                     var act = window.__jolyne_current_action || 'idle';
                     var allD = window.__jolyne_all_dialogues || {};
                     var pool = allD[act];
                     if (!pool || pool.length === 0) pool = allD['idle'] || ['Xin chào! 🌸'];
 
-                    // Xen kẽ câu e thẹn khi bấm chọc vào bé
                     if (Math.random() < 0.30 && allD['shy'] && allD['shy'].length > 0) {
                         pool = allD['shy'];
                         act = 'shy';
                     }
 
                     var randLine = pool[Math.floor(Math.random() * pool.length)];
-                    b.innerHTML = randLine;
-                    b.classList.remove('hide-bubble');
-
-                    var sMap = window.__jolyne_sprite_map || {};
-                    if (sMap[act]) {
-                        i.src = sMap[act];
-                    }
-
-                    if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
-                    window.__jolyne_timer = setTimeout(function() {
-                        var b2 = document.getElementById('jolyneBubble');
-                        var i2 = document.getElementById('jolyneImg');
-                        if (b2) b2.classList.add('hide-bubble');
-                        if (act !== 'idle' && i2 && window.__jolyne_idle_url) {
-                            i2.style.opacity = '0.5';
-                            setTimeout(function() {
-                                i2.src = window.__jolyne_idle_url;
-                                i2.style.opacity = '1';
-                            }, 120);
-                        }
-                    }, 4500);
+                    window.__jolyne_sync({
+                        action: act,
+                        line: randLine,
+                        spriteUrl: (window.__jolyne_sprite_map && window.__jolyne_sprite_map[act]) || '',
+                        idleUrl: window.__jolyne_idle_url || '',
+                        autoHideSec: window.__jolyne_auto_hide_sec || 4.5,
+                        dialogues: allD,
+                        spriteMap: window.__jolyne_sprite_map || {}
+                    });
                 }, true);
 
-                // E. ĐỒNG BỘ TRẠNG THÁI KHI STREAMLIT CHUYỂN TAB
+                // F. CẬP NHẬT KHI ĐỔI TAB (TƯƠNG THÍCH TẤT CẢ GỌI CŨ)
                 window.__jolyne_update_tab = function(cfg) {
-                    window.__jolyne_current_action = cfg.action;
-                    window.__jolyne_all_dialogues = cfg.dialogues;
-                    window.__jolyne_idle_url = cfg.idleUrl;
-                    window.__jolyne_sprite_map = cfg.spriteMap;
-                    window.__jolyne_her_name = cfg.herName;
-                    window.__jolyne_my_name = cfg.myName;
-
-                    // Giữ chắc chắn vị trí từ localStorage đồng bộ vào CSS variable
-                    try {
-                        var s = JSON.parse(localStorage.getItem('jolyne_pos_v2'));
-                        if (s && typeof s.x === 'number' && typeof s.y === 'number') {
-                            document.documentElement.style.setProperty('--jolyne-x', s.x + 'px');
-                            document.documentElement.style.setProperty('--jolyne-y', s.y + 'px');
-                            var w = document.getElementById('jolyneWidget');
-                            if (w) w.style.transform = 'translate3d(' + s.x + 'px, ' + s.y + 'px, 0)';
-                        }
-                    } catch(e) {}
-
-                    // CẬP NHẬT NỘI DUNG VÀ HIỆN BÓNG THOẠI NGAY LẬP TỨC
-                    var b = document.getElementById('jolyneBubble');
-                    var i = document.getElementById('jolyneImg');
-                    if (b && cfg.line) {
-                        b.innerHTML = cfg.line;
-                        b.classList.remove('hide-bubble');
-                    }
-                    if (i && cfg.spriteUrl) {
-                        i.src = cfg.spriteUrl;
-                    }
-
-                    // Tự động thu bóng thoại và trở về pose mặc định sau autoHideSec
-                    if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
-                    if (cfg.autoHideSec > 0) {
-                        window.__jolyne_timer = setTimeout(function() {
-                            var b2 = document.getElementById('jolyneBubble');
-                            var i2 = document.getElementById('jolyneImg');
-                            if (b2) b2.classList.add('hide-bubble');
-                            if (cfg.action !== 'idle' && i2 && cfg.idleUrl) {
-                                i2.style.opacity = '0.5';
-                                setTimeout(function() {
-                                    i2.src = cfg.idleUrl;
-                                    i2.style.opacity = '1';
-                                }, 120);
-                            }
-                        }, Math.round(cfg.autoHideSec * 1000));
-                    }
+                    window.__jolyne_sync(cfg);
                 };
             })();
             `;
             pDoc.head.appendChild(sc);
         }
 
-        // 2. Kích hoạt cập nhật tab
+        // 2. Kích hoạt cập nhật tab ngay lập tức
         function syncTab() {
-            if (pWin.__jolyne_update_tab) {
-                pWin.__jolyne_update_tab({
+            var fn = pWin.__jolyne_sync || pWin.__jolyne_update_tab;
+            if (fn) {
+                fn({
                     action: '__ACTION__',
                     line: __LINE__,
                     spriteUrl: '__SPRITE_URL__',
@@ -688,13 +812,16 @@ position: absolute !important;
                     myName: __MY_NAME__,
                     dialogues: __ALL_DIALOGUES__,
                     spriteMap: __SPRITE_MAP__,
-                    autoHideSec: __AUTO_HIDE_SEC__
+                    autoHideSec: __AUTO_HIDE_SEC__,
+                    size: '__SIZE__',
+                    speed: '__SPEED__',
+                    gogoDisplay: '__GOGO_DISPLAY__'
                 });
             }
         }
         syncTab();
-        setTimeout(syncTab, 60);
-        setTimeout(syncTab, 200);
+        setTimeout(syncTab, 40);
+        setTimeout(syncTab, 160);
 
     } catch(err) {
         console.error('Jolyne loader error:', err);
@@ -714,6 +841,9 @@ position: absolute !important;
         .replace("__HER_NAME__", json.dumps(her_name, ensure_ascii=False))
         .replace("__MY_NAME__", json.dumps(my_name, ensure_ascii=False))
         .replace("__AUTO_HIDE_SEC__", str(auto_hide_sec))
+        .replace("__SIZE__", str(size))
+        .replace("__SPEED__", str(speed))
+        .replace("__GOGO_DISPLAY__", gogo_display)
         .replace("__ALL_DIALOGUES__", json.dumps(all_formatted_dialogues, ensure_ascii=False))
         .replace("__SPRITE_MAP__", json.dumps(sprite_map, ensure_ascii=False))
         .replace("__TS__", str(ts))
