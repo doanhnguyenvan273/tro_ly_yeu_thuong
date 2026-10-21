@@ -15,6 +15,7 @@ import os
 import json
 import random
 import time
+import copy
 from typing import Dict, List, Any
 
 SETTINGS_PATH = os.path.join("data", "mascot_settings.json")
@@ -174,8 +175,17 @@ def render_floating_mascot(
     act_lines = raw_dialogues.get(action, raw_dialogues.get("idle", ["Xin chào! 🌸"]))
     selected_line = random.choice(act_lines).replace("{her_name}", her_name).replace("{my_name}", my_name)
 
-    shy_raw_lines = raw_dialogues.get("shy", DEFAULT_SETTINGS["dialogues"]["shy"])
-    formatted_shy_lines = [l.replace("{her_name}", her_name).replace("{my_name}", my_name) for l in shy_raw_lines]
+    all_formatted_dialogues = {}
+    for k_act, lines in raw_dialogues.items():
+        all_formatted_dialogues[k_act] = [
+            l.replace("{her_name}", her_name).replace("{my_name}", my_name)
+            for l in lines
+        ]
+
+    sprite_map = {
+        k_act: f"/app/static/mascot/jolyne_{k_act}.webp"
+        for k_act in ACTION_LABELS.keys()
+    }
 
     current_sprite_url = f"/app/static/mascot/jolyne_{action}.webp"
     idle_sprite_url = "/app/static/mascot/jolyne_idle.webp"
@@ -554,8 +564,6 @@ position: absolute !important;
                 document.addEventListener('pointercancel', onPointerEnd, true);
 
                 // D. CLICK VÀO BÓNG THOẠI HOẶC AVATAR
-                var shyDialogueList = __SHY_LINES__;
-
                 document.addEventListener('click', function(e) {
                     // Click vào bóng thoại: ẩn bóng thoại và trở về pose idle
                     var bubbleClick = e.target && e.target.closest ? e.target.closest('#jolyneBubble') : null;
@@ -572,41 +580,57 @@ position: absolute !important;
                         return;
                     }
 
-                    // Click vào avatar: e thẹn với câu thoại tùy chỉnh
+                    // Click vào avatar: nói câu thoại theo ngữ cảnh trang hiện tại
                     var wrapClick = e.target && e.target.closest ? e.target.closest('#jolyneWrap') : null;
                     if (!wrapClick || moved) return;
 
-                    var img = document.getElementById('jolyneImg');
                     var b = document.getElementById('jolyneBubble');
-                    if (img) {
-                        img.style.opacity = '0.5';
-                        setTimeout(function() {
-                            img.src = '/app/static/mascot/jolyne_shy.webp';
-                            img.style.opacity = '1';
-                        }, 100);
+                    var i = document.getElementById('jolyneImg');
+                    if (!b || !i) return;
+
+                    var act = window.__jolyne_current_action || 'idle';
+                    var allD = window.__jolyne_all_dialogues || {};
+                    var pool = allD[act];
+                    if (!pool || pool.length === 0) pool = allD['idle'] || ['Xin chào! 🌸'];
+
+                    // Xen kẽ câu e thẹn khi bấm chọc vào bé
+                    if (Math.random() < 0.30 && allD['shy'] && allD['shy'].length > 0) {
+                        pool = allD['shy'];
+                        act = 'shy';
                     }
-                    if (b) {
-                        var randShy = shyDialogueList[Math.floor(Math.random() * shyDialogueList.length)];
-                        b.textContent = randShy;
-                        b.classList.remove('hide-bubble');
+
+                    var randLine = pool[Math.floor(Math.random() * pool.length)];
+                    b.innerHTML = randLine;
+                    b.classList.remove('hide-bubble');
+
+                    var sMap = window.__jolyne_sprite_map || {};
+                    if (sMap[act]) {
+                        i.src = sMap[act];
                     }
+
                     if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
                     window.__jolyne_timer = setTimeout(function() {
-                        if (b) b.classList.add('hide-bubble');
-                        if (img && window.__jolyne_idle_url) {
-                            img.style.opacity = '0.5';
+                        var b2 = document.getElementById('jolyneBubble');
+                        var i2 = document.getElementById('jolyneImg');
+                        if (b2) b2.classList.add('hide-bubble');
+                        if (act !== 'idle' && i2 && window.__jolyne_idle_url) {
+                            i2.style.opacity = '0.5';
                             setTimeout(function() {
-                                img.src = window.__jolyne_idle_url;
-                                img.style.opacity = '1';
-                            }, 100);
+                                i2.src = window.__jolyne_idle_url;
+                                i2.style.opacity = '1';
+                            }, 120);
                         }
                     }, 4500);
                 }, true);
 
                 // E. ĐỒNG BỘ TRẠNG THÁI KHI STREAMLIT CHUYỂN TAB
                 window.__jolyne_update_tab = function(cfg) {
+                    window.__jolyne_current_action = cfg.action;
+                    window.__jolyne_all_dialogues = cfg.dialogues;
                     window.__jolyne_idle_url = cfg.idleUrl;
+                    window.__jolyne_sprite_map = cfg.spriteMap;
                     window.__jolyne_her_name = cfg.herName;
+                    window.__jolyne_my_name = cfg.myName;
 
                     // Giữ chắc chắn vị trí từ localStorage đồng bộ vào CSS variable
                     try {
@@ -619,18 +643,29 @@ position: absolute !important;
                         }
                     } catch(e) {}
 
+                    // CẬP NHẬT NỘI DUNG VÀ HIỆN BÓNG THOẠI NGAY LẬP TỨC
+                    var b = document.getElementById('jolyneBubble');
+                    var i = document.getElementById('jolyneImg');
+                    if (b && cfg.line) {
+                        b.innerHTML = cfg.line;
+                        b.classList.remove('hide-bubble');
+                    }
+                    if (i && cfg.spriteUrl) {
+                        i.src = cfg.spriteUrl;
+                    }
+
                     // Tự động thu bóng thoại và trở về pose mặc định sau autoHideSec
                     if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
                     if (cfg.autoHideSec > 0) {
                         window.__jolyne_timer = setTimeout(function() {
-                            var b = document.getElementById('jolyneBubble');
-                            var i = document.getElementById('jolyneImg');
-                            if (b) b.classList.add('hide-bubble');
-                            if (cfg.action !== 'idle' && i && cfg.idleUrl) {
-                                i.style.opacity = '0.5';
+                            var b2 = document.getElementById('jolyneBubble');
+                            var i2 = document.getElementById('jolyneImg');
+                            if (b2) b2.classList.add('hide-bubble');
+                            if (cfg.action !== 'idle' && i2 && cfg.idleUrl) {
+                                i2.style.opacity = '0.5';
                                 setTimeout(function() {
-                                    i.src = cfg.idleUrl;
-                                    i.style.opacity = '1';
+                                    i2.src = cfg.idleUrl;
+                                    i2.style.opacity = '1';
                                 }, 120);
                             }
                         }, Math.round(cfg.autoHideSec * 1000));
@@ -646,8 +681,13 @@ position: absolute !important;
             if (pWin.__jolyne_update_tab) {
                 pWin.__jolyne_update_tab({
                     action: '__ACTION__',
+                    line: __LINE__,
+                    spriteUrl: '__SPRITE_URL__',
                     idleUrl: '__IDLE_URL__',
                     herName: __HER_NAME__,
+                    myName: __MY_NAME__,
+                    dialogues: __ALL_DIALOGUES__,
+                    spriteMap: __SPRITE_MAP__,
                     autoHideSec: __AUTO_HIDE_SEC__
                 });
             }
@@ -668,10 +708,14 @@ position: absolute !important;
     js_controller = (
         js_template
         .replace("__ACTION__", action)
+        .replace("__LINE__", json.dumps(selected_line, ensure_ascii=False))
+        .replace("__SPRITE_URL__", current_sprite_url)
         .replace("__IDLE_URL__", idle_sprite_url)
-        .replace("__HER_NAME__", json.dumps(her_name))
+        .replace("__HER_NAME__", json.dumps(her_name, ensure_ascii=False))
+        .replace("__MY_NAME__", json.dumps(my_name, ensure_ascii=False))
         .replace("__AUTO_HIDE_SEC__", str(auto_hide_sec))
-        .replace("__SHY_LINES__", json.dumps(formatted_shy_lines, ensure_ascii=False))
+        .replace("__ALL_DIALOGUES__", json.dumps(all_formatted_dialogues, ensure_ascii=False))
+        .replace("__SPRITE_MAP__", json.dumps(sprite_map, ensure_ascii=False))
         .replace("__TS__", str(ts))
     )
     st_module.components.v1.html(js_controller, height=0)
@@ -752,88 +796,98 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
         save_mascot_settings(raw_saved)
 
     st_module.markdown("---")
-    st_module.markdown("#### 🎭 Thử Nghiệm Hành Động Trực Tiếp")
-    st_module.caption("Bấm nút bên dưới để đổi pose và nghe câu thoại thử nghiệm:")
-
-    act_keys = list(ACTION_LABELS.keys())
-    row1 = act_keys[:6]
-    row2 = act_keys[6:]
-
-    cols_r1 = st_module.columns(6)
-    for i, k in enumerate(row1):
-        icon, name = ACTION_LABELS[k]
-        if cols_r1[i].button(f"{icon} {name}", key=f"btn_test_{k}", use_container_width=True):
-            st_module.session_state["mascot_action"] = k
-            st_module.rerun()
-
-    cols_r2 = st_module.columns(6)
-    for i, k in enumerate(row2):
-        icon, name = ACTION_LABELS[k]
-        if cols_r2[i].button(f"{icon} {name}", key=f"btn_test_{k}", use_container_width=True):
-            st_module.session_state["mascot_action"] = k
-            st_module.rerun()
-
-    st_module.markdown("---")
-    st_module.markdown("#### 💬 Chỉnh Sửa Lời Thoại Của Bé Jolyne")
+    st_module.markdown("#### 💬 Chỉnh Sửa Lời Thoại Bé Jolyne")
     st_module.caption(
-        "Mỗi dòng là một câu thoại khác nhau. Bé Jolyne sẽ chọn ngẫu nhiên 1 câu khi hành động kích hoạt. "
+        "Mỗi dòng là một câu thoại khác nhau. Bé Jolyne sẽ chọn ngẫu nhiên 1 câu khi kích hoạt. "
         "Bạn có thể dùng <code>{her_name}</code> hoặc <code>{my_name}</code> để chèn tên động."
     )
 
-    dialogues = raw_saved.get("dialogues", DEFAULT_SETTINGS["dialogues"])
+    dialogues = copy.deepcopy(raw_saved.get("dialogues", DEFAULT_SETTINGS["dialogues"]))
 
-    sel_col1, sel_col2 = st_module.columns([3, 1.5])
-    with sel_col1:
-        selected_act = st_module.selectbox(
-            "Chọn hành động muốn chỉnh sửa lời thoại:",
-            options=act_keys,
-            format_func=lambda k: f"{ACTION_LABELS[k][0]} {ACTION_LABELS[k][1]}",
-            key="mascot_act_select",
-        )
-    with sel_col2:
-        st_module.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
-        if st_module.button("▶️ Nghe Thử Pose Này", use_container_width=True, key="btn_preview_curr"):
-            st_module.session_state["mascot_action"] = selected_act
-            st_module.rerun()
+    # Chia nhóm danh mục rõ ràng
+    category_groups = {
+        "🌸 Hàng Ngày": [
+            ("idle", "✨", "Đứng Chờ (Mặc định)"),
+            ("morning", "☀️", "Chào Buổi Sáng"),
+            ("sleep", "🌙", "Chúc Ngủ Ngon"),
+            ("shy", "👉👈", "Bị Chọc E Thẹn"),
+        ],
+        "📚 Học Tập & Deadline": [
+            ("study", "📚", "Đi Học / Bài Vở"),
+            ("fight", "👊", "Diệt Deadline (Quyết tâm)"),
+            ("victory", "🎉", "Xong Deadline (Ăn mừng)"),
+            ("panic", "🙀", "Trễ Hạn Nani?!"),
+        ],
+        "💖 Sức Khỏe & Chăm Sóc": [
+            ("med", "💊", "Nhắc Uống Thuốc"),
+            ("water", "🍵", "Nhắc Uống Nước"),
+            ("period", "🌸", "Đèn Đỏ / Giữ Ấm"),
+            ("hug", "🧸", "An Ủi / Ôm Gấu"),
+        ]
+    }
 
-    current_lines = dialogues.get(selected_act, DEFAULT_SETTINGS["dialogues"].get(selected_act, ["Xin chào! 🌸"]))
-    current_text = "\n".join(current_lines)
+    tab_titles = list(category_groups.keys())
+    tabs = st_module.tabs(tab_titles)
 
-    edited_text = st_module.text_area(
-        f"Danh sách câu thoại cho [{ACTION_LABELS[selected_act][1]}]:",
-        value=current_text,
-        height=140,
-        help="Mỗi dòng là một câu thoại riêng biệt",
-        key=f"mascot_dialogue_input_{selected_act}",
-    )
+    for tab_idx, cat_name in enumerate(tab_titles):
+        with tabs[tab_idx]:
+            act_list = category_groups[cat_name]
+            for act_key, act_icon, act_name in act_list:
+                col_h1, col_h2 = st_module.columns([3, 1])
+                with col_h1:
+                    st_module.markdown(f"##### {act_icon} {act_name}")
+                with col_h2:
+                    if st_module.button("▶️ Thử nghe", key=f"btn_preview_{act_key}", use_container_width=True):
+                        # Cập nhật lời thoại hiện tại đang gõ trước khi thử
+                        k_state = f"mascot_txt_{act_key}"
+                        if k_state in st_module.session_state:
+                            lines = [l.strip() for l in st_module.session_state[k_state].splitlines() if l.strip()]
+                            if lines:
+                                dialogues[act_key] = lines
+                                raw_saved["dialogues"] = dialogues
+                                save_mascot_settings(raw_saved)
+                        st_module.session_state["mascot_action"] = act_key
+                        st_module.rerun()
+
+                existing_lines = dialogues.get(act_key, DEFAULT_SETTINGS["dialogues"].get(act_key, []))
+                default_text = "\n".join(existing_lines)
+
+                st_module.text_area(
+                    label=f"Lời thoại {act_name}",
+                    value=default_text,
+                    height=85,
+                    key=f"mascot_txt_{act_key}",
+                    label_visibility="collapsed",
+                    help="Mỗi dòng là một câu thoại riêng biệt",
+                )
+                st_module.markdown("<div style='height:8px;'></div>", unsafe_allow_html=True)
 
     st_module.markdown("<br>", unsafe_allow_html=True)
     save_col1, save_col2, save_col3 = st_module.columns([2, 1.5, 1.8])
 
-    if save_col1.button(f"💾 Lưu Lời Thoại Cho [{ACTION_LABELS[selected_act][1]}]", type="primary", use_container_width=True):
-        new_lines = [l.strip() for l in edited_text.splitlines() if l.strip()]
-        if not new_lines:
-            new_lines = DEFAULT_SETTINGS["dialogues"].get(selected_act, ["Xin chào! 🌸"])
-
-        dialogues[selected_act] = new_lines
+    if save_col1.button("💾 Lưu Toàn Bộ Lời Thoại", type="primary", use_container_width=True, key="btn_save_all_dialogues"):
+        for k in ACTION_LABELS.keys():
+            key_name = f"mascot_txt_{k}"
+            if key_name in st_module.session_state:
+                lines = [l.strip() for l in st_module.session_state[key_name].splitlines() if l.strip()]
+                if lines:
+                    dialogues[k] = lines
         raw_saved["dialogues"] = dialogues
         save_mascot_settings(raw_saved)
-        # Thử nghiệm ngay hành động này để người dùng thấy câu thoại mới ngay lập tức
-        st_module.session_state["mascot_action"] = selected_act
-        st_module.toast(f"Đã lưu lời thoại cho {ACTION_LABELS[selected_act][1]}!", icon="✅")
+        st_module.session_state["mascot_action"] = "idle"
+        st_module.toast("✅ Đã lưu toàn bộ lời thoại bé Jolyne thành công!", icon="💾")
         st_module.rerun()
 
-    if save_col2.button("🔄 Khôi Phục Mặc Định", use_container_width=True):
+    if save_col2.button("🔄 Khôi Phục Mặc Định", use_container_width=True, key="btn_reset_defaults"):
         save_mascot_settings(DEFAULT_SETTINGS)
-        # Xóa các key trong session_state để tải lại giá trị gốc
         for k in ["mascot_size_slider", "mascot_speed_slider", "mascot_enabled_toggle", "mascot_gogo_toggle"]:
             st_module.session_state.pop(k, None)
-        for act in act_keys:
-            st_module.session_state.pop(f"mascot_dialogue_input_{act}", None)
+        for act in ACTION_LABELS.keys():
+            st_module.session_state.pop(f"mascot_txt_{act}", None)
         st_module.toast("Đã khôi phục toàn bộ cài đặt gốc của bé Jolyne! 🌸", icon="🔄")
         st_module.rerun()
 
-    if save_col3.button("📍 Đặt Lại Vị Trí Về Góc", use_container_width=True):
+    if save_col3.button("📍 Đặt Lại Vị Trí Về Góc", use_container_width=True, key="btn_reset_position"):
         st_module.components.v1.html("""
         <script>
         try {
