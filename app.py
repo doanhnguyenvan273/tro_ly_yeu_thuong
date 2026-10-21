@@ -896,10 +896,18 @@ if st.session_state.get("is_authenticated", False):
             st.query_params["key"] = app_passcode
         except Exception:
             pass
+    st.markdown(
+        f"""<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'></svg>" style="display:none!important;" onload="try{{localStorage.setItem('secret_garden_key','{app_passcode}');}}catch(e){{}}" />""",
+        unsafe_allow_html=True
+    )
 
 # 2. Xử lý yêu cầu khóa ứng dụng / đăng xuất (?logout=1)
 if "logout" in st.query_params:
     st.session_state["is_authenticated"] = False
+    st.markdown(
+        """<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'></svg>" style="display:none!important;" onload="try{localStorage.removeItem('secret_garden_key');}catch(e){}" />""",
+        unsafe_allow_html=True
+    )
     try:
         del st.query_params["logout"]
         for _pk in ["key", "token", "passcode"]:
@@ -911,7 +919,10 @@ if "logout" in st.query_params:
 
 # 3. Chặn hoàn toàn và hiển thị Màn hình Khóa Mèo Bảo Vệ nếu chưa mở khóa
 if not st.session_state.get("is_authenticated", False):
-    st.markdown("""<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'></svg>" style="display:none!important;" onload="try{var w=window.parent.document.getElementById('jolyneWidget');if(w)w.style.display='none';}catch(e){}" />""", unsafe_allow_html=True)
+    st.markdown(
+        f"""<img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1' height='1'></svg>" style="display:none!important;" onload="try{{var w=window.parent.document.getElementById('jolyneWidget');if(w)w.style.display='none';var k=localStorage.getItem('secret_garden_key');if(k&&k==='{app_passcode}'){{var u=new URL(window.location.href);if(!u.searchParams.has('key')&&!u.searchParams.has('logout')){{u.searchParams.set('key',k);window.location.replace(u.toString());}}}}}}catch(e){{}}" />""",
+        unsafe_allow_html=True
+    )
     st.markdown(f"""
     <div style="max-width: 440px; margin: 36px auto 16px; text-align: center;">
         <div style="background: white; border-radius: 24px; border: 2px solid #ffd6e0; box-shadow: 0 10px 30px rgba(255,107,139,0.12); padding: 26px 20px;">
@@ -1003,6 +1014,7 @@ if "nav" in st.query_params:
         st.session_state["active_nav"] = _target_tab
         st.session_state["nav_desktop"] = _target_tab
         st.session_state["nav_mobile"] = _target_tab
+        st.session_state["nav_radio_pills"] = _target_tab
     try:
         del st.query_params["nav"]
     except Exception:
@@ -1342,7 +1354,7 @@ if "Trang Chủ" in selected_nav:
             sch_body_html = f'<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">🎉 Hôm nay không có môn học nào! {her_name} thoải mái nghỉ ngơi hoặc ôn bài nhé.</div>'
 
         sch_card_html = (
-            f'<a href="?nav=LichHoc" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+            f'<a href="?nav=LichHoc&key={app_passcode}" target="_self" style="text-decoration:none;color:inherit;display:block;">'
             f'<div class="card card-hover-click" style="min-height:190px;cursor:pointer;">'
             f'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">'
             f'<div class="section-title" style="margin:0;display:inline-flex;align-items:center;">🎒 Chi tiết lịch học hôm nay</div>'
@@ -1372,7 +1384,7 @@ if "Trang Chủ" in selected_nav:
             task_body_html = '<div style="color:#888;font-size:0.88rem;margin-top:8px;line-height:1.6;">✨ Không có deadline nào đang dồn ập! Cứ từ từ thưởng thức ngày mới nha.</div>'
 
         task_card_html = (
-            f'<a href="?nav=Deadline" target="_self" style="text-decoration:none;color:inherit;display:block;">'
+            f'<a href="?nav=Deadline&key={app_passcode}" target="_self" style="text-decoration:none;color:inherit;display:block;">'
             f'<div class="card card-hover-click" style="min-height:190px;cursor:pointer;">'
             f'<div style="display:flex;justify-content:space-between;align-items:center;width:100%;margin-bottom:12px;">'
             f'<div class="section-title" style="margin:0;display:inline-flex;align-items:center;">⏰ Deadline gần nhất</div>'
