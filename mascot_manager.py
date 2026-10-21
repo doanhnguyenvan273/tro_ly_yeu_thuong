@@ -5,17 +5,16 @@ Quản lý nhân vật đồng hành Chibi Jolyne Kujo (JoJo Part 6: Stone Ocean
 - 12 hành động chuẩn định dạng WebP siêu nhẹ (/app/static/mascot/)
 - Animation lơ lửng 100% Pure CSS (jolyneFloat) nhấp nhô mượt mà trên GPU
 - Hiệu ứng Stand Menacing (ゴゴゴゴ) thuần CSS bay bổng bên phải nhân vật
-- Tùy chỉnh kích thước (size slider), bật/tắt tức thì
+- Giữ vị trí cố định XUYÊN SUỐT MỌI TRANG bằng localStorage (kéo ở đâu, mọi tab đều giữ nguyên ở đó)
+- Kéo thả mượt mà trên TẤT CẢ CÁC TRANG bằng Event Delegation trên window.parent.document
 - Tự động phản ứng thông minh theo các tab (Lịch học, Deadline, Chu kỳ, Đơn thuốc, Cảm xúc)
 - Ăn mừng khi hoàn thành deadline (victory pose)
-- Kéo thả an toàn bằng Pointer Events (đè giữ mới di chuyển, buông là dừng, khóa biên màn hình)
-- TÁCH BẠCH TUYỆT ĐỐI giữa HTML/CSS (st.markdown) và JS Controller (st.components.v1.html)
-  => TRIỆT TIÊU 100% LỖI IN CHỮ CODE RA MÀN HÌNH
 """
 
 import os
 import json
 import random
+import time
 from typing import Dict, List, Any
 
 SETTINGS_PATH = os.path.join("data", "mascot_settings.json")
@@ -142,9 +141,10 @@ def render_floating_mascot(
 ) -> None:
     """
     Render bé Jolyne Kujo lơ lửng:
-    1. HTML/CSS sạch sẽ 100% (không có JavaScript inline trong markdown).
-    2. JavaScript Controller được chạy qua st.components.v1.html riêng biệt,
-       triệt tiêu 100% tình trạng rò rỉ chuỗi code ra giao diện.
+    1. HTML/CSS tinh gọn 100% trong st.markdown (không có script inline).
+    2. Giữ nguyên tọa độ (x, y) xuyên suốt tất cả các trang bằng localStorage.
+    3. Bộ lắng nghe kéo thả bằng Event Delegation trên window.parent.document,
+       đảm bảo ở BẤT KỲ TRANG NÀO cũng kéo thả được mượt mà 100%.
     """
     settings = get_mascot_settings()
     if not settings.get("enabled", True):
@@ -155,7 +155,6 @@ def render_floating_mascot(
     gogo_enabled = bool(settings.get("gogo_enabled", True))
     auto_hide_sec = float(settings.get("auto_hide_seconds", 4.5))
 
-    # Lấy câu thoại ngẫu nhiên theo action
     raw_dialogues = settings.get("dialogues", DEFAULT_SETTINGS["dialogues"])
     act_lines = raw_dialogues.get(action, raw_dialogues.get("idle", ["Xin chào! 🌸"]))
     selected_line = random.choice(act_lines).replace("{her_name}", her_name).replace("{my_name}", my_name)
@@ -164,7 +163,7 @@ def render_floating_mascot(
     idle_sprite_url = "/app/static/mascot/jolyne_idle.webp"
     gogo_display = "block" if gogo_enabled else "none"
 
-    # PHẦN 1: CSS & HTML nguyên bản (100% KHÔNG CÓ THỤT LỀ ĐẦU DÒNG ĐỂ MARKDOWN KHÔNG BỊ LỖI)
+    # PHẦN 1: CSS & HTML nguyên bản không chứa khoảng trắng thụt lề đầu dòng
     raw_css_html = f"""<style>
 .jolyne-floating-container {{
 position: fixed !important;
@@ -178,10 +177,11 @@ align-items: flex-end !important;
 user-select: none !important;
 -webkit-user-select: none !important;
 will-change: transform !important;
-transform: translate3d(0, 0, 0);
+transform: translate3d(var(--jolyne-x, 0px), var(--jolyne-y, 0px), 0) !important;
 }}
 
-.jolyne-floating-container.is-dragging {{
+.jolyne-floating-container.is-dragging,
+.jolyne-floating-container.is-dragging .jolyne-avatar-wrap {{
 cursor: grabbing !important;
 }}
 
@@ -214,6 +214,7 @@ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !
 .jolyne-speech-bubble.hide-bubble {{
 opacity: 0 !important;
 visibility: hidden !important;
+pointer-events: none !important;
 transform: scale(0.6) translate3d(0, 10px, 0) !important;
 }}
 
@@ -343,7 +344,7 @@ line-height: 1 !important;
 100% {{ transform: translate3d(8px, -24px, 0) rotate(-12deg) scale(0.60); opacity: 0; }}
 }}
 
-/* Ẩn triệt để iframe controller */
+/* Ẩn hoàn toàn iframe controller */
 iframe[height="0"] {{
 display: none !important;
 width: 0 !important;
@@ -371,161 +372,286 @@ position: absolute !important;
 </div>
 """
 
-    # Đảm bảo tuyệt đối không có dòng nào có khoảng trắng thụt lề
     clean_html = "\n".join(line.strip() for line in raw_css_html.splitlines() if line.strip())
     st_module.markdown(clean_html, unsafe_allow_html=True)
 
-    # PHẦN 2: JAVASCRIPT CONTROLLER (Chạy qua components.v1.html - chuẩn mực Streamlit)
-    js_controller = f"""
-    <!DOCTYPE html>
-    <html>
-    <head><meta charset="utf-8"></head>
-    <body>
-    <script>
-    (function() {{
-        try {{
-            var pDoc = window.parent.document;
-            var pWin = window.parent;
-            if (!pDoc) return;
+    # PHẦN 2: JAVASCRIPT RUNTIME & CONTROLLER (CHẠY TRỰC TIẾP TRÊN PARENT WINDOW)
+    ts = int(time.time() * 1000)
 
-            var widget = pDoc.getElementById('jolyneWidget');
-            var wrap = pDoc.getElementById('jolyneWrap');
-            var img = pDoc.getElementById('jolyneImg');
-            var bubble = pDoc.getElementById('jolyneBubble');
-            if (!widget || !wrap) return;
+    js_template = """<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body>
+<script>
+(function() {
+    try {
+        var pDoc = window.parent.document;
+        var pWin = window.parent;
+        if (!pDoc || !pWin) return;
 
-            // Tự động thu bóng thoại và trở về pose mặc định sau {auto_hide_sec}s
-            if (pWin.__jolyne_timer) clearTimeout(pWin.__jolyne_timer);
-            pWin.__jolyne_timer = setTimeout(function() {{
-                if (bubble) bubble.classList.add('hide-bubble');
-                if ('{action}' !== 'idle' && img) {{
-                    img.style.opacity = '0.5';
-                    setTimeout(function() {{
-                        img.src = '{idle_sprite_url}';
-                        img.style.opacity = '1';
-                    }}, 120);
-                }}
-            }}, {int(auto_hide_sec * 1000)});
+        // 1. Khởi tạo Script Runtime vĩnh viễn trên pDoc (sống độc lập với iframe của Streamlit)
+        if (!pDoc.getElementById('jolyne-runtime-core')) {
+            var sc = pDoc.createElement('script');
+            sc.id = 'jolyne-runtime-core';
+            sc.textContent = `
+            (function() {
+                if (window.__jolyne_core_initialized) return;
+                window.__jolyne_core_initialized = true;
 
-            // Bấm vào bóng thoại để ẩn ngay
-            if (bubble) {{
-                bubble.onclick = function() {{
-                    bubble.classList.add('hide-bubble');
-                    if (img) {{
-                        img.style.opacity = '0.5';
-                        setTimeout(function() {{
-                            img.src = '{idle_sprite_url}';
-                            img.style.opacity = '1';
-                        }}, 120);
-                    }}
-                }};
-            }}
+                // A. Đọc và áp dụng tọa độ đã lưu vào CSS variables (--jolyne-x, --jolyne-y)
+                function initSavedPos() {
+                    try {
+                        var s = JSON.parse(localStorage.getItem('jolyne_pos_v2'));
+                        if (s && typeof s.x === 'number' && typeof s.y === 'number') {
+                            document.documentElement.style.setProperty('--jolyne-x', s.x + 'px');
+                            document.documentElement.style.setProperty('--jolyne-y', s.y + 'px');
+                            var w = document.getElementById('jolyneWidget');
+                            if (w) w.style.transform = 'translate3d(' + s.x + 'px, ' + s.y + 'px, 0)';
+                        }
+                    } catch(e) {}
+                }
+                initSavedPos();
 
-            // Click vào nhân vật: đổi sang dáng e thẹn
-            wrap.onclick = function() {{
-                if (img) {{
-                    img.style.opacity = '0.5';
-                    setTimeout(function() {{
-                        img.src = '/app/static/mascot/jolyne_shy.webp';
-                        img.style.opacity = '1';
-                    }}, 100);
-                }}
-                if (bubble) {{
-                    bubble.innerHTML = 'Hì hì, {her_name} chọc tớ à? Ngại ghê á~ 👉👈🌸';
-                    bubble.classList.remove('hide-bubble');
-                }}
-                if (pWin.__jolyne_timer) clearTimeout(pWin.__jolyne_timer);
-                pWin.__jolyne_timer = setTimeout(function() {{
-                    if (bubble) bubble.classList.add('hide-bubble');
-                    if (img) {{
-                        img.style.opacity = '0.5';
-                        setTimeout(function() {{
-                            img.src = '{idle_sprite_url}';
-                            img.style.opacity = '1';
-                        }}, 120);
-                    }}
-                }}, 4500);
-            }};
+                // B. Đảm bảo vị trí luôn trong khung nhìn khi co giãn cửa sổ
+                function clampPos(x, y) {
+                    var winW = window.innerWidth || 1024;
+                    var winH = window.innerHeight || 768;
+                    var minX = -(winW - 80);
+                    var maxX = 16;
+                    var minY = -(winH - 80);
+                    var maxY = 16;
+                    return {
+                        x: Math.max(minX, Math.min(maxX, x)),
+                        y: Math.max(minY, Math.min(maxY, y))
+                    };
+                }
 
-            // Kéo thả bằng Pointer Events (chuẩn giữ chuột mới di chuyển, buông là dừng)
-            if (!wrap.__drag_bound) {{
-                wrap.__drag_bound = true;
+                window.addEventListener('resize', function() {
+                    var curX = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
+                    var curY = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
+                    var c = clampPos(curX, curY);
+                    if (c.x !== curX || c.y !== curY) {
+                        document.documentElement.style.setProperty('--jolyne-x', c.x + 'px');
+                        document.documentElement.style.setProperty('--jolyne-y', c.y + 'px');
+                        try { localStorage.setItem('jolyne_pos_v2', JSON.stringify(c)); } catch(e) {}
+                    }
+                });
+
+                // C. BỘ LẮNG NGHE KÉO THẢ TOÀN CỤC TRÊN DOCUMENT (MỌI TRANG / MỌI TAB ĐỀU HOẠT ĐỘNG 100%)
                 var isDragging = false;
-                var dragX = pWin.__jolyne_dragX || 0;
-                var dragY = pWin.__jolyne_dragY || 0;
+                var currentWidget = null;
+                var currentWrap = null;
                 var startX = 0, startY = 0;
                 var initX = 0, initY = 0;
+                var minDX = 0, maxDX = 0, minDY = 0, maxDY = 0;
                 var moved = false;
 
-                if (dragX !== 0 || dragY !== 0) {{
-                    widget.style.transform = 'translate3d(' + dragX + 'px, ' + dragY + 'px, 0)';
-                }}
+                document.addEventListener('dragstart', function(e) {
+                    if (e.target && e.target.closest && e.target.closest('#jolyneWrap')) {
+                        e.preventDefault();
+                    }
+                }, true);
 
-                wrap.addEventListener('dragstart', function(e) {{ e.preventDefault(); }});
-
-                wrap.addEventListener('pointerdown', function(e) {{
+                document.addEventListener('pointerdown', function(e) {
                     if (e.button !== undefined && e.button !== 0) return;
+                    var wrap = e.target && e.target.closest ? e.target.closest('#jolyneWrap') : null;
+                    if (!wrap) return;
+
+                    var widget = document.getElementById('jolyneWidget');
+                    if (!widget) return;
+
+                    currentWidget = widget;
+                    currentWrap = wrap;
                     isDragging = true;
                     moved = false;
                     startX = e.clientX;
                     startY = e.clientY;
-                    initX = dragX;
-                    initY = dragY;
-                    widget.classList.add('is-dragging');
-                    try {{ wrap.setPointerCapture(e.pointerId); }} catch(err) {{}}
-                    e.preventDefault();
-                }});
 
-                wrap.addEventListener('pointermove', function(e) {{
-                    if (!isDragging) return;
-                    var dx = e.clientX - startX;
-                    var dy = e.clientY - startY;
-                    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+                    // Đọc tọa độ hiện tại từ CSS variables
+                    initX = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
+                    initY = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
 
+                    // Đo kích thước thực tế để khóa biên an toàn
                     var wrapRect = wrap.getBoundingClientRect();
                     var pad = 8;
-                    var targetDX = initX + dx;
-                    var targetDY = initY + dy;
+                    var winW = window.innerWidth || 1024;
+                    var winH = window.innerHeight || 768;
 
-                    var minDX = initX - (wrapRect.left - pad);
-                    var maxDX = initX + ((pWin.innerWidth - pad) - wrapRect.right);
-                    var minDY = initY - (wrapRect.top - pad);
-                    var maxDY = initY + ((pWin.innerHeight - pad) - wrapRect.bottom);
+                    minDX = initX - (wrapRect.left - pad);
+                    maxDX = initX + ((winW - pad) - wrapRect.right);
+                    minDY = initY - (wrapRect.top - pad);
+                    maxDY = initY + ((winH - pad) - wrapRect.bottom);
 
-                    dragX = Math.max(minDX, Math.min(maxDX, targetDX));
-                    dragY = Math.max(minDY, Math.min(maxDY, targetDY));
-                    pWin.__jolyne_dragX = dragX;
-                    pWin.__jolyne_dragY = dragY;
+                    widget.classList.add('is-dragging');
+                    try { wrap.setPointerCapture(e.pointerId); } catch(err) {}
+                    e.preventDefault();
+                }, true);
 
-                    widget.style.transform = 'translate3d(' + dragX + 'px, ' + dragY + 'px, 0)';
-                }});
+                document.addEventListener('pointermove', function(e) {
+                    if (!isDragging || !currentWidget || !currentWrap) return;
+                    var dx = e.clientX - startX;
+                    var dy = e.clientY - startY;
+                    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
 
-                function onPointerUp(e) {{
+                    var targetX = initX + dx;
+                    var targetY = initY + dy;
+
+                    var curX = Math.max(minDX, Math.min(maxDX, targetX));
+                    var curY = Math.max(minDY, Math.min(maxDY, targetY));
+
+                    document.documentElement.style.setProperty('--jolyne-x', curX + 'px');
+                    document.documentElement.style.setProperty('--jolyne-y', curY + 'px');
+                    currentWidget.style.transform = 'translate3d(' + curX + 'px, ' + curY + 'px, 0)';
+                }, true);
+
+                function onPointerEnd(e) {
                     if (!isDragging) return;
                     isDragging = false;
-                    widget.classList.remove('is-dragging');
-                    try {{ wrap.releasePointerCapture(e.pointerId); }} catch(err) {{}}
-                    if (moved) {{
-                        var stopClick = function(ev) {{
-                            ev.stopPropagation();
-                            ev.preventDefault();
-                            wrap.removeEventListener('click', stopClick, true);
-                        }};
-                        wrap.addEventListener('click', stopClick, true);
-                    }}
-                }}
+                    if (currentWidget) currentWidget.classList.remove('is-dragging');
 
-                wrap.addEventListener('pointerup', onPointerUp);
-                wrap.addEventListener('pointercancel', onPointerUp);
-            }}
-        }} catch(err) {{
-            console.log('Jolyne controller error:', err);
-        }}
-    }})();
-    </script>
-    </body>
-    </html>
-    """
+                    var finalX = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-x')) || 0;
+                    var finalY = parseFloat(document.documentElement.style.getPropertyValue('--jolyne-y')) || 0;
+
+                    // Lưu vị trí vào localStorage để giữ nguyên xuyên suốt mọi trang và reload
+                    try {
+                        localStorage.setItem('jolyne_pos_v2', JSON.stringify({ x: finalX, y: finalY }));
+                    } catch(err) {}
+
+                    if (currentWrap) {
+                        try { currentWrap.releasePointerCapture(e.pointerId); } catch(err) {}
+                        if (moved) {
+                            var stopClick = function(ev) {
+                                ev.stopPropagation();
+                                ev.preventDefault();
+                                currentWrap.removeEventListener('click', stopClick, true);
+                            };
+                            currentWrap.addEventListener('click', stopClick, true);
+                        }
+                    }
+                    currentWidget = null;
+                    currentWrap = null;
+                }
+
+                document.addEventListener('pointerup', onPointerEnd, true);
+                document.addEventListener('pointercancel', onPointerEnd, true);
+
+                // D. CLICK VÀO BÓNG THOẠI HOẶC AVATAR
+                document.addEventListener('click', function(e) {
+                    // Click vào bóng thoại: ẩn bóng thoại và trở về pose idle
+                    var bubbleClick = e.target && e.target.closest ? e.target.closest('#jolyneBubble') : null;
+                    if (bubbleClick) {
+                        bubbleClick.classList.add('hide-bubble');
+                        var img = document.getElementById('jolyneImg');
+                        if (img && window.__jolyne_idle_url) {
+                            img.style.opacity = '0.5';
+                            setTimeout(function() {
+                                img.src = window.__jolyne_idle_url;
+                                img.style.opacity = '1';
+                            }, 100);
+                        }
+                        return;
+                    }
+
+                    // Click vào avatar: e thẹn
+                    var wrapClick = e.target && e.target.closest ? e.target.closest('#jolyneWrap') : null;
+                    if (!wrapClick || moved) return;
+
+                    var img = document.getElementById('jolyneImg');
+                    var b = document.getElementById('jolyneBubble');
+                    if (img) {
+                        img.style.opacity = '0.5';
+                        setTimeout(function() {
+                            img.src = '/app/static/mascot/jolyne_shy.webp';
+                            img.style.opacity = '1';
+                        }, 100);
+                    }
+                    if (b) {
+                        b.textContent = 'Hì hì, ' + (window.__jolyne_her_name || 'cậu') + ' chọc tớ à? Ngại ghê á~ 👉👈🌸';
+                        b.classList.remove('hide-bubble');
+                    }
+                    if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
+                    window.__jolyne_timer = setTimeout(function() {
+                        if (b) b.classList.add('hide-bubble');
+                        if (img && window.__jolyne_idle_url) {
+                            img.style.opacity = '0.5';
+                            setTimeout(function() {
+                                img.src = window.__jolyne_idle_url;
+                                img.style.opacity = '1';
+                            }, 100);
+                        }
+                    }, 4500);
+                }, true);
+
+                // E. ĐỒNG BỘ TRẠNG THÁI KHI STREAMLIT CHUYỂN TAB
+                window.__jolyne_update_tab = function(cfg) {
+                    window.__jolyne_idle_url = cfg.idleUrl;
+                    window.__jolyne_her_name = cfg.herName;
+
+                    // Giữ chắc chắn vị trí từ localStorage đồng bộ vào CSS variable
+                    try {
+                        var s = JSON.parse(localStorage.getItem('jolyne_pos_v2'));
+                        if (s && typeof s.x === 'number' && typeof s.y === 'number') {
+                            document.documentElement.style.setProperty('--jolyne-x', s.x + 'px');
+                            document.documentElement.style.setProperty('--jolyne-y', s.y + 'px');
+                            var w = document.getElementById('jolyneWidget');
+                            if (w) w.style.transform = 'translate3d(' + s.x + 'px, ' + s.y + 'px, 0)';
+                        }
+                    } catch(e) {}
+
+                    // Tự động thu bóng thoại và trở về pose mặc định sau autoHideSec
+                    if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
+                    if (cfg.autoHideSec > 0) {
+                        window.__jolyne_timer = setTimeout(function() {
+                            var b = document.getElementById('jolyneBubble');
+                            var i = document.getElementById('jolyneImg');
+                            if (b) b.classList.add('hide-bubble');
+                            if (cfg.action !== 'idle' && i && cfg.idleUrl) {
+                                i.style.opacity = '0.5';
+                                setTimeout(function() {
+                                    i.src = cfg.idleUrl;
+                                    i.style.opacity = '1';
+                                }, 120);
+                            }
+                        }, Math.round(cfg.autoHideSec * 1000));
+                    }
+                };
+            })();
+            `;
+            pDoc.head.appendChild(sc);
+        }
+
+        // 2. Kích hoạt cập nhật tab
+        function syncTab() {
+            if (pWin.__jolyne_update_tab) {
+                pWin.__jolyne_update_tab({
+                    action: '__ACTION__',
+                    idleUrl: '__IDLE_URL__',
+                    herName: __HER_NAME__,
+                    autoHideSec: __AUTO_HIDE_SEC__
+                });
+            }
+        }
+        syncTab();
+        setTimeout(syncTab, 60);
+        setTimeout(syncTab, 200);
+
+    } catch(err) {
+        console.error('Jolyne loader error:', err);
+    }
+})();
+</script>
+<!-- ts: __TS__ -->
+</body>
+</html>"""
+
+    js_controller = (
+        js_template
+        .replace("__ACTION__", action)
+        .replace("__IDLE_URL__", idle_sprite_url)
+        .replace("__HER_NAME__", json.dumps(her_name))
+        .replace("__AUTO_HIDE_SEC__", str(auto_hide_sec))
+        .replace("__TS__", str(ts))
+    )
     st_module.components.v1.html(js_controller, height=0)
 
 
@@ -633,7 +759,7 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
     )
 
     st_module.markdown("<br>", unsafe_allow_html=True)
-    save_col1, save_col2, _ = st_module.columns([1.5, 1.5, 3])
+    save_col1, save_col2, save_col3 = st_module.columns([1.5, 1.5, 1.8])
 
     if save_col1.button("💾 Lưu Cài Đặt Mascot", type="primary", use_container_width=True):
         new_lines = [l.strip() for l in edited_text.splitlines() if l.strip()]
@@ -658,3 +784,19 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
         save_mascot_settings(DEFAULT_SETTINGS)
         st_module.info("Đã khôi phục cài đặt gốc của bé Jolyne!")
         st_module.rerun()
+
+    if save_col3.button("📍 Đặt Lại Vị Trí Về Góc", use_container_width=True):
+        st_module.components.v1.html("""
+        <script>
+        try {
+            var pWin = window.parent;
+            var pDoc = window.parent.document;
+            pWin.localStorage.removeItem('jolyne_pos_v2');
+            pDoc.documentElement.style.setProperty('--jolyne-x', '0px');
+            pDoc.documentElement.style.setProperty('--jolyne-y', '0px');
+            var w = pDoc.getElementById('jolyneWidget');
+            if (w) w.style.transform = 'translate3d(0, 0, 0)';
+        } catch(e) {}
+        </script>
+        """, height=0)
+        st_module.toast("Đã đặt lại vị trí bé Jolyne về góc phải dưới! 🦋", icon="📍")
