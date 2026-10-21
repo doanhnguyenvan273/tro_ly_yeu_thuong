@@ -626,7 +626,7 @@
                 <!-- Menacing ゴゴゴゴ glyphs -->
                 
                 <!-- Bóng thoại -->
-                <div class="jolyne-speech-bubble" id="jolyneBubble">
+                <div class="jolyne-speech-bubble" id="jolyneBubble" onclick="this.classList.remove('show'); resetToIdle();" title="Bấm để ẩn thoại">
                     Chào Thuwn 🌸! Tớ là Jolyne Kujo, người bạn bảo vệ cậu 24/7 nè! 🦋✨
                 </div>
 
@@ -765,6 +765,30 @@
         };
 
         let hideTimeout = null;
+        let returnTimeout = null;
+
+        // Hàm đưa nhân vật trở về tư thế mặc định (đứng cười tay sau lưng như hình)
+        function resetToIdle() {
+            const img = document.getElementById('jolyneImg');
+            const indicator = document.getElementById('actionIndicator');
+
+            // Trở về nút mặc định
+            document.querySelectorAll('.test-btn').forEach(btn => btn.classList.remove('active'));
+            const idleBtn = document.getElementById('btn_idle');
+            if (idleBtn) idleBtn.classList.add('active');
+
+            if (SPRITES['idle']) {
+                img.style.opacity = '0.5';
+                setTimeout(() => {
+                    img.src = SPRITES['idle'];
+                    img.style.opacity = '1';
+                }, 100);
+            }
+
+            if (indicator) {
+                indicator.innerText = 'Dáng: Đứng Chờ (Mặc định)';
+            }
+        }
 
         function triggerAction(actionKey) {
             const data = DIALOGUES[actionKey] || DIALOGUES['idle'];
@@ -772,12 +796,16 @@
             const bubble = document.getElementById('jolyneBubble');
             const indicator = document.getElementById('actionIndicator');
 
+            // Hủy các timer chờ trước đó
+            if (hideTimeout) clearTimeout(hideTimeout);
+            if (returnTimeout) clearTimeout(returnTimeout);
+
             // Cập nhật nút active
             document.querySelectorAll('.test-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById('btn_' + actionKey);
             if (activeBtn) activeBtn.classList.add('active');
 
-            // Đổi hình ảnh sang sprite mới
+            // Đổi hình ảnh sang sprite hành động mới
             if (SPRITES[actionKey]) {
                 img.style.opacity = '0.4';
                 setTimeout(() => {
@@ -786,14 +814,16 @@
                 }, 100);
             }
 
-            indicator.innerText = `Dáng: ${data.name}`;
+            if (indicator) {
+                indicator.innerText = `Dáng: ${data.name}`;
+            }
 
             // Chọn câu thoại ngẫu nhiên
             const randLine = data.lines[Math.floor(Math.random() * data.lines.length)];
             bubble.innerHTML = randLine;
             bubble.classList.add('show');
 
-            // Animation nảy lên
+            // Animation nảy lên sinh động
             img.classList.remove('animate-bounce', 'animate-shake');
             void img.offsetWidth;
             if (actionKey === 'panic' || actionKey === 'fight') {
@@ -804,11 +834,14 @@
 
             spawnParticles();
 
-            // Tự động thu bóng thoại sau 5 giây
-            if (hideTimeout) clearTimeout(hideTimeout);
+            // KHI THOẠI TẮT (sau 4.5s) -> TỰ ĐỘNG TRỞ VỀ POSE MẶC ĐỊNH NHƯ HÌNH
             hideTimeout = setTimeout(() => {
                 bubble.classList.remove('show');
-            }, 5000);
+                if (actionKey !== 'idle') {
+                    // Trở về pose đứng chờ mặc định
+                    returnTimeout = setTimeout(resetToIdle, 300);
+                }
+            }, 4500);
         }
 
         function speakCustom() {
@@ -818,6 +851,13 @@
                 bubble.innerHTML = val;
                 bubble.classList.add('show');
                 spawnParticles();
+
+                if (hideTimeout) clearTimeout(hideTimeout);
+                if (returnTimeout) clearTimeout(returnTimeout);
+                hideTimeout = setTimeout(() => {
+                    bubble.classList.remove('show');
+                    returnTimeout = setTimeout(resetToIdle, 300);
+                }, 4500);
             }
         }
 
