@@ -106,24 +106,39 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
 }
 
 
-def get_mascot_settings() -> Dict[str, Any]:
-    """Đọc cấu hình mascot từ file JSON."""
-    if not os.path.exists(SETTINGS_PATH):
+def get_mascot_settings(st_module=None) -> Dict[str, Any]:
+    """Đọc cấu hình mascot từ file JSON, ưu tiên giá trị tương tác thời gian thực từ session_state."""
+    settings = DEFAULT_SETTINGS.copy()
+    if os.path.exists(SETTINGS_PATH):
+        try:
+            with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            for k, v in DEFAULT_SETTINGS.items():
+                if k not in data:
+                    data[k] = v
+            if "dialogues" in data:
+                for dk, dv in DEFAULT_SETTINGS["dialogues"].items():
+                    if dk not in data["dialogues"]:
+                        data["dialogues"][dk] = dv
+            settings = data
+        except Exception:
+            settings = DEFAULT_SETTINGS.copy()
+    else:
         save_mascot_settings(DEFAULT_SETTINGS)
-        return DEFAULT_SETTINGS.copy()
-    try:
-        with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        for k, v in DEFAULT_SETTINGS.items():
-            if k not in data:
-                data[k] = v
-        if "dialogues" in data:
-            for dk, dv in DEFAULT_SETTINGS["dialogues"].items():
-                if dk not in data["dialogues"]:
-                    data["dialogues"][dk] = dv
-        return data
-    except Exception:
-        return DEFAULT_SETTINGS.copy()
+
+    # Ưu tiên các giá trị người dùng đang kéo trượt thời gian thực trong session_state
+    if st_module is not None and hasattr(st_module, "session_state"):
+        ss = st_module.session_state
+        if "mascot_size_slider" in ss:
+            settings["size"] = ss["mascot_size_slider"]
+        if "mascot_speed_slider" in ss:
+            settings["speed"] = ss["mascot_speed_slider"]
+        if "mascot_enabled_toggle" in ss:
+            settings["enabled"] = ss["mascot_enabled_toggle"]
+        if "mascot_gogo_toggle" in ss:
+            settings["gogo_enabled"] = ss["mascot_gogo_toggle"]
+
+    return settings
 
 
 def save_mascot_settings(settings: Dict[str, Any]) -> None:
@@ -146,7 +161,7 @@ def render_floating_mascot(
     3. Bộ lắng nghe kéo thả bằng Event Delegation trên window.parent.document,
        đảm bảo ở BẤT KỲ TRANG NÀO cũng kéo thả được mượt mà 100%.
     """
-    settings = get_mascot_settings()
+    settings = get_mascot_settings(st_module)
     if not settings.get("enabled", True):
         return
 
@@ -158,6 +173,9 @@ def render_floating_mascot(
     raw_dialogues = settings.get("dialogues", DEFAULT_SETTINGS["dialogues"])
     act_lines = raw_dialogues.get(action, raw_dialogues.get("idle", ["Xin chào! 🌸"]))
     selected_line = random.choice(act_lines).replace("{her_name}", her_name).replace("{my_name}", my_name)
+
+    shy_raw_lines = raw_dialogues.get("shy", DEFAULT_SETTINGS["dialogues"]["shy"])
+    formatted_shy_lines = [l.replace("{her_name}", her_name).replace("{my_name}", my_name) for l in shy_raw_lines]
 
     current_sprite_url = f"/app/static/mascot/jolyne_{action}.webp"
     idle_sprite_url = "/app/static/mascot/jolyne_idle.webp"
@@ -536,6 +554,8 @@ position: absolute !important;
                 document.addEventListener('pointercancel', onPointerEnd, true);
 
                 // D. CLICK VÀO BÓNG THOẠI HOẶC AVATAR
+                var shyDialogueList = __SHY_LINES__;
+
                 document.addEventListener('click', function(e) {
                     // Click vào bóng thoại: ẩn bóng thoại và trở về pose idle
                     var bubbleClick = e.target && e.target.closest ? e.target.closest('#jolyneBubble') : null;
@@ -552,7 +572,7 @@ position: absolute !important;
                         return;
                     }
 
-                    // Click vào avatar: e thẹn
+                    // Click vào avatar: e thẹn với câu thoại tùy chỉnh
                     var wrapClick = e.target && e.target.closest ? e.target.closest('#jolyneWrap') : null;
                     if (!wrapClick || moved) return;
 
@@ -566,7 +586,8 @@ position: absolute !important;
                         }, 100);
                     }
                     if (b) {
-                        b.textContent = 'Hì hì, ' + (window.__jolyne_her_name || 'cậu') + ' chọc tớ à? Ngại ghê á~ 👉👈🌸';
+                        var randShy = shyDialogueList[Math.floor(Math.random() * shyDialogueList.length)];
+                        b.textContent = randShy;
                         b.classList.remove('hide-bubble');
                     }
                     if (window.__jolyne_timer) clearTimeout(window.__jolyne_timer);
@@ -650,6 +671,7 @@ position: absolute !important;
         .replace("__IDLE_URL__", idle_sprite_url)
         .replace("__HER_NAME__", json.dumps(her_name))
         .replace("__AUTO_HIDE_SEC__", str(auto_hide_sec))
+        .replace("__SHY_LINES__", json.dumps(formatted_shy_lines, ensure_ascii=False))
         .replace("__TS__", str(ts))
     )
     st_module.components.v1.html(js_controller, height=0)
@@ -657,7 +679,7 @@ position: absolute !important;
 
 def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
     """Vẽ giao diện tùy chỉnh mascot trong tab Navbar Streamlit."""
-    settings = get_mascot_settings()
+    settings = get_mascot_settings(st_module)
 
     st_module.markdown(
         f"""
@@ -684,23 +706,26 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
         mascot_enabled = st_module.toggle(
             "Bật bé Jolyne đồng hành 🦋",
             value=settings.get("enabled", True),
+            key="mascot_enabled_toggle",
             help="Hiển thị nhân vật lơ lửng ở góc màn hình",
         )
         gogo_enabled = st_module.toggle(
             "Hiệu ứng Stand Menacing (ゴゴゴゴ) ⚡",
             value=settings.get("gogo_enabled", True),
+            key="mascot_gogo_toggle",
             help="Hiệu ứng chữ JoJo bay bổng bên phải nhân vật",
         )
 
     with col2:
-        st_module.markdown("#### 📏 Kích Thước & Tốc Độ")
+        st_module.markdown("#### 📏 Kích Thước & Tốc Độ (Thay đổi trực tiếp)")
         mascot_size = st_module.slider(
             "Kích thước nhân vật (pixel)",
             min_value=65,
-            max_value=150,
+            max_value=160,
             value=int(settings.get("size", 95)),
             step=5,
-            help="Điều chỉnh độ lớn của bé Jolyne trên màn hình (thay đổi ngay sau khi lưu)",
+            key="mascot_size_slider",
+            help="Kéo để thay đổi độ lớn của bé Jolyne trực tiếp trên màn hình",
         )
         mascot_speed = st_module.slider(
             "Tốc độ lơ lửng (giây)",
@@ -708,12 +733,27 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
             max_value=5.0,
             value=float(settings.get("speed", 3.2)),
             step=0.1,
-            help="Thời gian một chu kỳ nhấp nhô lơ lửng",
+            key="mascot_speed_slider",
+            help="Thời gian một chu kỳ nhấp nhô lơ lửng (thay đổi trực tiếp)",
         )
+
+    # Tự động lưu cấu hình thanh trượt & toggle khi người dùng điều chỉnh
+    raw_saved = get_mascot_settings()
+    if (
+        mascot_enabled != raw_saved.get("enabled", True)
+        or gogo_enabled != raw_saved.get("gogo_enabled", True)
+        or mascot_size != raw_saved.get("size", 95)
+        or abs(mascot_speed - raw_saved.get("speed", 3.2)) > 0.05
+    ):
+        raw_saved["enabled"] = mascot_enabled
+        raw_saved["gogo_enabled"] = gogo_enabled
+        raw_saved["size"] = mascot_size
+        raw_saved["speed"] = mascot_speed
+        save_mascot_settings(raw_saved)
 
     st_module.markdown("---")
     st_module.markdown("#### 🎭 Thử Nghiệm Hành Động Trực Tiếp")
-    st_module.caption("Bấm nút bên dưới để đổi pose và câu thoại thử nghiệm:")
+    st_module.caption("Bấm nút bên dưới để đổi pose và nghe câu thoại thử nghiệm:")
 
     act_keys = list(ACTION_LABELS.keys())
     row1 = act_keys[:6]
@@ -740,15 +780,23 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
         "Bạn có thể dùng <code>{her_name}</code> hoặc <code>{my_name}</code> để chèn tên động."
     )
 
-    dialogues = settings.get("dialogues", DEFAULT_SETTINGS["dialogues"])
+    dialogues = raw_saved.get("dialogues", DEFAULT_SETTINGS["dialogues"])
 
-    selected_act = st_module.selectbox(
-        "Chọn hành động muốn chỉnh sửa lời thoại:",
-        options=act_keys,
-        format_func=lambda k: f"{ACTION_LABELS[k][0]} {ACTION_LABELS[k][1]}",
-    )
+    sel_col1, sel_col2 = st_module.columns([3, 1.5])
+    with sel_col1:
+        selected_act = st_module.selectbox(
+            "Chọn hành động muốn chỉnh sửa lời thoại:",
+            options=act_keys,
+            format_func=lambda k: f"{ACTION_LABELS[k][0]} {ACTION_LABELS[k][1]}",
+            key="mascot_act_select",
+        )
+    with sel_col2:
+        st_module.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+        if st_module.button("▶️ Nghe Thử Pose Này", use_container_width=True, key="btn_preview_curr"):
+            st_module.session_state["mascot_action"] = selected_act
+            st_module.rerun()
 
-    current_lines = dialogues.get(selected_act, [])
+    current_lines = dialogues.get(selected_act, DEFAULT_SETTINGS["dialogues"].get(selected_act, ["Xin chào! 🌸"]))
     current_text = "\n".join(current_lines)
 
     edited_text = st_module.text_area(
@@ -756,33 +804,33 @@ def render_mascot_tab_ui(st_module, her_name: str, my_name: str) -> None:
         value=current_text,
         height=140,
         help="Mỗi dòng là một câu thoại riêng biệt",
+        key=f"mascot_dialogue_input_{selected_act}",
     )
 
     st_module.markdown("<br>", unsafe_allow_html=True)
-    save_col1, save_col2, save_col3 = st_module.columns([1.5, 1.5, 1.8])
+    save_col1, save_col2, save_col3 = st_module.columns([2, 1.5, 1.8])
 
-    if save_col1.button("💾 Lưu Cài Đặt Mascot", type="primary", use_container_width=True):
+    if save_col1.button(f"💾 Lưu Lời Thoại Cho [{ACTION_LABELS[selected_act][1]}]", type="primary", use_container_width=True):
         new_lines = [l.strip() for l in edited_text.splitlines() if l.strip()]
         if not new_lines:
             new_lines = DEFAULT_SETTINGS["dialogues"].get(selected_act, ["Xin chào! 🌸"])
 
         dialogues[selected_act] = new_lines
-
-        new_settings = {
-            "enabled": mascot_enabled,
-            "size": mascot_size,
-            "speed": mascot_speed,
-            "gogo_enabled": gogo_enabled,
-            "auto_hide_seconds": settings.get("auto_hide_seconds", 4.5),
-            "dialogues": dialogues,
-        }
-        save_mascot_settings(new_settings)
-        st_module.success("✅ Đã lưu cấu hình bé Jolyne thành công! Cài đặt kích thước và lời thoại đã có hiệu lực.")
+        raw_saved["dialogues"] = dialogues
+        save_mascot_settings(raw_saved)
+        # Thử nghiệm ngay hành động này để người dùng thấy câu thoại mới ngay lập tức
+        st_module.session_state["mascot_action"] = selected_act
+        st_module.toast(f"Đã lưu lời thoại cho {ACTION_LABELS[selected_act][1]}!", icon="✅")
         st_module.rerun()
 
     if save_col2.button("🔄 Khôi Phục Mặc Định", use_container_width=True):
         save_mascot_settings(DEFAULT_SETTINGS)
-        st_module.info("Đã khôi phục cài đặt gốc của bé Jolyne!")
+        # Xóa các key trong session_state để tải lại giá trị gốc
+        for k in ["mascot_size_slider", "mascot_speed_slider", "mascot_enabled_toggle", "mascot_gogo_toggle"]:
+            st_module.session_state.pop(k, None)
+        for act in act_keys:
+            st_module.session_state.pop(f"mascot_dialogue_input_{act}", None)
+        st_module.toast("Đã khôi phục toàn bộ cài đặt gốc của bé Jolyne! 🌸", icon="🔄")
         st_module.rerun()
 
     if save_col3.button("📍 Đặt Lại Vị Trí Về Góc", use_container_width=True):
