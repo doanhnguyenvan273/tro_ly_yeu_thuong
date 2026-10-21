@@ -58,13 +58,20 @@ MOOD_MAP = {
     "Tired": {"name": "Mệt mỏi 😴", "icon": "😴"},
 }
 
-AI_RESPONSES = {
-    "Happy": "Tuyệt vời quá! Chúc cậu luôn giữ nụ cười tươi tắn này nhé! 🥰",
-    "Sad": "Thương cậu lắm! Đừng buồn nhé, có tớ và Bác sĩ Mèo luôn ở bên cậu này! Nghỉ ngơi một chút và uống nước ấm nha cậu! 💖",
-    "Stressed": "Thương cậu lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha cậu! 💖",
-    "Angry": "Thương cậu lắm! Hít thở thật sâu một chút nhé, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha! 💖",
-    "Tired": "Thương cậu nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé cậu! 🍵💤💖",
-}
+def get_ai_responses(her_name: str = None, my_name: str = None) -> dict:
+    if not her_name or not my_name:
+        h, m = config.get_display_names()
+        her_name = her_name or h
+        my_name = my_name or m
+    return {
+        "Happy": f"Tuyệt vời quá! Chúc {her_name} luôn giữ nụ cười tươi tắn này nhé! 🥰",
+        "Sad": f"Thương {her_name} lắm! Đừng buồn nhé, có {my_name} và Bác sĩ Mèo luôn ở bên {her_name} này! Nghỉ ngơi một chút và uống nước ấm nha {her_name}! 💖",
+        "Stressed": f"Thương {her_name} lắm! Đừng quá sức nhé, nghỉ ngơi một chút và uống nước ấm nha {her_name}! 💖",
+        "Angry": f"Thương {her_name} lắm! Hít thở thật sâu một chút nhé, đừng để chuyện bực mình làm ảnh hưởng đến sức khỏe nha {her_name}! 💖",
+        "Tired": f"Thương {her_name} nhiều! Đừng làm việc quá sức nha, nghỉ ngơi một chút và uống nước ấm nhé {her_name}! 🍵💤💖",
+    }
+
+AI_RESPONSES = get_ai_responses()
 
 
 def get_mood_inline_keyboard() -> InlineKeyboardMarkup:
@@ -96,9 +103,10 @@ async def start_mood_conversation(update: Update, context: ContextTypes.DEFAULT_
         logger.warning(f"Từ chối chat_id lạ: {user_id}")
         return ConversationHandler.END
 
+    her_name = config.get_her_name()
     text = (
         "🌸 <b>NHẬT KÝ CẢM XÚC HÔM NAY</b> 🐱\n\n"
-        "Bác sĩ Mèo đang lắng nghe cậu nè! Hôm nay tâm trạng của cậu thế nào?\n"
+        f"Bác sĩ Mèo đang lắng nghe {her_name} nè! Hôm nay tâm trạng của {her_name} thế nào?\n"
         "<i>Bấm vào một nút bên dưới để chia sẻ nhé:</i>"
     )
     
@@ -125,10 +133,11 @@ async def handle_mood_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
     mood_info = MOOD_MAP.get(mood_type, {"name": mood_type, "icon": "🌸"})
     mood_name = mood_info["name"]
+    her_name = config.get_her_name()
 
     prompt_text = (
-        f"Bác sĩ Mèo đã ghi nhận cậu đang <b>{mood_name}</b>! 🌸\n\n"
-        f"Cậu có muốn nhắn thêm điều gì đã xảy ra hôm nay không?\n"
+        f"Bác sĩ Mèo đã ghi nhận {her_name} đang <b>{mood_name}</b>! 🌸\n\n"
+        f"{her_name} có muốn nhắn thêm điều gì đã xảy ra hôm nay không?\n"
         f"👉 <i>(Gõ nội dung ghi chú, hoặc gõ <code>Không</code> để bỏ qua nhé!)</i>"
     )
 
@@ -148,6 +157,7 @@ async def handle_mood_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     mood_type = context.user_data.get("selected_mood", "Happy")
     mood_info = MOOD_MAP.get(mood_type, {"name": mood_type, "icon": "🌸"})
     mood_name = mood_info["name"]
+    her_name, my_name = config.get_display_names()
 
     # Xác định ghi chú (nếu là 'Không' / 'khong' thì set None)
     if text_input.lower() in ["không", "khong", "k", "ko", "no", "skip"]:
@@ -156,7 +166,8 @@ async def handle_mood_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         note = text_input
 
     # Câu an ủi vỗ về
-    ai_response = AI_RESPONSES.get(mood_type, "Thương cậu nhiều! Luôn giữ gìn sức khỏe nhé! 💖")
+    ai_resp_dict = get_ai_responses(her_name, my_name)
+    ai_response = ai_resp_dict.get(mood_type, f"Thương {her_name} nhiều! Luôn giữ gìn sức khỏe nhé! 💖")
     today_str = config.get_now().strftime("%Y-%m-%d")
 
     # 1. Lưu an toàn vào CSDL (Turso Cloud / SQLite)
@@ -171,7 +182,7 @@ async def handle_mood_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     except Exception as e:
         logger.error(f"Lỗi khi lưu mood_log vào DB: {e}")
 
-    # 2. Phản hồi cho cậu ấy
+    # 2. Phản hồi cho người ấy
     note_str = f"\n📝 <i>Ghi chú: \"{note}\"</i>" if note else ""
     reply_msg = (
         f"🐱 <b>BÁC SĨ MÈO ĐÃ LẮNG NGHE!</b> 🌸\n\n"
@@ -185,10 +196,10 @@ async def handle_mood_note(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         try:
             note_content = note if note else "Không có ghi chú"
             secret_msg = (
-                f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT]</b>\n\n"
-                f"Cậu ấy vừa cập nhật cảm xúc: <b>{mood_name}</b> qua Telegram.\n"
+                f"🤫 <b>[CẢNH BÁO TÂM LÝ BÍ MẬT DÀNH CHO {my_name.upper()}]</b>\n\n"
+                f"{her_name} vừa cập nhật cảm xúc: <b>{mood_name}</b> qua Telegram.\n"
                 f"📝 <b>Ghi chú:</b> {note_content}\n\n"
-                f"👉 <i>Hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon hoặc đồ ngọt cho cậu ấy nhé! 🍫🧸💖</i>"
+                f"👉 <i>{my_name} hãy nhắn tin hỏi thăm và chuẩn bị món gì đó ngon hoặc đồ ngọt cho {her_name} nhé! 🍫🧸💖</i>"
             )
             notifier.notify_you_secret(secret_msg)
         except Exception as notify_err:

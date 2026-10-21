@@ -152,7 +152,8 @@ def test_telegram_connection(bot_token: str, chat_id: str) -> dict:
 
         # Nếu có chat_id thì thử gửi tin nhắn test
         if chat_id:
-            test_msg = f"💖 Kết nối thành công với Bot @{bot_username}!\nTrợ Lý Yêu Thương đã sẵn sàng phục vụ cậu rồi nha! 🌸"
+            her_name = config.get_her_name()
+            test_msg = f"💖 Kết nối thành công với Bot @{bot_username}!\nTrợ Lý Yêu Thương đã sẵn sàng phục vụ {her_name} rồi nha! 🌸"
             send_resp = requests.post(
                 f"https://api.telegram.org/bot{bot_token}/sendMessage",
                 json={"chat_id": chat_id, "text": test_msg},

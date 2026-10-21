@@ -77,24 +77,27 @@ def predict_deadline_risk(task_name: str, classes_today: int, free_hours_left: f
         
     risk_percentage = min(99.0, max(1.0, risk_percentage))
     
+    from config import get_her_name
+    her_name = get_her_name()
+
     if risk_percentage >= 70:
         warning_level = "NGUY CƠ CAO"
         warning_message = (
             f"Cảnh báo: Task '{task_name}' có {risk_percentage:.0f}% nguy cơ trễ hạn do "
-            f"hôm đó cậu có {classes_today} ca học và chỉ còn {free_hours_left:.1f} giờ rảnh "
-            f"(khối lượng dự kiến: {estimated_hours:.1f}h). Cậu hãy làm sớm nhé."
+            f"hôm đó {her_name} có {classes_today} ca học và chỉ còn {free_hours_left:.1f} giờ rảnh "
+            f"(khối lượng dự kiến: {estimated_hours:.1f}h). {her_name} hãy làm sớm nhé."
         )
     elif risk_percentage >= 40:
         warning_level = "CHÚ Ý"
         warning_message = (
             f"Lưu ý: Task '{task_name}' có {risk_percentage:.0f}% nguy cơ trễ hạn. "
-            f"Cậu còn {free_hours_left:.1f} giờ rảnh và {classes_today} ca học. Hãy sắp xếp thời gian làm sớm nha."
+            f"{her_name} còn {free_hours_left:.1f} giờ rảnh và {classes_today} ca học. Hãy sắp xếp thời gian làm sớm nha."
         )
     else:
         warning_level = "AN TOÀN"
         warning_message = (
             f"Tiến độ an toàn: Task '{task_name}' chỉ có {risk_percentage:.0f}% rủi ro. "
-            f"Thời gian còn lại rất thoải mái ({free_hours_left:.1f}h rảnh). Cậu an tâm nhé."
+            f"Thời gian còn lại rất thoải mái ({free_hours_left:.1f}h rảnh). {her_name} an tâm nhé."
         )
         
     return {

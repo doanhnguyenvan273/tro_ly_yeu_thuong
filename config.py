@@ -88,7 +88,7 @@ def load_settings() -> dict:
         import database
         db_kv = database.get_all_app_kv()
         if db_kv:
-            for k in ["pinned_note", "pinned_note_time", "app_passcode", "web_app_url", "weather_city"]:
+            for k in ["pinned_note", "pinned_note_time", "app_passcode", "web_app_url", "weather_city", "her_name", "my_name", "secret_mode_enabled"]:
                 if k in db_kv:
                     res[k] = db_kv[k]
     except Exception:
@@ -109,7 +109,7 @@ def save_settings(settings: dict) -> bool:
     # Ghi nhận lên Cloud CSDL để Web App Render cập nhật tức thì
     try:
         import database
-        for k in ["pinned_note", "pinned_note_time", "app_passcode", "web_app_url", "weather_city"]:
+        for k in ["pinned_note", "pinned_note_time", "app_passcode", "web_app_url", "weather_city", "her_name", "my_name", "secret_mode_enabled"]:
             if k in settings:
                 database.set_app_kv(k, settings[k])
     except Exception:
@@ -128,6 +128,20 @@ YOUR_CHAT_ID = os.getenv("YOUR_CHAT_ID") or _settings.get("telegram_my_chat_id",
 # Tên hiển thị: ưu tiên biến môi trường, sau đó settings.json, cuối cùng là default
 HER_NAME = os.getenv("HER_NAME") or _settings.get("her_name", "Cậu 🌸")
 MY_NAME = os.getenv("MY_NAME") or _settings.get("my_name", "Tớ 💫")
+
+def get_her_name() -> str:
+    """Lấy tên hiển thị của Cậu Ấy đồng bộ từ settings."""
+    st = load_settings()
+    return os.getenv("HER_NAME") or st.get("her_name", "Cậu 🌸").strip() or "Cậu 🌸"
+
+def get_my_name() -> str:
+    """Lấy tên hiển thị của Tớ đồng bộ từ settings."""
+    st = load_settings()
+    return os.getenv("MY_NAME") or st.get("my_name", "Tớ 💫").strip() or "Tớ 💫"
+
+def get_display_names() -> tuple[str, str]:
+    """Lấy cặp tên hiển thị (her_name, my_name) chuẩn hóa."""
+    return get_her_name(), get_my_name()
 
 # Danh sách Chat ID được phép tương tác với Bot (Bảo mật, chống spam)
 ALLOWED_CHAT_IDS = [str(cid).strip() for cid in [HER_CHAT_ID, YOUR_CHAT_ID] if str(cid).strip()]
