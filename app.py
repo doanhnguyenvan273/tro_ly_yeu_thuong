@@ -1090,9 +1090,7 @@ selected_nav = st.radio(
 st.session_state["active_nav"] = selected_nav
 
 # ── BÉ JOLYNE KUJO ĐỒNG HÀNH LƠ LỬNG TRÊN TOÀN BỘ WEB APP ──
-mascot_floating_html = mascot_manager.build_floating_mascot_html(her_name=her_name, my_name=my_name)
-if mascot_floating_html:
-    st.markdown(mascot_floating_html, unsafe_allow_html=True)
+mascot_manager.render_floating_mascot(st, her_name=her_name, my_name=my_name)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # ROUTING NỘI DUNG THEO NAVBAR
