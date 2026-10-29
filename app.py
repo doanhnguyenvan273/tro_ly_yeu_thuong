@@ -71,6 +71,28 @@ html, body, [class*="css"] { font-family: 'Quicksand', sans-serif; color: #333; 
 footer    { display: none !important; }
 header, [data-testid="stHeader"], [data-testid="stToolbar"] { display: none !important; }
 
+/* ── Ẩn triệt để nút đỏ Manage app, Status Widget, Avatar và Viewer Badge ── */
+div[data-testid="stStatusWidget"],
+[data-testid="stStatusWidget"],
+[data-testid="manage-app-button"],
+.viewerBadge_container__1QSob,
+.styles_viewerBadge__1yB5_,
+.viewerBadge_link__1S137,
+.viewerBadge_text__1JaDK,
+div.embeddedAppMetaInfoBar_container__DxxL1,
+[class*="viewerBadge"],
+[class*="StatusWidget"],
+[class*="ManageApp"],
+[class*="floatingActionButton"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    position: fixed !important;
+    pointer-events: none !important;
+}
+
 /* ── Container chính: cho phép cuộn tự nhiên 100%, không bị khóa cuộn ── */
 html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppViewContainer"] {
     overflow-x: hidden !important;

@@ -5,6 +5,10 @@ enableCORS = false
 enableXsrfProtection = false
 maxUploadSize = 10
 
+[client]
+toolbarMode = "minimal"
+showErrorDetails = false
+
 [runner]
 fastReruns = true
 
