@@ -483,11 +483,28 @@ position: absolute !important;
                 if (!pDoc.getElementById('jolyne-global-style')) {
                     var gs = pDoc.createElement('style');
                     gs.id = 'jolyne-global-style';
-                    gs.textContent = '#jolyneWidget { position: fixed !important; z-index: 2147483647 !important; pointer-events: none !important; bottom: 24px !important; right: 24px !important; } #jolyneWidget * { box-sizing: border-box !important; } #jolyneWidget .jolyne-avatar-wrap, #jolyneWidget .jolyne-speech-bubble { pointer-events: auto !important; }';
+                    gs.textContent = '#jolyneWidget { position: fixed !important; z-index: 2147483647 !important; pointer-events: none !important; bottom: 24px !important; right: 24px !important; } #jolyneWidget * { box-sizing: border-box !important; } #jolyneWidget .jolyne-avatar-wrap, #jolyneWidget .jolyne-speech-bubble { pointer-events: auto !important; } [data-testid="manage-app-button"], .viewerBadge, [class*="viewerBadge"], [class*="ManageApp"], [class*="FloatingActionButton"], [class*="floatingActionButton"], iframe[title*="manage" i] { display: none !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }';
                     pDoc.head.appendChild(gs);
                 }
 
                 // A. Đọc và áp dụng tọa độ đã lưu vào CSS variables (--jolyne-x, --jolyne-y)
+                function hideStreamlitCloudBadges() {
+                    try {
+                        var sels = ['[data-testid="manage-app-button"]', '.viewerBadge', '[class*="viewerBadge"]', '[class*="ManageApp"]', '[class*="FloatingActionButton"]', '[class*="floatingActionButton"]', 'iframe[title*="manage" i]'];
+                        sels.forEach(function(s) {
+                            var els = pDoc.querySelectorAll(s);
+                            els.forEach(function(el) {
+                                el.style.setProperty('display', 'none', 'important');
+                                el.style.setProperty('visibility', 'hidden', 'important');
+                                el.style.setProperty('opacity', '0', 'important');
+                                el.style.setProperty('pointer-events', 'none', 'important');
+                            });
+                        });
+                    } catch(e) {}
+                }
+                hideStreamlitCloudBadges();
+                setInterval(hideStreamlitCloudBadges, 2000);
+
                 function initSavedPos() {
                     try {
                         var s = JSON.parse(localStorage.getItem('jolyne_pos_v2'));
