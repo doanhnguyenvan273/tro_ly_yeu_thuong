@@ -29,6 +29,16 @@ try:
 except ImportError:
     pass
 
+# Tự động nạp Streamlit Secrets vào os.environ (hỗ trợ Streamlit Community Cloud)
+try:
+    import streamlit as st
+    if hasattr(st, 'secrets'):
+        for _k, _v in st.secrets.items():
+            if isinstance(_v, (str, int, float, bool)):
+                os.environ.setdefault(_k, str(_v))
+except Exception:
+    pass
+
 # Đường dẫn tuyệt đối chuẩn hóa (hoạt động tốt trên cả Windows và Linux/Render)
 BASE_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = BASE_DIR / "data"
