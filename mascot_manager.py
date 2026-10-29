@@ -17,7 +17,32 @@ import random
 import time
 import copy
 import html
+import base64
+from pathlib import Path
 from typing import Dict, List, Any
+
+_MASCOT_BASE_DIR = Path(__file__).resolve().parent
+_MASCOT_STATIC_DIR = _MASCOT_BASE_DIR / 'static' / 'mascot'
+_SPRITE_B64_CACHE: Dict[str, str] = {}
+
+def get_sprite_url(act: str) -> str:
+    """Trả về Base64 Data URI cho sprite hành động của bé Jolyne, khắc phục triệt để lỗi ảnh vỡ trên Streamlit Cloud."""
+    if act in _SPRITE_B64_CACHE:
+        return _SPRITE_B64_CACHE[act]
+    for ext in ('webp', 'png'):
+        fpath = _MASCOT_STATIC_DIR / f'jolyne_{act}.{ext}'
+        if fpath.exists():
+            try:
+                b64 = base64.b64encode(fpath.read_bytes()).decode('ascii')
+                mime = 'image/webp' if ext == 'webp' else 'image/png'
+                data_uri = f'data:{mime};base64,{b64}'
+                _SPRITE_B64_CACHE[act] = data_uri
+                return data_uri
+            except Exception:
+                pass
+    fallback = f'/app/static/mascot/jolyne_{act}.webp'
+    _SPRITE_B64_CACHE[act] = fallback
+    return fallback
 
 SETTINGS_PATH = os.path.join("data", "mascot_settings.json")
 MASCOT_DIR = os.path.join("static", "mascot")
@@ -198,12 +223,12 @@ def render_floating_mascot(
             ]
 
     sprite_map = {
-        k_act: f"/app/static/mascot/jolyne_{k_act}.webp"
+        k_act: get_sprite_url(k_act)
         for k_act in ACTION_LABELS.keys()
     }
 
-    current_sprite_url = f"/app/static/mascot/jolyne_{action}.webp"
-    idle_sprite_url = "/app/static/mascot/jolyne_idle.webp"
+    current_sprite_url = get_sprite_url(action)
+    idle_sprite_url = get_sprite_url("idle")
     gogo_display = "block" if gogo_enabled else "none"
 
     # PHẦN 1: CSS & HTML nguyên bản không chứa khoảng trắng thụt lề đầu dòng
